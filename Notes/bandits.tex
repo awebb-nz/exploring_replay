@@ -1,0 +1,62 @@
+\documentclass{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath, amsfonts}
+\usepackage{hyperref}
+\setlength{\parindent}{0pt}
+
+\begin{document}
+    
+Change in the value function due to learning about a particular $b'$:
+
+\begin{align}
+v(b')-v(b)=&\sum_a \pi(a\mid b')q(b', a)-\sum_{a'} \pi(a\mid b)q(b,a)\\
+=&\sum_a\big[ ( \pi(a\mid b')-\pi(a\mid b) )q(b', a) + \pi(a\mid b)(q(b', a)-q(b, a))\big]\nonumber
+\end{align}
+
+\begin{align}
+q(b', a)-q(b, a)=&\sum_{b''}p(b''\mid b', a)\big[r(b',a) + \gamma v(b'')\big]\\
+-&\sum_{b'}p(g'\mid b, a)\big[r(b,a) + \gamma v(b')\big]\nonumber\\
+=& r(b',a) + \gamma \sum_{b''}p(b''\mid b', a)v(b'')\nonumber \\
+-& r(b,a) + \gamma \sum_{b'}p(b'\mid b, a)v(b')\nonumber \\
+=& \underbrace{\vphantom{ \left(\frac{a^{\frac{0.3}{`}}}{b}\right)} r(b',a) - r(b,a)}_{\substack{\text{Difference in the expected} \\ \text{immediate return}}} + \underbrace{\gamma \big[ \sum_{b''}p(b''\mid b', a)v(b'') - \sum_{b'}p(b'\mid b, a)v(b') \big]}_{\substack{\text{Difference in the expected} \\ \text{future return}}}\nonumber
+\end{align}
+
+Note that we can write
+
+\begin{align}
+cv(b'')-dv(b')=&cv(b'') - cv(b') + cv(b') - dv(b')\\
+=&c(v(b'')-v(b')) + v(b')(c-d)\nonumber
+\end{align}
+
+Therefore
+
+\begin{align}
+q(b', a) - q(b, a) =& r(b',a) - r(b,a) + \gamma \big[ \sum_{b''}p(b''\mid b', a)v(b'') - \sum_{b'}p(b'\mid b, a)v(b') \big]\\
+=& r(b', a) - r(b, a) + \gamma \sum_{b''}p(b''\mid b', a)\big[ v(b'')-v(b')\big]\nonumber\\ 
++& \gamma v(b')\big[ \sum_{b''}p(b''\mid b', a) - \sum_{b'}p(b'\mid b, a) \big]\nonumber
+\end{align}
+
+Note that the last term goes to zero. Therefore, substituting in:
+
+\begin{align*}
+v(b')-v(b)=&\sum_a \pi(a\mid b')q(b', a)-\sum_{a'} \pi(a\mid b)q(b,a)\\
+=& \sum_a\big[ \pi(a\mid b')-\pi(a\mid b) \big]q(b', a) \\
++& \sum_{a}\pi(a\mid b)\big[ r(b', a)-r(b, a) \big]\\
++& \gamma\sum_{a}\pi(a\mid b)\big[ \sum_{b''}p(b''\mid b', a) (v(b'')-v(b')) \big]\\
+\end{align*}
+
+Unrolling:
+
+\begin{align}
+\label{eqn:unrolled}
+v(b')-v(b)=&\sum_{i=0}^{\infty}\sum_{b'\in \mathcal{B}}\gamma^{i}P(b\rightarrow b', i, \pi(b)) \times\\
+&\sum_a \Big(\underbrace{\big[ \pi(a\mid b')-\pi(a\mid b) \big]q(b', a)}_{\text{Localised Gain}} +\underbrace{\mathbb{E}_{\pi(b)}\big[r(b', a)-r(b,a)\big]}_{\substack{\text{Accumuates into} \\ \text{long-term consequences}}}\Big)\nonumber
+\end{align}
+
+Equation ~\ref{eqn:unrolled} thus shows the non-local effect of policy change at a single 
+belief state. Even though Gain is only non-zero at the exact (belief) location where we perform 
+an update, this update nonetheless has long-lasting (discounted) consequences.
+
+
+\end{document}
