@@ -21,7 +21,7 @@ for p in np.arange(step, 1, step/2):
 
             R[a, t-a] = max(safe, risky)
 
-df = pd.DataFrame(gittins.T)
+df = pd.DataFrame(gittins)
 # df.drop(0, axis=1, inplace=True)
 # df.drop(0, axis=0, inplace=True)
-df.to_csv('gittins%u.csv'%T, index=False)
+df.to_csv('gittins%u_gamma09.csv'%T, index=False)
