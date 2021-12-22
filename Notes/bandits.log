@@ -1,10 +1,10 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2021/Arch Linux) (preloaded format=pdflatex 2021.12.16)  16 DEC 2021 19:34
+This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2021/Arch Linux) (preloaded format=pdflatex 2021.12.16)  22 DEC 2021 23:34
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
  %&-line parsing enabled.
-**/home/georgy/Documents/Dayan_lab/PhD/Notes/bandits.tex
-(/home/georgy/Documents/Dayan_lab/PhD/Notes/bandits.tex
+**/home/georgy/Documents/Dayan_lab/PhD/bandits/Notes/bandits.tex
+(/home/georgy/Documents/Dayan_lab/PhD/bandits/Notes/bandits.tex
 LaTeX2e <2020-10-01> patch level 4
 L3 programming layer <2021-02-18> (/usr/share/texmf-dist/tex/latex/base/article.cls
 Document Class: article 2020/04/10 v1.4m Standard LaTeX document class
@@ -212,7 +212,7 @@ Package uniquecounter Info: New unique counter `rerunfilecheck' on input line 28
 File: l3backend-pdftex.def 2021-03-18 L3 backend support: PDF output (pdfTeX)
 \l__color_backend_stack_int=\count278
 \l__pdf_internal_box=\box49
-) (/home/georgy/Documents/Dayan_lab/PhD/Notes/bandits.aux)
+) (/home/georgy/Documents/Dayan_lab/PhD/bandits/Notes/bandits.aux)
 \openout1 = `bandits.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 8.
@@ -281,7 +281,7 @@ Package: gettitlestring 2019/12/15 v1.6 Cleanup title references (HO)
 LaTeX Info: Redefining \ref on input line 8.
 LaTeX Info: Redefining \pageref on input line 8.
 LaTeX Info: Redefining \nameref on input line 8.
- (/home/georgy/Documents/Dayan_lab/PhD/Notes/bandits.out) (/home/georgy/Documents/Dayan_lab/PhD/Notes/bandits.out)
+ (/home/georgy/Documents/Dayan_lab/PhD/bandits/Notes/bandits.out) (/home/georgy/Documents/Dayan_lab/PhD/bandits/Notes/bandits.out)
 \@outlinefile=\write3
 \openout3 = `bandits.out'.
 
@@ -294,23 +294,23 @@ LaTeX Font Info:    Trying to load font information for U+msb on input line 10.
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 ) [1
 
-{/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}] [2] (/home/georgy/Documents/Dayan_lab/PhD/Notes/bandits.aux)
+{/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}] (/home/georgy/Documents/Dayan_lab/PhD/bandits/Notes/bandits.aux)
 Package rerunfilecheck Info: File `bandits.out' has not changed.
 (rerunfilecheck)             Checksum: D41D8CD98F00B204E9800998ECF8427E;0.
  ) 
 Here is how much of TeX's memory you used:
- 8112 strings out of 478994
- 118499 string characters out of 5864750
- 440638 words of memory out of 5000000
- 25517 multiletter control sequences out of 15000+600000
+ 8108 strings out of 478994
+ 118559 string characters out of 5864750
+ 436612 words of memory out of 5000000
+ 25516 multiletter control sequences out of 15000+600000
  405129 words of font info for 35 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 71i,22n,74p,394b,331s stack positions out of 5000i,500n,10000p,200000b,80000s
-</usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy5.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb>
-Output written on /home/georgy/Documents/Dayan_lab/PhD/Notes/bandits.pdf (2 pages, 86068 bytes).
+ 71i,22n,74p,402b,322s stack positions out of 5000i,500n,10000p,200000b,80000s
+</usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy5.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb>
+Output written on /home/georgy/Documents/Dayan_lab/PhD/bandits/Notes/bandits.pdf (1 page, 73348 bytes).
 PDF statistics:
- 61 PDF objects out of 1000 (max. 8388607)
- 47 compressed objects within 1 object stream
- 8 named destinations out of 1000 (max. 500000)
+ 48 PDF objects out of 1000 (max. 8388607)
+ 36 compressed objects within 1 object stream
+ 5 named destinations out of 1000 (max. 500000)
  1 words of extra memory for PDF output out of 10000 (max. 10000000)
 

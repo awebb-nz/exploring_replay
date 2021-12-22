@@ -1,7 +1,7 @@
 # Fdb version 3
-["pdflatex"] 1639679695 "/home/georgy/Documents/Dayan_lab/PhD/Notes/bandits.tex" "/home/georgy/Documents/Dayan_lab/PhD/Notes/bandits.pdf" "bandits" 1639679704
-  "/home/georgy/Documents/Dayan_lab/PhD/Notes/bandits.aux" 1639679696 736 83be69b5739e41df246f7cc960f388da ""
-  "/home/georgy/Documents/Dayan_lab/PhD/Notes/bandits.tex" 1639679704 2614 22b26bf5d9660efc94a5874268d1f568 ""
+["pdflatex"] 1640212445 "/home/georgy/Documents/Dayan_lab/PhD/bandits/Notes/bandits.tex" "/home/georgy/Documents/Dayan_lab/PhD/bandits/Notes/bandits.pdf" "bandits" 1640212474
+  "/home/georgy/Documents/Dayan_lab/PhD/bandits/Notes/bandits.aux" 1640212446 686 e6bf9f11827e1eae1d85e75b99e0a183 ""
+  "/home/georgy/Documents/Dayan_lab/PhD/bandits/Notes/bandits.tex" 1640212474 1654 df030611f2e91a603818ad81912f1a2c ""
   "/usr/share/texmf-dist/fonts/map/fontname/texfonts.map" 1617738065 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/share/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex7.tfm" 1617738065 1004 54797486969f23fa377b128694d548df ""
   "/usr/share/texmf-dist/fonts/tfm/public/amsfonts/symbols/msam10.tfm" 1617738065 916 f87d7c45f9c908e672703b83b72241a3 ""
@@ -18,7 +18,6 @@
   "/usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb" 1617738065 32569 5e5ddc8df908dea60932f3c484a54c0d ""
   "/usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy5.pfb" 1617738065 32915 7bf7720c61a5b3a7ff25b0964421c9b6 ""
   "/usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb" 1617738065 32716 08e384dc442464e7285e891af9f45947 ""
-  "/usr/share/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb" 1617738065 34694 ad62b13721ee8eda1dcc8993c8bd7041 ""
   "/usr/share/texmf-dist/tex/generic/atbegshi/atbegshi.sty" 1617738065 24708 5584a51a7101caf7e6bbf1fc27d8f7b1 ""
   "/usr/share/texmf-dist/tex/generic/bigintcalc/bigintcalc.sty" 1617738065 40635 c40361e206be584d448876bba8a64a3b ""
   "/usr/share/texmf-dist/tex/generic/bitset/bitset.sty" 1617738065 33961 6b5c75130e435b2bfdb9f480a09a39f9 ""
@@ -66,13 +65,13 @@
   "/usr/share/texmf-dist/web2c/texmf.cnf" 1617738065 39911 2da6c67557ec033436fe5418a70a8a61 ""
   "/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map" 1639675662 334215 ad2feb41952e3720830b65f83a01c5b0 ""
   "/var/lib/texmf/web2c/pdftex/pdflatex.fmt" 1639675653 2812676 92782981fe14bb7bf6c2ae5b966ee70d ""
-  "bandits.aux" 1639679696 736 83be69b5739e41df246f7cc960f388da "pdflatex"
-  "bandits.out" 1639679696 0 d41d8cd98f00b204e9800998ecf8427e "pdflatex"
-  "bandits.tex" 1639679704 2614 22b26bf5d9660efc94a5874268d1f568 ""
+  "bandits.aux" 1640212446 686 e6bf9f11827e1eae1d85e75b99e0a183 "pdflatex"
+  "bandits.out" 1640212446 0 d41d8cd98f00b204e9800998ecf8427e "pdflatex"
+  "bandits.tex" 1640212474 1654 df030611f2e91a603818ad81912f1a2c ""
   (generated)
   "bandits.aux"
-  "bandits.log"
+  "/home/georgy/Documents/Dayan_lab/PhD/bandits/Notes/bandits.pdf"
   "bandits.out"
+  "/home/georgy/Documents/Dayan_lab/PhD/bandits/Notes/bandits.log"
   "bandits.pdf"
-  "/home/georgy/Documents/Dayan_lab/PhD/Notes/bandits.pdf"
-  "/home/georgy/Documents/Dayan_lab/PhD/Notes/bandits.log"
+  "bandits.log"
