@@ -17,15 +17,25 @@ v(ba^*)-v(b)=&\sum_{b'}p(b'\mid b, a^*)\sum_a \pi(a\mid b')q(b', a)-\sum_{a} \pi
 =&\sum_a\big(\sum_{b'}p(b'\mid b, a^*)\big(\pi(a\mid b')-\pi(a\mid b)\big)q(b',a) \nonumber \\
 +&\pi(a\mid b)\sum_{b'}p(b'\mid b, a^*)\big(q(b', a) - q(b, a)\big)\big)\nonumber \\
 =&\sum_{b'}p(b'\mid b, a^*)\sum_a\big(\big(\pi(a\mid b')-\pi(a\mid b)\big)q(b',a) \nonumber \\
-+&\pi(a\mid b)\big(q(b', a) - q(b, a)\big)\big)\nonumber \\
++&\pi(a\mid b)\big(q(b', a) - q(b, a)\big)\big) \nonumber
 \end{align}
+
+Expanding $q(b', a) - q(b, a)$:
 
 \begin{align}
 q(b', a)-q(b, a)=&\sum_{b''}p(b''\mid b', a)\big[r(b',a) + \gamma v(b'')\big]\\
--&\sum_{b'}p(g'\mid b, a)\big[r(b,a) + \gamma v(b')\big]\nonumber\\
+-&\sum_{b'}p(g'\mid b, a)\big[r(b,a) + \gamma v(g')\big]\nonumber\\
 =& r(b',a) + \gamma \sum_{b''}p(b''\mid b', a)v(b'')\nonumber \\
--& r(b,a) + \gamma \sum_{b'}p(b'\mid b, a)v(b')\nonumber \\
-=& \underbrace{\vphantom{ \left(\frac{a^{\frac{0.3}{`}}}{b}\right)} r(b',a) - r(b,a)}_{\substack{\text{Difference in the expected} \\ \text{immediate return}}} + \underbrace{\gamma \big[ \sum_{b''}p(b''\mid b', a)v(b'') - \sum_{b'}p(b'\mid b, a)v(b') \big]}_{\substack{\text{Difference in the expected} \\ \text{future return}}}\nonumber
+-& r(b,a) + \gamma \sum_{g'}p(g'\mid b, a)v(g')\nonumber \\
+=& \underbrace{\vphantom{ \left(\frac{a^{\frac{0.3}{`}}}{b}\right)} r(b',a) - r(b,a)}_{\substack{\text{Difference in the expected} \\ \text{immediate return}}} + \underbrace{\gamma \big[ \sum_{b''}p(b''\mid b', a)v(b'') - \sum_{g'}p(g'\mid b, a)v(g') \big]}_{\substack{\text{Difference in the expected} \\ \text{future return}}}\nonumber
+\end{align}
+
+So overall the EVB decomposes as:
+
+\begin{align}
+    v(ba^*)-v(b) =& \mathbb{E}_{b'\sim p(b'\mid b, a^*)}\Big[\sum_a \big(\pi(a\mid b')-\pi(a\mid b)\big)q(b',a) \\
+    +& \mathbb{E}_{a\sim \pi(a\mid b)}\big[r(b',a) - r(b,a)\big] \nonumber \\ 
+    +& \mathbb{E}_{a\sim \pi(a\mid b)}\big[\gamma \sum_{b''}p(b''\mid b', a)v(b'') - \gamma \sum_{g'}p(g'\mid b, a)v(g') \big] \Big] \nonumber
 \end{align}
 
 \end{document}
