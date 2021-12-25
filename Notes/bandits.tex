@@ -6,18 +6,15 @@
 \setlength{\parindent}{0pt}
 
 \begin{document}
-    
+
+\section*{EVB Decomposition}
 Change in the value function due to learning after taking action $a^*$:
 
 \begin{align}
-v(ba^*)-v(b)=&\sum_{b'}p(b'\mid b, a^*)\sum_a \pi(a\mid b')q(b', a)-\sum_{a} \pi(a\mid b)q(b,a)\\
-=&\sum_a\big(\sum_{b'}p(b'\mid b, a^*) \pi(a\mid b')q(b', a)-\pi(a\mid b)q(b,a)\big) \nonumber \\
-=&\sum_a\big(\sum_{b'}p(b'\mid b, a^*) \pi(a\mid b')q(b', a)-\pi(a\mid b)q(b,a) \nonumber \\
-+&\pi(a\mid b)\sum_{b'}p(b'\mid b, a^*)q(b', a) - \pi(a\mid b)\sum_{b'}p(b'\mid b, a^*)q(b', a)\big) \nonumber \\
-=&\sum_a\big(\sum_{b'}p(b'\mid b, a^*)\big(\pi(a\mid b')-\pi(a\mid b)\big)q(b',a) \nonumber \\
-+&\pi(a\mid b)\sum_{b'}p(b'\mid b, a^*)\big(q(b', a) - q(b, a)\big)\big)\nonumber \\
-=&\sum_{b'}p(b'\mid b, a^*)\sum_a\big(\big(\pi(a\mid b')-\pi(a\mid b)\big)q(b',a) \nonumber \\
-+&\pi(a\mid b)\big(q(b', a) - q(b, a)\big)\big) \nonumber
+v(ba^*)-v(b)=&\sum_{b'}p(b'\mid b, a^*)\Big(v(b')-v(b)\Big)\\
+=&\sum_{b'}p(b'\mid b, a^*)\Big(\sum_a \pi(a\mid b')q(b', a)-\sum_{a} \pi(a\mid b)q(b,a)\Big) \nonumber \\
+=&\sum_{b'}p(b'\mid b, a^*)\sum_a\Big(\big(\pi(a\mid b')-\pi(a\mid b)\big)q(b',a) \nonumber \\
++&\pi(a\mid b)\big(q(b', a) - q(b, a)\big)\Big) \nonumber
 \end{align}
 
 Expanding $q(b', a) - q(b, a)$:
@@ -38,4 +35,6 @@ So overall the EVB decomposes as:
     +& \mathbb{E}_{a\sim \pi(a\mid b)}\big[\gamma \sum_{b''}p(b''\mid b', a)v(b'') - \gamma \sum_{g'}p(g'\mid b, a)v(g') \big] \Big] \nonumber
 \end{align}
 
+\section*{Simulations}
+blabla
 \end{document}

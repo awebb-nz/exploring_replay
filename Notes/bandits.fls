@@ -463,6 +463,8 @@ INPUT /home/georgy/Documents/Dayan_lab/PhD/bandits/Notes/bandits.out
 OUTPUT /home/georgy/Documents/Dayan_lab/PhD/bandits/Notes/bandits.out
 OUTPUT /home/georgy/Documents/Dayan_lab/PhD/bandits/Notes/bandits.pdf
 INPUT /usr/share/texmf-dist/fonts/map/fontname/texfonts.map
+INPUT /usr/share/texmf-dist/fonts/tfm/public/cm/cmr12.tfm
+INPUT /usr/share/texmf-dist/fonts/tfm/public/cm/cmbx12.tfm
 INPUT /usr/share/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex7.tfm
 INPUT /usr/share/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex7.tfm
 INPUT /usr/share/texmf-dist/tex/latex/amsfonts/umsa.fd
@@ -483,6 +485,7 @@ INPUT /var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map
 INPUT /home/georgy/Documents/Dayan_lab/PhD/bandits/Notes/bandits.aux
 INPUT /home/georgy/Documents/Dayan_lab/PhD/bandits/Notes/bandits.out
 INPUT /home/georgy/Documents/Dayan_lab/PhD/bandits/Notes/bandits.out
+INPUT /usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb
 INPUT /usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb
 INPUT /usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb
 INPUT /usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb
