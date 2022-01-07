@@ -1,17 +1,17 @@
 \begin{minipage}{\textwidth}
 \begin{tikzpicture}
 \tikzstyle{state} = [rectangle, text centered, minimum width=1.2cm, minimum height=1cm, draw=black, fill=orange!30]
-\node[state] at (-8,0)       (h0){\shortstack{$\alpha_0=2, \beta_0=1$ \\ $\alpha_1=1, \beta_1=1$}};
-\node[state] at (-2, 5.6)  (h1_0){\shortstack{$\alpha_0=3, \beta_0=1$ \\ $\alpha_1=1, \beta_1=1$ \\ \vspace{0.3cm} \\ $\alpha_0=2, \beta_0=2$ \\ $\alpha_1=1, \beta_1=1$}};
-\node[state] at (-2, -5.6) (h1_2){\shortstack{$\alpha_0=2, \beta_0=1$ \\ $\alpha_1=2, \beta_1=1$ \\ \vspace{0.3cm} \\ $\alpha_0=2, \beta_0=1$ \\ $\alpha_1=1, \beta_1=2$}};
-\node[state] at (6, 9.2)   (h2_0){\shortstack{$\alpha_0=4, \beta_0=1$ \\ $\alpha_1=1, \beta_1=1$ \\ \vspace{0.3cm} \\ $\alpha_0=3, \beta_0=2$ \\ $\alpha_1=1, \beta_1=1$}};
-\node[state] at (6, 6.8)   (h2_2){\shortstack{$\alpha_0=3, \beta_0=1$ \\ $\alpha_1=2, \beta_1=1$ \\ \vspace{0.3cm} \\ $\alpha_0=3, \beta_0=1$ \\ $\alpha_1=1, \beta_1=2$}};
-\node[state] at (6, 4.4)   (h2_4){\shortstack{$\alpha_0=3, \beta_0=2$ \\ $\alpha_1=1, \beta_1=1$ \\ \vspace{0.3cm} \\ $\alpha_0=2, \beta_0=3$ \\ $\alpha_1=1, \beta_1=1$}};
-\node[state] at (6, 2)     (h2_6){\shortstack{$\alpha_0=2, \beta_0=2$ \\ $\alpha_1=2, \beta_1=1$ \\ \vspace{0.3cm} \\ $\alpha_0=2, \beta_0=2$ \\ $\alpha_1=1, \beta_1=2$}};
-\node[state] at (6, -2)    (h2_8){\shortstack{$\alpha_0=3, \beta_0=1$ \\ $\alpha_1=2, \beta_1=1$ \\ \vspace{0.3cm} \\ $\alpha_0=2, \beta_0=2$ \\ $\alpha_1=2, \beta_1=1$}};
-\node[state] at (6, -4.4) (h2_10){\shortstack{$\alpha_0=2, \beta_0=1$ \\ $\alpha_1=3, \beta_1=1$ \\ \vspace{0.3cm} \\ $\alpha_0=2, \beta_0=1$ \\ $\alpha_1=2, \beta_1=2$}};
-\node[state] at (6, -6.8) (h2_12){\shortstack{$\alpha_0=3, \beta_0=1$ \\ $\alpha_1=1, \beta_1=2$ \\ \vspace{0.3cm} \\ $\alpha_0=2, \beta_0=2$ \\ $\alpha_1=1, \beta_1=2$}};
-\node[state] at (6, -9.2) (h2_14){\shortstack{$\alpha_0=2, \beta_0=1$ \\ $\alpha_1=2, \beta_1=2$ \\ \vspace{0.3cm} \\ $\alpha_0=2, \beta_0=1$ \\ $\alpha_1=1, \beta_1=3$}};
+\node[state] at (-8,0)       (h0){\begin{tabular}{c} $\begin{pmatrix} \alpha_0=2 & \beta_0=1 \\ \alpha_1=1 & \beta_1=1 \end{pmatrix}$ \end{tabular}};
+\node[state] at (-2, 5.6)  (h1_0){\begin{tabular}{c} $\begin{pmatrix} \alpha_0=3 & \beta_0=1 \\ \alpha_1=1 & \beta_1=1 \end{pmatrix}$ \\ \addlinespace[1ex]$\begin{pmatrix} \alpha_0=2 & \beta_0=2 \\ \alpha_1=1 & \beta_1=1 \end{pmatrix}$ \end{tabular}};
+\node[state] at (-2, -5.6) (h1_2){\begin{tabular}{c} $\begin{pmatrix} \alpha_0=2 & \beta_0=1 \\ \alpha_1=2 & \beta_1=1 \end{pmatrix}$ \\ \addlinespace[1ex]$\begin{pmatrix} \alpha_0=2 & \beta_0=1 \\ \alpha_1=1 & \beta_1=2 \end{pmatrix}$ \end{tabular}};
+\node[state] at (6, 9.2)   (h2_0){\begin{tabular}{c} $\begin{pmatrix} \alpha_0=4 & \beta_0=1 \\ \alpha_1=1 & \beta_1=1 \end{pmatrix}$ \\ \addlinespace[1ex]$\begin{pmatrix} \alpha_0=3 & \beta_0=2 \\ \alpha_1=1 & \beta_1=1 \end{pmatrix}$ \end{tabular}};
+\node[state] at (6, 6.8)   (h2_2){\begin{tabular}{c} $\begin{pmatrix} \alpha_0=3 & \beta_0=1 \\ \alpha_1=2 & \beta_1=1 \end{pmatrix}$ \\ \addlinespace[1ex]$\begin{pmatrix} \alpha_0=3 & \beta_0=1 \\ \alpha_1=1 & \beta_1=2 \end{pmatrix}$ \end{tabular}};
+\node[state] at (6, 4.4)   (h2_4){\begin{tabular}{c} $\begin{pmatrix} \alpha_0=3 & \beta_0=2 \\ \alpha_1=1 & \beta_1=1 \end{pmatrix}$ \\ \addlinespace[1ex]$\begin{pmatrix} \alpha_0=2 & \beta_0=3 \\ \alpha_1=1 & \beta_1=1 \end{pmatrix}$ \end{tabular}};
+\node[state] at (6, 2)     (h2_6){\begin{tabular}{c} $\begin{pmatrix} \alpha_0=2 & \beta_0=2 \\ \alpha_1=2 & \beta_1=1 \end{pmatrix}$ \\ \addlinespace[1ex]$\begin{pmatrix} \alpha_0=2 & \beta_0=2 \\ \alpha_1=1 & \beta_1=2 \end{pmatrix}$ \end{tabular}};
+\node[state] at (6, -2)    (h2_8){\begin{tabular}{c} $\begin{pmatrix} \alpha_0=3 & \beta_0=1 \\ \alpha_1=2 & \beta_1=1 \end{pmatrix}$ \\ \addlinespace[1ex]$\begin{pmatrix} \alpha_0=2 & \beta_0=2 \\ \alpha_1=2 & \beta_1=1 \end{pmatrix}$ \end{tabular}};
+\node[state] at (6, -4.4) (h2_10){\begin{tabular}{c} $\begin{pmatrix} \alpha_0=2 & \beta_0=1 \\ \alpha_1=3 & \beta_1=1 \end{pmatrix}$ \\ \addlinespace[1ex]$\begin{pmatrix} \alpha_0=2 & \beta_0=1 \\ \alpha_1=2 & \beta_1=2 \end{pmatrix}$ \end{tabular}};
+\node[state] at (6, -6.8) (h2_12){\begin{tabular}{c} $\begin{pmatrix} \alpha_0=3 & \beta_0=1 \\ \alpha_1=1 & \beta_1=2 \end{pmatrix}$ \\ \addlinespace[1ex]$\begin{pmatrix} \alpha_0=2 & \beta_0=2 \\ \alpha_1=1 & \beta_1=2 \end{pmatrix}$ \end{tabular}};
+\node[state] at (6, -9.2) (h2_14){\begin{tabular}{c} $\begin{pmatrix} \alpha_0=2 & \beta_0=1 \\ \alpha_1=2 & \beta_1=2 \end{pmatrix}$ \\ \addlinespace[1ex]$\begin{pmatrix} \alpha_0=2 & \beta_0=1 \\ \alpha_1=1 & \beta_1=3 \end{pmatrix}$ \end{tabular}};
 \draw[->, thick] ([yshift=5.5cm]h0)   |- (h1_0)  node[above, pos=0.7] {arm $0$};
 \draw[->, thick] ([yshift=-5.5cm]h0)  |- (h1_2)  node[above, pos=0.7] {arm $1$};
 \draw[->, thick] ([yshift=4.0cm]h1_0) |- (h2_0)  node[above, pos=0.7] {arm $0$};
