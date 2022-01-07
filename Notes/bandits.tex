@@ -41,16 +41,27 @@ So overall the EVB decomposes as:
     +& \mathbb{E}_{a\sim \pi(a\mid b)}\big[\gamma \sum_{b''}p(b''\mid b', a)v(b'') - \gamma \sum_{g'}p(g'\mid b, a)v(g') \big] \Big] \nonumber
 \end{align}
 
+One last thing to consider is how the prioritisation of distal experiences should 
+differ from those that are more immediate. This also has implications for how likely 
+those experiences are to occur according to the current model. 
+\bigbreak
+For instance, if the agent considers updating $v(b)$ towards the value that would result 
+from taking a particular action from that belief state -- say, $v(ba^*)$ -- the EVB associated 
+with that update needs to be weighted by the probability of transitioning into 
+belief state $b$ in the first place (i.e., from the current root of the tree).
+
+\begin{align}
+    v(ba^*)-v(b) = p(b_{\text{root}}\rightarrow b) &\mathbb{E}_{b'\sim p(b'\mid b, a^*)}\Big[\sum_a \big(\pi(a\mid b')-\pi(a\mid b)\big)q(b',a) \\
+    +& \mathbb{E}_{a\sim \pi(a\mid b)}\big[r(b',a) - r(b,a)\big] \nonumber \\ 
+    +& \mathbb{E}_{a\sim \pi(a\mid b)}\big[\gamma \sum_{b''}p(b''\mid b', a)v(b'') - \gamma \sum_{g'}p(g'\mid b, a)v(g') \big] \Big] \nonumber
+\end{align}
+
 \newpage
 \section*{Simulations}
 
 Prioritisation pattern with horizon $h=3$.
 \vspace{1cm}
 
-\input{tex_tree_1.tex}
-
-\input{tex_tree_2.tex}
-
-\input{tex_tree_3.tex}
+\input{../Data/Tree/tex_tree.tex}
 
 \end{document}
