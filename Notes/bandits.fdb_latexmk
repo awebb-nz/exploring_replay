@@ -1,6 +1,6 @@
 # Fdb version 3
-["pdflatex"] 1641554996 "/home/georgy/Documents/Dayan_lab/PhD/bandits/Notes/bandits.tex" "/home/georgy/Documents/Dayan_lab/PhD/bandits/Notes/bandits.pdf" "bandits" 1641554996
-  "../Data/Tree/tex_tree.tex" 1641554006 3678 59b96fce724e72ccbb1b21f3f15f5959 ""
+["pdflatex"] 1641554996 "/home/georgy/Documents/Dayan_lab/PhD/bandits/Notes/bandits.tex" "/home/georgy/Documents/Dayan_lab/PhD/bandits/Notes/bandits.pdf" "bandits" 1641555121
+  "../Data/Tree/tex_tree.tex" 1641555121 3678 59b96fce724e72ccbb1b21f3f15f5959 ""
   "/home/georgy/Documents/Dayan_lab/PhD/bandits/Notes/bandits.aux" 1641554996 686 4ce905362b6645b598ea182482e9aeed ""
   "/home/georgy/Documents/Dayan_lab/PhD/bandits/Notes/bandits.tex" 1641554995 2993 cea180418faedac1066d2edb2f2bd4b0 ""
   "/usr/share/texmf-dist/fonts/map/fontname/texfonts.map" 1617738065 3524 cb3e574dea2d1052e39280babc910dc8 ""
@@ -151,9 +151,9 @@
   "bandits.out" 1641554996 0 d41d8cd98f00b204e9800998ecf8427e "pdflatex"
   "bandits.tex" 1641554995 2993 cea180418faedac1066d2edb2f2bd4b0 ""
   (generated)
-  "bandits.out"
+  "bandits.log"
+  "/home/georgy/Documents/Dayan_lab/PhD/bandits/Notes/bandits.pdf"
   "bandits.pdf"
   "bandits.aux"
   "/home/georgy/Documents/Dayan_lab/PhD/bandits/Notes/bandits.log"
-  "/home/georgy/Documents/Dayan_lab/PhD/bandits/Notes/bandits.pdf"
-  "bandits.log"
+  "bandits.out"
