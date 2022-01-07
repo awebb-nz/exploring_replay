@@ -1,8 +1,8 @@
 # Fdb version 3
-["pdflatex"] 1641554092 "/home/georgy/Documents/Dayan_lab/PhD/bandits/Notes/bandits.tex" "/home/georgy/Documents/Dayan_lab/PhD/bandits/Notes/bandits.pdf" "bandits" 1641554137
+["pdflatex"] 1641554996 "/home/georgy/Documents/Dayan_lab/PhD/bandits/Notes/bandits.tex" "/home/georgy/Documents/Dayan_lab/PhD/bandits/Notes/bandits.pdf" "bandits" 1641554996
   "../Data/Tree/tex_tree.tex" 1641554006 3678 59b96fce724e72ccbb1b21f3f15f5959 ""
-  "/home/georgy/Documents/Dayan_lab/PhD/bandits/Notes/bandits.aux" 1641554092 686 4ce905362b6645b598ea182482e9aeed ""
-  "/home/georgy/Documents/Dayan_lab/PhD/bandits/Notes/bandits.tex" 1641554137 2957 d7462de7f74771b73786ce3bc8de445b ""
+  "/home/georgy/Documents/Dayan_lab/PhD/bandits/Notes/bandits.aux" 1641554996 686 4ce905362b6645b598ea182482e9aeed ""
+  "/home/georgy/Documents/Dayan_lab/PhD/bandits/Notes/bandits.tex" 1641554995 2993 cea180418faedac1066d2edb2f2bd4b0 ""
   "/usr/share/texmf-dist/fonts/map/fontname/texfonts.map" 1617738065 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/share/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex7.tfm" 1617738065 1004 54797486969f23fa377b128694d548df ""
   "/usr/share/texmf-dist/fonts/tfm/public/amsfonts/symbols/msam10.tfm" 1617738065 916 f87d7c45f9c908e672703b83b72241a3 ""
@@ -147,13 +147,13 @@
   "/usr/share/texmf-dist/web2c/texmf.cnf" 1617738065 39911 2da6c67557ec033436fe5418a70a8a61 ""
   "/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map" 1639675662 334215 ad2feb41952e3720830b65f83a01c5b0 ""
   "/var/lib/texmf/web2c/pdftex/pdflatex.fmt" 1639675653 2812676 92782981fe14bb7bf6c2ae5b966ee70d ""
-  "bandits.aux" 1641554092 686 4ce905362b6645b598ea182482e9aeed "pdflatex"
-  "bandits.out" 1641554092 0 d41d8cd98f00b204e9800998ecf8427e "pdflatex"
-  "bandits.tex" 1641554137 2957 d7462de7f74771b73786ce3bc8de445b ""
+  "bandits.aux" 1641554996 686 4ce905362b6645b598ea182482e9aeed "pdflatex"
+  "bandits.out" 1641554996 0 d41d8cd98f00b204e9800998ecf8427e "pdflatex"
+  "bandits.tex" 1641554995 2993 cea180418faedac1066d2edb2f2bd4b0 ""
   (generated)
-  "/home/georgy/Documents/Dayan_lab/PhD/bandits/Notes/bandits.log"
-  "bandits.pdf"
-  "/home/georgy/Documents/Dayan_lab/PhD/bandits/Notes/bandits.pdf"
-  "bandits.aux"
-  "bandits.log"
   "bandits.out"
+  "bandits.pdf"
+  "bandits.aux"
+  "/home/georgy/Documents/Dayan_lab/PhD/bandits/Notes/bandits.log"
+  "/home/georgy/Documents/Dayan_lab/PhD/bandits/Notes/bandits.pdf"
+  "bandits.log"

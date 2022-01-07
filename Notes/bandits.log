@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2021/Arch Linux) (preloaded format=pdflatex 2021.12.16)  7 JAN 2022 12:14
+This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2021/Arch Linux) (preloaded format=pdflatex 2021.12.16)  7 JAN 2022 12:29
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -553,7 +553,7 @@ Overfull \hbox (1.15608pt too wide) in paragraph at lines 25--26
  []
 
 )
-Underfull \hbox (badness 10000) in paragraph at lines 1--67
+Underfull \hbox (badness 10000) in paragraph at lines 1--68
 
  []
 
@@ -564,13 +564,13 @@ Package rerunfilecheck Info: File `bandits.out' has not changed.
 Here is how much of TeX's memory you used:
  19920 strings out of 478994
  365268 string characters out of 5864750
- 676567 words of memory out of 5000000
+ 677567 words of memory out of 5000000
  37060 multiletter control sequences out of 15000+600000
  405734 words of font info for 37 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  113i,22n,116p,478b,713s stack positions out of 5000i,500n,10000p,200000b,80000s
 </usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy5.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb>
-Output written on /home/georgy/Documents/Dayan_lab/PhD/bandits/Notes/bandits.pdf (2 pages, 97633 bytes).
+Output written on /home/georgy/Documents/Dayan_lab/PhD/bandits/Notes/bandits.pdf (2 pages, 97861 bytes).
 PDF statistics:
  68 PDF objects out of 1000 (max. 8388607)
  53 compressed objects within 1 object stream
