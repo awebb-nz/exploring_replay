@@ -52,8 +52,8 @@ with that update needs to be weighted by the probability of transitioning into
 belief state $b$ in the first place (i.e., from the current root of the tree).
 
 \begin{align}
-    v(ba^*)-v(b) = p(b_{\text{root}}\rightarrow b) \times \\ 
-    \Big(&\mathbb{E}_{b'\sim p(b'\mid b, a^*)}\Big[\sum_a \big(\pi(a\mid b')-\pi(a\mid b)\big)q(b',a) \nonumber \\
+    v(ba^*)-v(b) = p(b_{\text{root}}\rightarrow b) \times  
+    \Big(&\mathbb{E}_{b'\sim p(b'\mid b, a^*)}\Big[\sum_a \big(\pi(a\mid b')-\pi(a\mid b)\big)q(b',a) \\
     +& \mathbb{E}_{a\sim \pi(a\mid b)}\big[r(b',a) - r(b,a)\big] \nonumber \\ 
     +& \mathbb{E}_{a\sim \pi(a\mid b)}\big[\gamma \sum_{b''}p(b''\mid b', a)v(b'') - \gamma \sum_{g'}p(g'\mid b, a)v(g') \big] \Big] \Big) \nonumber
 \end{align}
