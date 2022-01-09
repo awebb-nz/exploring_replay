@@ -1,26 +1,47 @@
 \begin{minipage}{\textwidth}
 \begin{tikzpicture}
-\tikzstyle{state} = [rectangle, text centered, minimum width=1.2cm, minimum height=1cm, draw=black, fill=orange!30]
-\node[state] at (-8,0)       (h0){\begin{tabular}{c} $\begin{pmatrix} \alpha_0=2 & \beta_0=1 \\ \alpha_1=1 & \beta_1=1 \end{pmatrix}$ \end{tabular}};
-\node[state] at (-2, 5.6)  (h1_0){\begin{tabular}{c} $\begin{pmatrix} \alpha_0=3 & \beta_0=1 \\ \alpha_1=1 & \beta_1=1 \end{pmatrix}$ \\ \addlinespace[1ex]$\begin{pmatrix} \alpha_0=2 & \beta_0=2 \\ \alpha_1=1 & \beta_1=1 \end{pmatrix}$ \end{tabular}};
-\node[state] at (-2, -5.6) (h1_2){\begin{tabular}{c} $\begin{pmatrix} \alpha_0=2 & \beta_0=1 \\ \alpha_1=2 & \beta_1=1 \end{pmatrix}$ \\ \addlinespace[1ex]$\begin{pmatrix} \alpha_0=2 & \beta_0=1 \\ \alpha_1=1 & \beta_1=2 \end{pmatrix}$ \end{tabular}};
-\node[state] at (6, 9.2)   (h2_0){\begin{tabular}{c} $\begin{pmatrix} \alpha_0=4 & \beta_0=1 \\ \alpha_1=1 & \beta_1=1 \end{pmatrix}$ \\ \addlinespace[1ex]$\begin{pmatrix} \alpha_0=3 & \beta_0=2 \\ \alpha_1=1 & \beta_1=1 \end{pmatrix}$ \end{tabular}};
-\node[state] at (6, 6.8)   (h2_2){\begin{tabular}{c} $\begin{pmatrix} \alpha_0=3 & \beta_0=1 \\ \alpha_1=2 & \beta_1=1 \end{pmatrix}$ \\ \addlinespace[1ex]$\begin{pmatrix} \alpha_0=3 & \beta_0=1 \\ \alpha_1=1 & \beta_1=2 \end{pmatrix}$ \end{tabular}};
-\node[state] at (6, 4.4)   (h2_4){\begin{tabular}{c} $\begin{pmatrix} \alpha_0=3 & \beta_0=2 \\ \alpha_1=1 & \beta_1=1 \end{pmatrix}$ \\ \addlinespace[1ex]$\begin{pmatrix} \alpha_0=2 & \beta_0=3 \\ \alpha_1=1 & \beta_1=1 \end{pmatrix}$ \end{tabular}};
-\node[state] at (6, 2)     (h2_6){\begin{tabular}{c} $\begin{pmatrix} \alpha_0=2 & \beta_0=2 \\ \alpha_1=2 & \beta_1=1 \end{pmatrix}$ \\ \addlinespace[1ex]$\begin{pmatrix} \alpha_0=2 & \beta_0=2 \\ \alpha_1=1 & \beta_1=2 \end{pmatrix}$ \end{tabular}};
-\node[state] at (6, -2)    (h2_8){\begin{tabular}{c} $\begin{pmatrix} \alpha_0=3 & \beta_0=1 \\ \alpha_1=2 & \beta_1=1 \end{pmatrix}$ \\ \addlinespace[1ex]$\begin{pmatrix} \alpha_0=2 & \beta_0=2 \\ \alpha_1=2 & \beta_1=1 \end{pmatrix}$ \end{tabular}};
-\node[state] at (6, -4.4) (h2_10){\begin{tabular}{c} $\begin{pmatrix} \alpha_0=2 & \beta_0=1 \\ \alpha_1=3 & \beta_1=1 \end{pmatrix}$ \\ \addlinespace[1ex]$\begin{pmatrix} \alpha_0=2 & \beta_0=1 \\ \alpha_1=2 & \beta_1=2 \end{pmatrix}$ \end{tabular}};
-\node[state] at (6, -6.8) (h2_12){\begin{tabular}{c} $\begin{pmatrix} \alpha_0=3 & \beta_0=1 \\ \alpha_1=1 & \beta_1=2 \end{pmatrix}$ \\ \addlinespace[1ex]$\begin{pmatrix} \alpha_0=2 & \beta_0=2 \\ \alpha_1=1 & \beta_1=2 \end{pmatrix}$ \end{tabular}};
-\node[state] at (6, -9.2) (h2_14){\begin{tabular}{c} $\begin{pmatrix} \alpha_0=2 & \beta_0=1 \\ \alpha_1=2 & \beta_1=2 \end{pmatrix}$ \\ \addlinespace[1ex]$\begin{pmatrix} \alpha_0=2 & \beta_0=1 \\ \alpha_1=1 & \beta_1=3 \end{pmatrix}$ \end{tabular}};
-\draw[->, thick] ([yshift=5.5cm]h0)   |- (h1_0)  node[above, pos=0.8] {arm $0$};
-\draw[->, thick] ([yshift=-5.5cm]h0)  |- (h1_2)  node[above, pos=0.8] {arm $1$};
-\draw[->, thick] ([yshift=4.0cm]h1_0) |- (h2_0)  node[above, pos=0.8] {arm $0$};
-\draw[->, thick] ([yshift=1.5cm]h1_0) |- (h2_2)  node[above, pos=0.8] {arm $1$};
-\draw[->, thick] ([yshift=1.5cm]h1_0) |- (h2_4)  node[above, pos=0.8] {arm $0$};
-\draw[->, thick] ([yshift=1.5cm]h1_0) |- (h2_6)  node[above, pos=0.8] {arm $1$};
-\draw[->, thick] ([yshift=1.5cm]h1_2) |- (h2_8)  node[above, pos=0.8] {arm $0$};
-\draw[->, thick] ([yshift=1.5cm]h1_2) |- (h2_10) node[above, pos=0.8] {arm $1$};
-\draw[->, thick] ([yshift=1.5cm]h1_2) |- (h2_12) node[above, pos=0.8] {arm $0$};
-\draw[->, thick] ([yshift=1.5cm]h1_2) |- (h2_14) node[above, pos=0.8] {arm $1$};
+\tikzstyle{state}   = [rectangle, text centered, draw=black, minimum width=2.2cm, fill=orange!30]
+\tikzstyle{between} = [rectangle, draw=none, minimum width=3.1cm]
+\node[state] at (-8.00, 0.00)   (h0){\scriptsize \begin{tabular}{c c} $\alpha_0=10$ & $\beta_0=10$ \\ $\alpha_1=1$ & $\beta_1=1$ \end{tabular}};
+\node[state] at (-2.00, 5.60)  (h1_0){\scriptsize \begin{tabular}{c c} $\alpha_0=11$ & $\beta_0=10$ \\ $\alpha_1=1$ & $\beta_1=1$ \end{tabular}};
+\node[between] at (-2.00, 5.15) (h1_01){};
+\node[state] at (-2.00, 4.70)(h1_1){\scriptsize \begin{tabular}{c c} $\alpha_0=10$ & $\beta_0=11$ \\ $\alpha_1=1$ & $\beta_1=1$ \end{tabular}};
+\node[state] at (-2.00, -5.60)  (h1_2){\scriptsize \begin{tabular}{c c} $\alpha_0=10$ & $\beta_0=10$ \\ $\alpha_1=2$ & $\beta_1=1$ \end{tabular}};
+\node[between] at (-2.00, -6.05) (h1_23){};
+\node[state] at (-2.00, -6.50)(h1_3){\scriptsize \begin{tabular}{c c} $\alpha_0=10$ & $\beta_0=10$ \\ $\alpha_1=1$ & $\beta_1=2$ \end{tabular}};
+\node[state] at (4.00, 9.20)  (h2_0){\scriptsize \begin{tabular}{c c} $\alpha_0=12$ & $\beta_0=10$ \\ $\alpha_1=1$ & $\beta_1=1$ \end{tabular}};
+\node[between] at (4.00, 8.75) (h2_01){};
+\node[state] at (4.00, 8.30)(h2_1){\scriptsize \begin{tabular}{c c} $\alpha_0=11$ & $\beta_0=11$ \\ $\alpha_1=1$ & $\beta_1=1$ \end{tabular}};
+\node[state] at (4.00, 6.80)  (h2_2){\scriptsize \begin{tabular}{c c} $\alpha_0=11$ & $\beta_0=10$ \\ $\alpha_1=2$ & $\beta_1=1$ \end{tabular}};
+\node[between] at (4.00, 6.35) (h2_23){};
+\node[state] at (4.00, 5.90)(h2_3){\scriptsize \begin{tabular}{c c} $\alpha_0=11$ & $\beta_0=10$ \\ $\alpha_1=1$ & $\beta_1=2$ \end{tabular}};
+\node[state] at (4.00, 4.40)  (h2_4){\scriptsize \begin{tabular}{c c} $\alpha_0=11$ & $\beta_0=11$ \\ $\alpha_1=1$ & $\beta_1=1$ \end{tabular}};
+\node[between] at (4.00, 3.95) (h2_45){};
+\node[state] at (4.00, 3.50)(h2_5){\scriptsize \begin{tabular}{c c} $\alpha_0=10$ & $\beta_0=12$ \\ $\alpha_1=1$ & $\beta_1=1$ \end{tabular}};
+\node[state] at (4.00, 2.00)  (h2_6){\scriptsize \begin{tabular}{c c} $\alpha_0=10$ & $\beta_0=11$ \\ $\alpha_1=2$ & $\beta_1=1$ \end{tabular}};
+\node[between] at (4.00, 1.55) (h2_67){};
+\node[state] at (4.00, 1.10)(h2_7){\scriptsize \begin{tabular}{c c} $\alpha_0=10$ & $\beta_0=11$ \\ $\alpha_1=1$ & $\beta_1=2$ \end{tabular}};
+\node[state] at (4.00, -2.00)  (h2_8){\scriptsize \begin{tabular}{c c} $\alpha_0=11$ & $\beta_0=10$ \\ $\alpha_1=2$ & $\beta_1=1$ \end{tabular}};
+\node[between] at (4.00, -2.45) (h2_89){};
+\node[state] at (4.00, -2.90)(h2_9){\scriptsize \begin{tabular}{c c} $\alpha_0=10$ & $\beta_0=11$ \\ $\alpha_1=2$ & $\beta_1=1$ \end{tabular}};
+\node[state] at (4.00, -4.40)(h2_10){\scriptsize \begin{tabular}{c c} $\alpha_0=10$ & $\beta_0=10$ \\ $\alpha_1=3$ & $\beta_1=1$ \end{tabular}};
+\node[between] at (4.00, -4.85) (h2_1011){};
+\node[state] at (4.00, -5.30)(h2_11){\scriptsize \begin{tabular}{c c} $\alpha_0=10$ & $\beta_0=10$ \\ $\alpha_1=2$ & $\beta_1=2$ \end{tabular}};
+\node[state] at (4.00, -6.80)(h2_12){\scriptsize \begin{tabular}{c c} $\alpha_0=11$ & $\beta_0=10$ \\ $\alpha_1=1$ & $\beta_1=2$ \end{tabular}};
+\node[between] at (4.00, -7.25) (h2_1213){};
+\node[state] at (4.00, -7.70)(h2_13){\scriptsize \begin{tabular}{c c} $\alpha_0=10$ & $\beta_0=11$ \\ $\alpha_1=1$ & $\beta_1=2$ \end{tabular}};
+\node[state] at (4.00, -9.20)(h2_14){\scriptsize \begin{tabular}{c c} $\alpha_0=10$ & $\beta_0=10$ \\ $\alpha_1=2$ & $\beta_1=2$ \end{tabular}};
+\node[between] at (4.00, -9.65) (h2_1415){};
+\node[state] at (4.00, -10.10)(h2_15){\scriptsize \begin{tabular}{c c} $\alpha_0=10$ & $\beta_0=10$ \\ $\alpha_1=1$ & $\beta_1=3$ \end{tabular}};
+\draw[->, thick, black] ([yshift=5.5cm]h0)   |- (h1_01)  node[above, pos=0.8] {arm $0$} node[below, pos=0.8] {};
+\draw[->, thick, red] ([yshift=-5.5cm]h0)  |- (h1_23)  node[above, pos=0.8] {arm $1$} node[below, pos=0.8] {1};
+\draw[->, thick, red] ([yshift=4.0cm]h1_0) |- (h2_01)  node[above, pos=0.8] {arm $0$} node[below, pos=0.8] {2};
+\draw[->, thick, black] ([yshift=1.5cm]h1_0) |- (h2_23)  node[above, pos=0.8] {arm $1$} node[below, pos=0.8] {};
+\draw[->, thick, black] ([yshift=1.5cm]h1_1) |- (h2_45)  node[above, pos=0.8] {arm $0$} node[below, pos=0.8] {};
+\draw[->, thick, red] ([yshift=1.5cm]h1_1) |- (h2_67)  node[above, pos=0.8] {arm $1$} node[below, pos=0.8] {4};
+\draw[->, thick, black] ([yshift=1.5cm]h1_2) |- (h2_89)  node[above, pos=0.8] {arm $0$} node[below, pos=0.8] {};
+\draw[->, thick, red] ([yshift=1.5cm]h1_2) |- (h2_1011) node[above, pos=0.8] {arm $1$} node[below, pos=0.8] {0};
+\draw[->, thick, red] ([yshift=1.5cm]h1_3) |- (h2_1213) node[above, pos=0.8] {arm $0$} node[below, pos=0.8] {3};
+\draw[->, thick, black] ([yshift=1.5cm]h1_3) |- (h2_1415) node[above, pos=0.8] {arm $1$} node[below, pos=0.8] {};
 \end{tikzpicture}
 \end{minipage}

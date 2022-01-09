@@ -1,7 +1,7 @@
 # Fdb version 3
-["pdflatex"] 1641563133 "/home/georgy/Documents/Dayan_lab/PhD/bandits/Notes/bandits.tex" "bandits.pdf" "bandits" 1641563133
-  "../Data/Tree/tex_tree.tex" 1641563043 3678 05fb0349cac4bf1a3d95d8b3608f1109 ""
-  "/home/georgy/Documents/Dayan_lab/PhD/bandits/Notes/bandits.tex" 1641563132 2981 4e9d0a09135582f6685bb4ce9ff711d8 ""
+["pdflatex"] 1641746259 "/home/georgy/Documents/Dayan_lab/PhD/bandits/Notes/bandits.tex" "bandits.pdf" "bandits" 1641746259
+  "../Data/Tree/tex_tree.tex" 1641746258 4847 80b67e16b81093476f3f9654ab1a8830 ""
+  "/home/georgy/Documents/Dayan_lab/PhD/bandits/Notes/bandits.tex" 1641741806 3004 d1e523c5f9ee43485f01bab9ca6cec96 ""
   "/usr/share/texmf-dist/fonts/map/fontname/texfonts.map" 1640600964 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/share/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex7.tfm" 1640600964 1004 54797486969f23fa377b128694d548df ""
   "/usr/share/texmf-dist/fonts/tfm/public/amsfonts/symbols/msam10.tfm" 1640600964 916 f87d7c45f9c908e672703b83b72241a3 ""
@@ -17,6 +17,7 @@
   "/usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb" 1640600964 36299 5f9df58c2139e7edcf37c8fca4bd384d ""
   "/usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb" 1640600964 36281 c355509802a035cadc5f15869451dcee ""
   "/usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb" 1640600964 35752 024fb6c41858982481f6968b5fc26508 ""
+  "/usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr5.pfb" 1640600964 31809 8670ca339bf94e56da1fc21c80635e2a ""
   "/usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb" 1640600964 32762 224316ccc9ad3ca0423a14971cfa7fc1 ""
   "/usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb" 1640600964 32569 5e5ddc8df908dea60932f3c484a54c0d ""
   "/usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy5.pfb" 1640600964 32915 7bf7720c61a5b3a7ff25b0964421c9b6 ""
@@ -58,6 +59,7 @@
   "/usr/share/texmf-dist/tex/generic/pgf/frontendlayer/tikz/libraries/tikzlibrarypositioning.code.tex" 1640600964 3937 3f208572dd82c71103831da976d74f1a ""
   "/usr/share/texmf-dist/tex/generic/pgf/frontendlayer/tikz/libraries/tikzlibraryshapes.geometric.code.tex" 1640600964 339 be0fe46d92a80e3385dd6a83511a46f2 ""
   "/usr/share/texmf-dist/tex/generic/pgf/frontendlayer/tikz/libraries/tikzlibrarytopaths.code.tex" 1640600964 11518 738408f795261b70ce8dd47459171309 ""
+  "/usr/share/texmf-dist/tex/generic/pgf/frontendlayer/tikz/libraries/tikzlibrarytrees.code.tex" 1640600964 3360 d7547ac810d5d8570c7b6f7c224d69da ""
   "/usr/share/texmf-dist/tex/generic/pgf/frontendlayer/tikz/tikz.code.tex" 1640600964 186007 6e7dfe0bd57520fd5f91641aa72dcac8 ""
   "/usr/share/texmf-dist/tex/generic/pgf/libraries/pgflibraryplothandlers.code.tex" 1640600964 32995 ac577023e12c0e4bd8aa420b2e852d1a ""
   "/usr/share/texmf-dist/tex/generic/pgf/libraries/shapes/pgflibraryshapes.geometric.code.tex" 1640600964 160993 6a81d63e475cc43874b46ed32a0a37c8 ""
@@ -146,9 +148,9 @@
   "/usr/share/texmf-dist/web2c/texmf.cnf" 1640600964 39911 2da6c67557ec033436fe5418a70a8a61 ""
   "/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map" 1641557704 334215 ad2feb41952e3720830b65f83a01c5b0 ""
   "/var/lib/texmf/web2c/pdftex/pdflatex.fmt" 1641557697 2920111 11bae598f8c336a3850dc27d73b5a5b6 ""
-  "bandits.aux" 1641563133 686 4ce905362b6645b598ea182482e9aeed "pdflatex"
-  "bandits.out" 1641563133 0 d41d8cd98f00b204e9800998ecf8427e "pdflatex"
-  "bandits.tex" 1641563132 2981 4e9d0a09135582f6685bb4ce9ff711d8 ""
+  "bandits.aux" 1641746259 686 4ce905362b6645b598ea182482e9aeed "pdflatex"
+  "bandits.out" 1641746259 0 d41d8cd98f00b204e9800998ecf8427e "pdflatex"
+  "bandits.tex" 1641741806 3004 d1e523c5f9ee43485f01bab9ca6cec96 ""
   (generated)
   "bandits.aux"
   "bandits.log"
