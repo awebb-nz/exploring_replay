@@ -62,9 +62,26 @@ belief state $b$ in the first place (i.e., from the current root of the tree).
 \newpage
 \section*{Simulations}
 
-Prioritisation pattern with horizon $h=2$.
+Prioritisation pattern with horizon $h=2$. Numbers under the arrows show the order in which 
+the replay updates (red arrows) were executed.
 \vspace{1cm}
 
-\input{../Data/Tree/tex_tree.tex}
+\input{../Data/Tree/tex_tree_small.tex}
+
+\newpage
+Prioritisation pattern with horizon $h=4$. The prior belief at the root is set to the 
+same values as in the above example with shorter horizon. Note that for this tree, EVB 
+was not scaled by the probability of reaching any belief.
+\vspace{1cm}
+
+\input{../Data/Tree/tex_tree_big.tex}
+
+\newpage
+Prioritisation pattern with horizon $h=4$. Same example as before, however, here, each 
+EVB value $v(ba^*)-v(b)$ is scaled by the probability of reaching belief $b$ from the root 
+of the tree.
+\vspace{1cm}
+
+\input{../Data/Tree/tex_tree_big_proba.tex}
 
 \end{document}

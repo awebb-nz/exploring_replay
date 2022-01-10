@@ -227,7 +227,7 @@ def generate_tex_tree(M, replays, save_path):
 
     return None
 
-def generate_big_tex_tree(h, save_path):
+def generate_big_tex_tree(h, replays, save_path):
 
     y_max = 10
     x_max = 9
@@ -235,6 +235,7 @@ def generate_big_tex_tree(h, save_path):
     with open(save_path, 'w') as f:
 
         f.write(r'\begin{minipage}{\textwidth}' + '\n')
+        f.write(r'\centering' + '\n')
         f.write(r'\begin{tikzpicture}' + '\n') 
         f.write(r'\tikzstyle{between} = [rectangle, draw=none]' + '\n')
         f.write(r'\tikzstyle{state}   = [rectangle, text centered, draw=black, minimum height=1mm, text width=3mm, inner sep=0pt, fill=orange!30]' + '\n')
@@ -243,7 +244,10 @@ def generate_big_tex_tree(h, save_path):
 
         for hi in range(1, h):
 
-            num_nodes = 4**hi
+            if hi == 1:
+                num_nodes = 2
+            else:
+                num_nodes = 2*4**(hi-1)
             x_node    = -x_max + hi*2
 
             for idx, y_node in enumerate(reversed(np.linspace(-y_max*(hi+1)/h, y_max*(hi+1)/h, num_nodes))):
@@ -254,8 +258,12 @@ def generate_big_tex_tree(h, save_path):
         state_nodes = {hi:[] for hi in range(h)}
 
         for hi in range(h):
+            
+            if hi == 1:
+                num_nodes = 2
+            else:
+                num_nodes = 2*4**(hi-1)
 
-            num_nodes = 4**hi
             x_node    = -x_max + hi*2
 
             if hi == 0:
@@ -277,12 +285,17 @@ def generate_big_tex_tree(h, save_path):
                 idx1 = int(k.split('_')[-1])
                 for k1 in between_nodes[hi+1]:
                     idx2 = int(k1.split('_')[-1])
-                    if hi != 0:
-                        cond = (idx1*2 == idx2) or (idx1*2+1 == idx2)
-                    else:
-                        cond = (idx1*4 == idx2) or (idx1*4+1 == idx2) or (idx1*4+2 == idx2) or (idx1*4+3 == idx2)
+                    cond = (idx1*2 == idx2) or (idx1*2+1 == idx2)
+                    colour = 'black'
                     if cond:
-                        f.write(r'\draw[->, thick] (%s) -- (%s);'%(k, k1) + '\n')
+                        for rep in replays:
+                            if hi == rep[1]:
+                                this_rep = rep[-1]
+                                if (this_rep[2] == idx1):
+                                    if (this_rep[2]*2 + this_rep[-1]) == idx2:
+                                        colour = 'red'
+
+                        f.write(r'\draw[->, thick, %s] (%s) -- (%s);'%(colour, k, k1) + '\n')
 
         f.write(r'\end{tikzpicture}' + '\n')
         f.write(r'\end{minipage}' + '\n')
