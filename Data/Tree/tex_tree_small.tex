@@ -1,7 +1,7 @@
 \begin{minipage}{\textwidth}
 \begin{tikzpicture}
 \tikzstyle{state}   = [rectangle, text centered, draw=black, minimum width=2.2cm, fill=orange!30]
-\tikzstyle{between} = [rectangle, draw=none, minimum width=3.1cm]
+\tikzstyle{between} = [rectangle, draw=none, minimum width=3.5cm]
 \node[state] at (-8.00, 0.00)   (h0){\scriptsize \begin{tabular}{c c} $\alpha_0=100$ & $\beta_0=1$ \\ $\alpha_1=1$ & $\beta_1=100$ \end{tabular}};
 \node[state] at (-2.00, 5.60)  (h1_0){\scriptsize \begin{tabular}{c c} $\alpha_0=101$ & $\beta_0=1$ \\ $\alpha_1=1$ & $\beta_1=100$ \end{tabular}};
 \node[between] at (-2.00, 5.15) (h1_01){};
@@ -33,15 +33,15 @@
 \node[state] at (4.00, -9.20)(h2_14){\scriptsize \begin{tabular}{c c} $\alpha_0=100$ & $\beta_0=1$ \\ $\alpha_1=2$ & $\beta_1=101$ \end{tabular}};
 \node[between] at (4.00, -9.65) (h2_1415){};
 \node[state] at (4.00, -10.10)(h2_15){\scriptsize \begin{tabular}{c c} $\alpha_0=100$ & $\beta_0=1$ \\ $\alpha_1=1$ & $\beta_1=102$ \end{tabular}};
-\draw[->, thick, red] ([yshift=5.5cm]h0)   |- (h1_01)  node[above, pos=0.8] {arm $0$} node[below, pos=0.8] {1};
-\draw[->, thick, black] ([yshift=-5.5cm]h0)  |- (h1_23)  node[above, pos=0.8] {arm $1$} node[below, pos=0.8] {};
-\draw[->, thick, red] ([yshift=4.0cm]h1_0) |- (h2_01)  node[above, pos=0.8] {arm $0$} node[below, pos=0.8] {0};
-\draw[->, thick, black] ([yshift=1.5cm]h1_0) |- (h2_23)  node[above, pos=0.8] {arm $1$} node[below, pos=0.8] {};
-\draw[->, thick, red] ([yshift=1.5cm]h1_1) |- (h2_45)  node[above, pos=0.8] {arm $0$} node[below, pos=0.8] {4};
-\draw[->, thick, black] ([yshift=1.5cm]h1_1) |- (h2_67)  node[above, pos=0.8] {arm $1$} node[below, pos=0.8] {};
-\draw[->, thick, red] ([yshift=1.5cm]h1_2) |- (h2_89)  node[above, pos=0.8] {arm $0$} node[below, pos=0.8] {3};
-\draw[->, thick, black] ([yshift=1.5cm]h1_2) |- (h2_1011) node[above, pos=0.8] {arm $1$} node[below, pos=0.8] {};
-\draw[->, thick, red] ([yshift=1.5cm]h1_3) |- (h2_1213) node[above, pos=0.8] {arm $0$} node[below, pos=0.8] {2};
-\draw[->, thick, black] ([yshift=1.5cm]h1_3) |- (h2_1415) node[above, pos=0.8] {arm $1$} node[below, pos=0.8] {};
+\draw[->, thick, red] ([yshift=5.5cm]h0)   |- (h1_01)  node[above, pos=0.8] {arm $0$};
+\draw[->, thick, black] ([yshift=-5.5cm]h0)  |- (h1_23)  node[above, pos=0.8] {arm $1$};
+\draw[->, thick, red] ([yshift=4.0cm]h1_0) |- (h2_01)  node[above, pos=0.8] {arm $0$};
+\draw[->, thick, black] ([yshift=1.5cm]h1_0) |- (h2_23)  node[above, pos=0.8] {arm $1$};
+\draw[->, thick, red] ([yshift=1.5cm]h1_1) |- (h2_45)  node[above, pos=0.8] {arm $0$};
+\draw[->, thick, black] ([yshift=1.5cm]h1_1) |- (h2_67)  node[above, pos=0.8] {arm $1$};
+\draw[->, thick, red] ([yshift=1.5cm]h1_2) |- (h2_89)  node[above, pos=0.8] {arm $0$};
+\draw[->, thick, black] ([yshift=1.5cm]h1_2) |- (h2_1011) node[above, pos=0.8] {arm $1$};
+\draw[->, thick, red] ([yshift=1.5cm]h1_3) |- (h2_1213) node[above, pos=0.8] {arm $0$};
+\draw[->, thick, black] ([yshift=1.5cm]h1_3) |- (h2_1415) node[above, pos=0.8] {arm $1$};
 \end{tikzpicture}
 \end{minipage}

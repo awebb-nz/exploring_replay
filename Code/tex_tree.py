@@ -33,7 +33,7 @@ def generate_tex_tree(M, replays, save_path):
         f.write(r'\begin{minipage}{\textwidth}' + '\n')
         f.write(r'\begin{tikzpicture}' + '\n') 
         f.write(r'\tikzstyle{state}   = [rectangle, text centered, draw=black, minimum width=2.2cm, fill=orange!30]' + '\n')
-        f.write(r'\tikzstyle{between} = [rectangle, draw=none, minimum width=3.1cm]' + '\n')
+        f.write(r'\tikzstyle{between} = [rectangle, draw=none, minimum width=3.5cm]' + '\n')
 
         # root
         f.write(r'\node[state] at (%.2f, %.2f)   '%(x0, y0)    + r'(h0){\scriptsize \begin{tabular}{c c} $\alpha_0=%u$ & $\beta_0=%u$ \\ $\alpha_1=%u$ & $\beta_1=%u$ \end{tabular}};'%(alpha0, beta0, alpha1, beta1) + '\n')
@@ -83,144 +83,124 @@ def generate_tex_tree(M, replays, save_path):
         f.write(r'\node[state] at (%.2f, %.2f)'%(x2_14, y2_14-0.9)             + r'(h2_15){\scriptsize \begin{tabular}{c c} $\alpha_0=%u$ & $\beta_0=%u$ \\ $\alpha_1=%u$ & $\beta_1=%u$ \end{tabular}};'%(alpha0, beta0, alpha1, beta1+2) + '\n')
 
         # horizon 0 action 0
-        for idx, rep in enumerate(replays):
+        for rep in replays:
             if rep[1] == 0:
                 if rep[-1] == (0, 0, 0, 0):
                     colour = 'red'
                     break
                 else:
                     colour = 'black'
-                    idx    = ''
             else:
                 colour = 'black'
-                idx    = ''
-        f.write(r'\draw[->, thick, %s] ([yshift=5.5cm]h0)   |- (h1_01)  node[above, pos=0.8] {arm $0$} node[below, pos=0.8] {%s};'%(colour, idx) + '\n')
+        f.write(r'\draw[->, thick, %s] ([yshift=5.5cm]h0)   |- (h1_01)  node[above, pos=0.8] {arm $0$};'%(colour) + '\n')
         
         # horizon 0 action 1
-        for idx, rep in enumerate(replays):
+        for rep in replays:
             if rep[1] == 0:
                 if rep[-1] == (0, 0, 0, 1):
                     colour = 'red'
                     break
                 else:
                     colour = 'black'
-                    idx    = ''
             else:
                 colour = 'black'
-                idx    = ''
-        f.write(r'\draw[->, thick, %s] ([yshift=-5.5cm]h0)  |- (h1_23)  node[above, pos=0.8] {arm $1$} node[below, pos=0.8] {%s};'%(colour, idx) + '\n')
+        f.write(r'\draw[->, thick, %s] ([yshift=-5.5cm]h0)  |- (h1_23)  node[above, pos=0.8] {arm $1$};'%(colour) + '\n')
         
         # (horizon 0 action 0 rew 1) -> action 0
-        for idx, rep in enumerate(replays):
+        for rep in replays:
             if rep[1] == 1:
                 if rep[-1] == (0, 0, 0, 0):
                     colour = 'red'
                     break
                 else:
                     colour = 'black'
-                    idx    = ''
             else:
                 colour = 'black'
-                idx    = ''
-        f.write(r'\draw[->, thick, %s] ([yshift=4.0cm]h1_0) |- (h2_01)  node[above, pos=0.8] {arm $0$} node[below, pos=0.8] {%s};'%(colour, idx) + '\n')
+        f.write(r'\draw[->, thick, %s] ([yshift=4.0cm]h1_0) |- (h2_01)  node[above, pos=0.8] {arm $0$};'%(colour) + '\n')
         
         # (horizon 0 action 0 rew 1) -> action 1
-        for idx, rep in enumerate(replays):
+        for rep in replays:
             if rep[1] == 1:
                 if rep[-1] == (0, 0, 0, 1):
                     colour = 'red'
                     break
                 else:
                     colour = 'black'
-                    idx    = ''
             else:
                 colour = 'black'
-                idx    = ''
-        f.write(r'\draw[->, thick, %s] ([yshift=1.5cm]h1_0) |- (h2_23)  node[above, pos=0.8] {arm $1$} node[below, pos=0.8] {%s};'%(colour, idx) + '\n')
+        f.write(r'\draw[->, thick, %s] ([yshift=1.5cm]h1_0) |- (h2_23)  node[above, pos=0.8] {arm $1$};'%(colour) + '\n')
         
         # (horizon 0 action 0 rew 0) -> action 0
-        for idx, rep in enumerate(replays):
+        for rep in replays:
             if rep[1] == 1:
                 if rep[-1] == (0, 0, 1, 0):
                     colour = 'red'
                     break
                 else:
                     colour = 'black'
-                    idx    = ''
             else:
                 colour = 'black'
-                idx    = ''
-        f.write(r'\draw[->, thick, %s] ([yshift=1.5cm]h1_1) |- (h2_45)  node[above, pos=0.8] {arm $0$} node[below, pos=0.8] {%s};'%(colour, idx) + '\n')
+        f.write(r'\draw[->, thick, %s] ([yshift=1.5cm]h1_1) |- (h2_45)  node[above, pos=0.8] {arm $0$};'%(colour) + '\n')
         
         # (horizon 0 action 0 rew 0) -> action 1
-        for idx, rep in enumerate(replays):
+        for rep in replays:
             if rep[1] == 1:
                 if rep[-1] == (0, 0, 1, 1):
                     colour = 'red'
                     break
                 else:
                     colour = 'black'
-                    idx    = ''
             else:
                 colour = 'black'
-                idx    = ''
-        f.write(r'\draw[->, thick, %s] ([yshift=1.5cm]h1_1) |- (h2_67)  node[above, pos=0.8] {arm $1$} node[below, pos=0.8] {%s};'%(colour, idx) + '\n')
+        f.write(r'\draw[->, thick, %s] ([yshift=1.5cm]h1_1) |- (h2_67)  node[above, pos=0.8] {arm $1$};'%(colour) + '\n')
         
         # (horizon 0 action 1 rew 1) -> action 0
-        for idx, rep in enumerate(replays):
+        for rep in replays:
             if rep[1] == 1:
                 if rep[-1] == (1, 0, 2, 0):
                     colour = 'red'
                     break
                 else:
                     colour = 'black'
-                    idx    = ''
             else:
                 colour = 'black'
-                idx    = ''
-        f.write(r'\draw[->, thick, %s] ([yshift=1.5cm]h1_2) |- (h2_89)  node[above, pos=0.8] {arm $0$} node[below, pos=0.8] {%s};'%(colour, idx) + '\n')
+        f.write(r'\draw[->, thick, %s] ([yshift=1.5cm]h1_2) |- (h2_89)  node[above, pos=0.8] {arm $0$};'%(colour) + '\n')
         
         # (horizon 0 action 1 rew 1) -> action 1
-        for idx, rep in enumerate(replays):
+        for rep in replays:
             if rep[1] == 1:
                 if rep[-1] == (1, 0, 2, 1):
                     colour = 'red'
                     break
                 else:
                     colour = 'black'
-                    idx    = ''
             else:
                 colour = 'black'
-                idx    = ''
-        f.write(r'\draw[->, thick, %s] ([yshift=1.5cm]h1_2) |- (h2_1011) node[above, pos=0.8] {arm $1$} node[below, pos=0.8] {%s};'%(colour, idx) + '\n')
+        f.write(r'\draw[->, thick, %s] ([yshift=1.5cm]h1_2) |- (h2_1011) node[above, pos=0.8] {arm $1$};'%(colour) + '\n')
         
         # (horizon 0 action 1 rew 0) -> action 0
-        for idx, rep in enumerate(replays):
+        for rep in replays:
             if rep[1] == 1:
                 if rep[-1] == (1, 0, 3, 0):
                     colour = 'red'
                     break
                 else:
                     colour = 'black'
-                    idx    = ''
             else:
                 colour = 'black'
-                idx    = ''
-        f.write(r'\draw[->, thick, %s] ([yshift=1.5cm]h1_3) |- (h2_1213) node[above, pos=0.8] {arm $0$} node[below, pos=0.8] {%s};'%(colour, idx) + '\n')
+        f.write(r'\draw[->, thick, %s] ([yshift=1.5cm]h1_3) |- (h2_1213) node[above, pos=0.8] {arm $0$};'%(colour) + '\n')
         
         # (horizon 0 action 1 rew 0) -> action 1
-        for idx, rep in enumerate(replays):
+        for rep in replays:
             if rep[1] == 1:
                 if rep[-1] == (1, 0, 3, 1):
                     colour = 'red'
                     break
                 else:
                     colour = 'black'
-                    idx    = ''
             else:
                 colour = 'black'
-                idx    = ''
-        f.write(r'\draw[->, thick, %s] ([yshift=1.5cm]h1_3) |- (h2_1415) node[above, pos=0.8] {arm $1$} node[below, pos=0.8] {%s};'%(colour, idx) + '\n')
+        f.write(r'\draw[->, thick, %s] ([yshift=1.5cm]h1_3) |- (h2_1415) node[above, pos=0.8] {arm $1$};'%(colour) + '\n')
 
         f.write(r'\end{tikzpicture}' + '\n')
         f.write(r'\end{minipage}' + '\n')
@@ -286,14 +266,16 @@ def generate_big_tex_tree(h, replays, save_path):
                 for k1 in between_nodes[hi+1]:
                     idx2 = int(k1.split('_')[-1])
                     cond = (idx1*2 == idx2) or (idx1*2+1 == idx2)
-                    colour = 'black'
+                    
                     if cond:
+                        colour  = 'black'
                         for rep in replays:
                             if hi == rep[1]:
                                 this_rep = rep[-1]
                                 if (this_rep[2] == idx1):
                                     if (this_rep[2]*2 + this_rep[-1]) == idx2:
-                                        colour = 'red'
+                                        colour  = 'red'
+                                        break
 
                         f.write(r'\draw[->, thick, %s] (%s) -- (%s);'%(colour, k, k1) + '\n')
 

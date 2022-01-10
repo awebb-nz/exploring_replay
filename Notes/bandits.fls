@@ -794,6 +794,10 @@ INPUT ../Data/Tree/tex_tree_big_proba.tex
 INPUT ../Data/Tree/tex_tree_big_proba.tex
 INPUT ../Data/Tree/tex_tree_big_proba.tex
 INPUT ../Data/Tree/tex_tree_big_proba.tex
+INPUT ../Data/Tree/tex_tree_big_proba_example.tex
+INPUT ../Data/Tree/tex_tree_big_proba_example.tex
+INPUT ../Data/Tree/tex_tree_big_proba_example.tex
+INPUT ../Data/Tree/tex_tree_big_proba_example.tex
 INPUT bandits.aux
 INPUT ./bandits.out
 INPUT ./bandits.out

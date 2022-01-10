@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.23 (TeX Live 2021/Arch Linux) (preloaded format=pdflatex 2022.1.7)  10 JAN 2022 16:42
+This is pdfTeX, Version 3.141592653-2.6-1.40.23 (TeX Live 2021/Arch Linux) (preloaded format=pdflatex 2022.1.7)  10 JAN 2022 17:23
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -550,37 +550,42 @@ File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 ) [1
 
 {/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}] (../Data/Tree/tex_tree_small.tex)
-Underfull \hbox (badness 10000) in paragraph at lines 1--70
+Underfull \hbox (badness 10000) in paragraph at lines 1--71
 
  []
 
 [2] (../Data/Tree/tex_tree_big.tex)
-Underfull \hbox (badness 10000) in paragraph at lines 1--78
+Underfull \hbox (badness 10000) in paragraph at lines 1--79
 
  []
 
 [3] (../Data/Tree/tex_tree_big_proba.tex)
-Underfull \hbox (badness 10000) in paragraph at lines 1--86
+Underfull \hbox (badness 10000) in paragraph at lines 1--88
 
  []
 
-[4] (./bandits.aux)
+[4] (../Data/Tree/tex_tree_big_proba_example.tex)
+Underfull \hbox (badness 10000) in paragraph at lines 1--98
+
+ []
+
+[5] [6] (./bandits.aux)
 Package rerunfilecheck Info: File `bandits.out' has not changed.
 (rerunfilecheck)             Checksum: D41D8CD98F00B204E9800998ECF8427E;0.
  ) 
 Here is how much of TeX's memory you used:
- 24632 strings out of 478353
- 456837 string characters out of 5854636
- 1090233 words of memory out of 5000000
- 42404 multiletter control sequences out of 15000+600000
+ 24639 strings out of 478353
+ 457059 string characters out of 5854636
+ 1091249 words of memory out of 5000000
+ 42406 multiletter control sequences out of 15000+600000
  405734 words of font info for 37 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  100i,22n,104p,478b,726s stack positions out of 5000i,500n,10000p,200000b,80000s
 </usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr5.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy5.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb>
-Output written on bandits.pdf (4 pages, 137597 bytes).
+Output written on bandits.pdf (6 pages, 150826 bytes).
 PDF statistics:
- 91 PDF objects out of 1000 (max. 8388607)
- 62 compressed objects within 1 object stream
- 11 named destinations out of 1000 (max. 500000)
+ 100 PDF objects out of 1000 (max. 8388607)
+ 69 compressed objects within 1 object stream
+ 13 named destinations out of 1000 (max. 500000)
  13 words of extra memory for PDF output out of 10000 (max. 10000000)
 

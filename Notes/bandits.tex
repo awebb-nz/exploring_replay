@@ -62,16 +62,17 @@ belief state $b$ in the first place (i.e., from the current root of the tree).
 \newpage
 \section*{Simulations}
 
-Prioritisation pattern with horizon $h=2$. Numbers under the arrows show the order in which 
-the replay updates (red arrows) were executed.
+Prioritisation pattern with horizon $h=2$. Each orange box is a belief state, and 
+the parameters that correspond to that belief are written inside. Red arrows show 
+which replay updates were executed.
 \vspace{1cm}
 
 \input{../Data/Tree/tex_tree_small.tex}
 
 \newpage
 Prioritisation pattern with horizon $h=4$. The prior belief at the root is set to the 
-same values as in the above example with shorter horizon. Note that for this tree, EVB 
-was not scaled by the probability of reaching any belief.
+same values as in the above example with shorter horizon. Note that for this (and the 
+previous) tree, EVB was not scaled by the probability of reaching any belief.
 \vspace{1cm}
 
 \input{../Data/Tree/tex_tree_big.tex}
@@ -79,9 +80,25 @@ was not scaled by the probability of reaching any belief.
 \newpage
 Prioritisation pattern with horizon $h=4$. Same example as before, however, here, each 
 EVB value $v(ba^*)-v(b)$ is scaled by the probability of reaching belief $b$ from the root 
-of the tree.
+of the tree. Note how the less-likely branches are ignored in this case, as opposed to the 
+one showed above.
 \vspace{1cm}
 
 \input{../Data/Tree/tex_tree_big_proba.tex}
+
+\newpage
+Prioritisation pattern with horizon $h=4$. In this case, the belief at the root was set to 
+$(\alpha_0=100, \beta_0=1, \alpha_1=1, \beta_1=1)$ -- i.e., complete uncertainty about 
+the outcome of the second arm (branch that leads downwards from the root). Note how the 
+'exploration' of the lower sub-tree is much more extensive in this case, compared to the 
+example shown above with the root prior $(\alpha_0=100, \beta_0=1, \alpha_1=1, \beta_1=100)$.
+\vspace{1cm}
+
+\input{../Data/Tree/tex_tree_big_proba_example.tex}
+
+\newpage
+I omitted the model-free policy in the above examples -- i.e., the policy was specified as the 
+softmax of the immediate expected reward according to the model at any given belief state 
+(including the root node). 
 
 \end{document}
