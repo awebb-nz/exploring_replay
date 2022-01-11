@@ -1,5 +1,5 @@
 # Fdb version 3
-["pdflatex"] 1641909052 "/home/georgy/Documents/Dayan_lab/PhD/bandits/Notes/bandits.tex" "bandits.pdf" "bandits" 1641909059
+["pdflatex"] 1641911302 "/home/georgy/Documents/Dayan_lab/PhD/bandits/Notes/bandits.tex" "bandits.pdf" "bandits" 1641911309
   "../Data/Tree/seq/tex_tree_big_0.tex" 1641907584 7586 d841c300cbc82a48b9637fccdb656772 ""
   "../Data/Tree/seq/tex_tree_big_1.tex" 1641907584 7584 39f01e8693b835ac465687df414f61c6 ""
   "../Data/Tree/seq/tex_tree_big_2.tex" 1641907584 7582 7284c579f1012f85a6c9100dc8988935 ""
@@ -14,8 +14,8 @@
   "../Data/Tree/tex_tree_big_proba.tex" 1641830927 30184 a9b2adfb6ff739ac9e261bac0ab22956 ""
   "../Data/Tree/tex_tree_big_proba_example.tex" 1641831317 30146 b287e8bfbc9c333da0b8ba932bdcf0b4 ""
   "../Data/Tree/tex_tree_small.tex" 1641830907 4644 36167dbce8292786862b0ed63e7fc074 ""
-  "../Data/betas.png" 1641908305 13840 d9bd10056027f1823ebec7f085ade700 ""
-  "/home/georgy/Documents/Dayan_lab/PhD/bandits/Notes/bandits.tex" 1641909046 6062 d4bd44a95e527c8e946d88d404f61173 ""
+  "../Data/betas.png" 1641911251 16228 5d9d3b98735576743855b84a09fd3c1a ""
+  "/home/georgy/Documents/Dayan_lab/PhD/bandits/Notes/bandits.tex" 1641911301 6063 05d2a61facc12388271fb2529ab3c1f9 ""
   "/usr/share/texmf-dist/fonts/map/fontname/texfonts.map" 1640600964 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/share/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex7.tfm" 1640600964 1004 54797486969f23fa377b128694d548df ""
   "/usr/share/texmf-dist/fonts/tfm/public/amsfonts/symbols/msam10.tfm" 1640600964 916 f87d7c45f9c908e672703b83b72241a3 ""
@@ -162,9 +162,9 @@
   "/usr/share/texmf-dist/web2c/texmf.cnf" 1640600964 39911 2da6c67557ec033436fe5418a70a8a61 ""
   "/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map" 1641557704 334215 ad2feb41952e3720830b65f83a01c5b0 ""
   "/var/lib/texmf/web2c/pdftex/pdflatex.fmt" 1641557697 2920111 11bae598f8c336a3850dc27d73b5a5b6 ""
-  "bandits.aux" 1641909059 975 855e153291f43dfcae7b991c14f76e79 "pdflatex"
-  "bandits.out" 1641909053 0 d41d8cd98f00b204e9800998ecf8427e "pdflatex"
-  "bandits.tex" 1641909046 6062 d4bd44a95e527c8e946d88d404f61173 ""
+  "bandits.aux" 1641911309 975 855e153291f43dfcae7b991c14f76e79 "pdflatex"
+  "bandits.out" 1641911302 0 d41d8cd98f00b204e9800998ecf8427e "pdflatex"
+  "bandits.tex" 1641911301 6063 05d2a61facc12388271fb2529ab3c1f9 ""
   (generated)
   "bandits.aux"
   "bandits.log"

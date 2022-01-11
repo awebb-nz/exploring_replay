@@ -117,14 +117,14 @@ parameters, each individual update has a smaller impact on the shape of the resu
 \end{figure}
 
 This is demonstrated in the example in Figure \ref{fig1}. KL divergence between the 
-leftmost and middle pdfs is $33$, whereas for the middle and rightmost pdfs it is $9.5$.
+leftmost and middle pdfs is $9.5$, whereas for the middle and rightmost pdfs it is $4.6$.
 Therefore, the EVB associated with the update 
 
-$$v(\{\alpha=1, \beta=1\}) \leftarrow v(\{\alpha=2, \beta=1\})$$
+$$v(\{\alpha=2, \beta=1\}) \leftarrow v(\{\alpha=3, \beta=1\})$$
 
 will be greater than that of 
 
-$$v(\{\alpha=2, \beta=1\}) \leftarrow v(\{\alpha=3, \beta=1\})$$
+$$v(\{\alpha=3, \beta=1\}) \leftarrow v(\{\alpha=4, \beta=1\})$$
 
 The last example tree below shows how the sequence of replay events was 
 executed where each node's value was set to $0$, except for 1) the root 
