@@ -69,7 +69,7 @@ the parameters that correspond to that belief are written inside. Red arrows sho
 which replay updates were executed.
 \vspace{1cm}
 
-\input{../Data/Tree/tex_tree_small.tex}
+\input{../data/Tree/tex_tree_small.tex}
 
 \newpage
 Prioritisation pattern with horizon $h=4$. The prior belief at the root is set to the 
@@ -77,7 +77,7 @@ same values as in the above example with shorter horizon. Note that for this (an
 previous) tree, EVB was not scaled by the probability of reaching any belief.
 \vspace{1cm}
 
-\input{../Data/Tree/tex_tree_big.tex}
+\input{../data/Tree/tex_tree_big.tex}
 
 \newpage
 Prioritisation pattern with horizon $h=4$. Same example as before, however, here, each 
@@ -86,7 +86,7 @@ of the tree. Note how the less-likely branches are ignored in this case, as oppo
 one showed above.
 \vspace{1cm}
 
-\input{../Data/Tree/tex_tree_big_proba.tex}
+\input{../data/Tree/tex_tree_big_proba.tex}
 
 \newpage
 Prioritisation pattern with horizon $h=4$. In this case, the belief at the root was set to 
@@ -96,7 +96,7 @@ the outcome of the second arm (branch that leads downwards from the root). Note 
 example shown above with the root prior $(\alpha_0=100, \beta_0=1, \alpha_1=1, \beta_1=100)$.
 \vspace{1cm}
 
-\input{../Data/Tree/tex_tree_big_proba_example.tex}
+\input{../data/Tree/tex_tree_big_proba_example.tex}
 
 \newpage
 I omitted the model-free policy in the above examples -- i.e., the policy was specified as the 
@@ -111,7 +111,7 @@ parameters, each individual update has a smaller impact on the shape of the resu
 
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=1\textwidth]{../Data/betas.png}
+    \includegraphics[width=1\textwidth]{../data/betas.png}
     \caption{Consequitive Bayesian updates of the beta distribution. Left to right.}
     \label{fig1}
 \end{figure}
@@ -136,6 +136,6 @@ node and 2) the leaf nodes. The prior at the root node was set to
 \end{tabular} 
 \end{center} 
 
-\foreach \n in {0, ..., 9}{\input{../Data/Tree/seq/tex_tree_big_\n.tex}}
+\foreach \n in {0, ..., 9}{\input{../data/Tree/seq/tex_tree_big_\n.tex}}
 
 \end{document}
