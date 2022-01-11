@@ -6,6 +6,8 @@
 \usepackage{hyperref}
 \usepackage{xcolor}
 \usepackage{tikz}
+\usepackage{graphicx}
+
 \tikzset{block/.style ={rectangle,draw}
 }
 \usetikzlibrary{positioning, shapes.geometric}
@@ -100,5 +102,40 @@ example shown above with the root prior $(\alpha_0=100, \beta_0=1, \alpha_1=1, \
 I omitted the model-free policy in the above examples -- i.e., the policy was specified as the 
 softmax of the immediate expected reward according to the model at any given belief state 
 (including the root node). 
+
+\section*{Sequences}
+When each node/leaf is initialised to have a particular value (for instance, to the immediate 
+reward according to the agent's model) -- then the order of replay execution does not necessarily 
+follow backward propagation. This is due to the fact that for higher values of the beta distribution 
+parameters, each individual update has a smaller impact on the shape of the resulting posterior density. 
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=1\textwidth]{../Data/betas.png}
+    \caption{Consequitive Bayesian updates of the beta distribution. Left to right.}
+    \label{fig1}
+\end{figure}
+
+This is demonstrated in the example in Figure \ref{fig1}. KL divergence between the 
+leftmost and middle pdfs is $33$, whereas for the middle and rightmost pdfs it is $9.5$.
+Therefore, the EVB associated with the update 
+
+$$v(\{\alpha=1, \beta=1\}) \leftarrow v(\{\alpha=2, \beta=1\})$$
+
+will be greater than that of 
+
+$$v(\{\alpha=2, \beta=1\}) \leftarrow v(\{\alpha=3, \beta=1\})$$
+
+The last example tree below shows how the sequence of replay events was 
+executed where each node's value was set to $0$, except for 1) the root 
+node and 2) the leaf nodes. The prior at the root node was set to 
+\begin{center}
+\begin{tabular}{c c}
+    $\alpha_0 = 10$ & $\beta_0 = 5$\\
+    $\alpha_1 = 3$ & $\beta_1 = 1$
+\end{tabular} 
+\end{center} 
+
+\foreach \n in {0, ..., 9}{\input{../Data/Tree/seq/tex_tree_big_\n.tex}}
 
 \end{document}
