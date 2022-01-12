@@ -207,7 +207,7 @@ def generate_tex_tree(M, replays, save_path):
 
     return None
 
-def generate_big_tex_tree(h, replays, save_path):
+def generate_big_tex_tree(h, replays, q_history, save_path):
 
     y_max = 10
     x_max = 9
@@ -271,14 +271,17 @@ def generate_big_tex_tree(h, replays, save_path):
                         colour  = 'black'
                         text    = False
                         for rep_idx, rep in enumerate(replays[::-1]):
+                            if rep is None:
+                                break
                             if hi == rep[1]:
                                 this_rep = rep[-1]
-                                if (this_rep[2] == idx1):
-                                    if (this_rep[2]*2 + this_rep[-1]) == idx2:
+                                if (this_rep[3] == idx1):
+                                    if (this_rep[3]*2 + this_rep[-1]) == idx2:
                                         colour  = 'red'
                                         if rep_idx == 0:
                                             text = True
                                         break
+# TODO add Q values to edges
                         if not text:
                             f.write(r'\draw[->, thick, %s] (%s) -- (%s);'%(colour, k, k1) + '\n')
                         else:
