@@ -1,0 +1,24 @@
+\documentclass{article}
+
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath, amsfonts}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usepackage{graphicx}
+
+\tikzset{block/.style ={rectangle,draw}
+}
+\usetikzlibrary{positioning, shapes.geometric}
+\usetikzlibrary{trees}
+
+\setlength{\parindent}{0pt}
+
+\begin{document}
+
+\section*{More trees}
+
+\foreach \n in {0, ..., 26}{\input{../data/Tree/seq/tex_tree_\n.tex}}
+
+\end{document}

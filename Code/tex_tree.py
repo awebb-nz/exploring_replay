@@ -269,15 +269,20 @@ def generate_big_tex_tree(h, replays, save_path):
                     
                     if cond:
                         colour  = 'black'
-                        for rep in replays:
+                        text    = False
+                        for rep_idx, rep in enumerate(replays[::-1]):
                             if hi == rep[1]:
                                 this_rep = rep[-1]
                                 if (this_rep[2] == idx1):
                                     if (this_rep[2]*2 + this_rep[-1]) == idx2:
                                         colour  = 'red'
+                                        if rep_idx == 0:
+                                            text = True
                                         break
-
-                        f.write(r'\draw[->, thick, %s] (%s) -- (%s);'%(colour, k, k1) + '\n')
+                        if not text:
+                            f.write(r'\draw[->, thick, %s] (%s) -- (%s);'%(colour, k, k1) + '\n')
+                        else:
+                            f.write(r'\draw[->, thick, %s] (%s) -- (%s) node [midway, above, sloped, font=\scriptsize] () {\textcolor{red}{update}};'%(colour, k, k1) + '\n')
 
         f.write(r'\end{tikzpicture}' + '\n')
         f.write(r'\end{minipage}' + '\n')
