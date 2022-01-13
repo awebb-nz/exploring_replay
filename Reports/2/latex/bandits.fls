@@ -870,10 +870,14 @@ INPUT ../data/Tree/seq/tex_tree_21.tex
 INPUT ../data/Tree/seq/tex_tree_21.tex
 INPUT ../data/Tree/seq/tex_tree_21.tex
 INPUT ../data/Tree/seq/tex_tree_21.tex
+INPUT ../data/Tree/seq/tex_tree_22.tex
+INPUT ../data/Tree/seq/tex_tree_22.tex
+INPUT ../data/Tree/seq/tex_tree_22.tex
+INPUT ../data/Tree/seq/tex_tree_22.tex
 INPUT /var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map
 INPUT bandits.aux
 INPUT ./bandits.out
 INPUT ./bandits.out
 INPUT /usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb
 INPUT /usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb
-INPUT /usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb
+INPUT /usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr5.pfb
