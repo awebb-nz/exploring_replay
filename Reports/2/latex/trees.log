@@ -1,10 +1,10 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.23 (TeX Live 2021/Arch Linux) (preloaded format=pdflatex 2022.1.7)  14 JAN 2022 14:37
+This is pdfTeX, Version 3.141592653-2.6-1.40.23 (TeX Live 2021/Arch Linux) (preloaded format=pdflatex 2022.1.7)  14 JAN 2022 19:17
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
  %&-line parsing enabled.
-**/home/georgy/Documents/Dayan_lab/PhD/bandits/Reports/2/latex/bandits.tex
-(/home/georgy/Documents/Dayan_lab/PhD/bandits/Reports/2/latex/bandits.tex
+**/home/georgy/Documents/Dayan_lab/PhD/bandits/Reports/2/latex/trees.tex
+(/home/georgy/Documents/Dayan_lab/PhD/bandits/Reports/2/latex/trees.tex
 LaTeX2e <2021-11-15> patch level 1
 L3 programming layer <2021-11-22> (/usr/share/texmf-dist/tex/latex/base/article.cls
 Document Class: article 2021/10/04 v1.4n Standard LaTeX document class
@@ -448,8 +448,8 @@ File: tikzlibrarytrees.code.tex 2021/05/15 v3.1.9a (3.1.9a)
 File: l3backend-pdftex.def 2021-12-14 L3 backend support: PDF output (pdfTeX)
 \l__color_backend_stack_int=\count307
 \l__pdf_internal_box=\box63
-) (./bandits.aux)
-\openout1 = `bandits.aux'.
+) (./trees.aux)
+\openout1 = `trees.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 18.
 LaTeX Font Info:    ... okay on input line 18.
@@ -517,9 +517,9 @@ Package: gettitlestring 2019/12/15 v1.6 Cleanup title references (HO)
 LaTeX Info: Redefining \ref on input line 18.
 LaTeX Info: Redefining \pageref on input line 18.
 LaTeX Info: Redefining \nameref on input line 18.
- (./bandits.out) (./bandits.out)
+ (./trees.out) (./trees.out)
 \@outlinefile=\write4
-\openout4 = `bandits.out'.
+\openout4 = `trees.out'.
 
  (/usr/share/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
@@ -13044,20 +13044,20 @@ Underfull \hbox (badness 10000) in paragraph at lines 1--88
 
  []
 
-[33] [34] [35] [36] [37] [38] [39] [40] [41] [42] [43] (./bandits.aux)
-Package rerunfilecheck Info: File `bandits.out' has not changed.
+[33] [34] [35] [36] [37] [38] [39] [40] [41] [42] [43] (./trees.aux)
+Package rerunfilecheck Info: File `trees.out' has not changed.
 (rerunfilecheck)             Checksum: D41D8CD98F00B204E9800998ECF8427E;0.
  ) 
 Here is how much of TeX's memory you used:
  21757 strings out of 478353
- 409540 string characters out of 5854636
- 2509642 words of memory out of 5000000
+ 409506 string characters out of 5854636
+ 2509638 words of memory out of 5000000
  39404 multiletter control sequences out of 15000+600000
  405734 words of font info for 37 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 100i,8n,104p,470b,798s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 100i,8n,104p,468b,798s stack positions out of 5000i,500n,10000p,200000b,80000s
 </usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr5.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy5.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb>
-Output written on bandits.pdf (43 pages, 388275 bytes).
+Output written on trees.pdf (43 pages, 388275 bytes).
 PDF statistics:
  267 PDF objects out of 1000 (max. 8388607)
  198 compressed objects within 2 object streams
