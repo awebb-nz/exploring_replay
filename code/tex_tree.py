@@ -207,12 +207,12 @@ def generate_tex_tree(M, replays, save_path):
 
     return None
 
-def generate_big_tex_tree(h, replays, q_history, need_history, save_path):
+def generate_big_tex_tree(h, replays, q_history, need_history, file_path):
 
     y_max = 10
     x_max = 9
 
-    with open(save_path, 'w') as f:
+    with open(file_path, 'w') as f:
 
         f.write(r'\begin{minipage}{\textwidth}' + '\n')
         f.write(r'\centering' + '\n')
