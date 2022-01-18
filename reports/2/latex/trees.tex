@@ -22,7 +22,7 @@
 The EVB for each single-action update (i.e., taking action $a^*$ at belief state $b$) is calculated as:
 
 \begin{equation}
-    \text{EVB}(ba^*) = p(b_{\rho}\rightarrow b \mid \pi)\times \big(\mathbb{E}_{b'\sim p(b'\mid b, a^*)}\big[v(ba^*)\big]-v(b)\big)
+    \text{EVB}(ba^*) = p(b_{\rho}\rightarrow b \mid \pi)\times \big(\mathbb{E}_{b'\sim p(b'\mid b, a^*)}\big[v(b')\big]-v(b)\big)
     \label{eqn:evb}
 \end{equation}
 

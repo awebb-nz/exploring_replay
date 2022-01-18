@@ -1,7 +1,7 @@
-PWD /home/georgy/Documents/Dayan_lab/PhD/bandits/Reports/2/latex
+PWD /home/georgy/Documents/Dayan_lab/PhD/bandits/reports/2/latex
 INPUT /usr/share/texmf-dist/web2c/texmf.cnf
 INPUT /var/lib/texmf/web2c/pdftex/pdflatex.fmt
-INPUT /home/georgy/Documents/Dayan_lab/PhD/bandits/Reports/2/latex/trees.tex
+INPUT /home/georgy/Documents/Dayan_lab/PhD/bandits/reports/2/latex/trees.tex
 OUTPUT trees.log
 INPUT /usr/share/texmf-dist/tex/latex/base/article.cls
 INPUT /usr/share/texmf-dist/tex/latex/base/article.cls
