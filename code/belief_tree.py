@@ -220,7 +220,7 @@ class Tree:
                         for k1, q1 in self.qval_tree[hi+1].items():
                             prev_c = k1[-2]
                             if prev_c == c and k1[0] == a:
-                                v_primes += [np.dot(self._policy(q1), q1)] # values of next belief states
+                                v_primes += [np.max(q1)] # values of next belief states
                                 if len(v_primes) == 2:
                                     break
 
