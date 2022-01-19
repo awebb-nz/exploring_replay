@@ -25,7 +25,7 @@ class Tree:
         '''
 
         if np.all(q_values == 0):
-            return np.array([0.5, 0.5])
+            return np.array([0.5, 0.5], dtype=np.float32)
 
         if self.policy_temp:
             t = self.policy_temp
@@ -109,7 +109,7 @@ class Tree:
         # first asign values to leaf nodes -- immediate reward
         hi = self.horizon - 1
         for k, b in self.tree[hi].items():
-            self.qval_tree[hi][k] = np.array([b[0, 0]/np.sum(b[0, :]), b[1, 0]/np.sum(b[1, :])])
+            self.qval_tree[hi][k] = np.array([b[0, 0]/np.sum(b[0, :]), b[1, 0]/np.sum(b[1, :])], dtype=np.float32)
 
         # then propagate those values backwards
         for hi in reversed(range(self.horizon-1)):
@@ -126,8 +126,11 @@ class Tree:
                             v_primes += [np.max(q1)]
                             if len(v_primes) == 2:
                                 break
+                    
+                    b0 = np.divide(b[a, 0], np.sum(b[a, :]), dtype=np.float32)
+                    b1 = np.divide(b[a, 1], np.sum(b[a, :]), dtype=np.float32)
 
-                    self.qval_tree[hi][k][a] = (b[a, 0]/np.sum(b[a, :]))*(1 + self.gamma*v_primes[0]) + (b[a, 1]/np.sum(b[a, :]))*(0 + self.gamma*v_primes[1])
+                    self.qval_tree[hi][k][a] = b0*(1 + self.gamma*v_primes[0]) + b1*(0 + self.gamma*v_primes[1])
 
         return None
 
@@ -145,23 +148,27 @@ class Tree:
         self.xi    = xi
 
         self.evb_tree   = {hi:{} for hi in range(self.horizon)} # tree with evb values for each node
-        self.qval_tree  = {hi:{} for hi in range(self.horizon)} # tree with value estimate for each node
-        self.need_tree  = {hi:{} for hi in range(self.horizon)}
-        backups         = [None]
+        self.qval_tree  = {hi:{} for hi in range(self.horizon)} # tree with Q value estimates for each node
+        self.need_tree  = {hi:{} for hi in range(self.horizon)} # tree with Need estimates for each node
+        backups         = [None] # list to save replay updates
 
-        qval_history = []
+        qval_history = [] # same here
         need_history = []
 
+        # first assign initial q values & compute the initial Need
         for hi in range(self.horizon):
             for k, b in self.tree[hi].items():
-                # Q values at the root
+
+                # Q values at the root are the MF Q values
                 if (hi == 0):
                     q_values = self.root_q_values.copy()
+                # otherwise it's the immediate model-based expected reward
                 else:
                     q_values = np.array([b[0, 0]/np.sum(b[0, :]), b[1, 0]/np.sum(b[1, :])], dtype=np.float32)
-                    
+                
                 self.qval_tree[hi][k] = q_values.copy() # change temperature?
 
+                # compute Need with the default (softmax) policy
                 prev_c = k[-2]
                 c      = k[-1]
                 a      = k[0]
@@ -170,7 +177,7 @@ class Tree:
                     for kn, bn in self.tree[hin].items():
                         if kn[-1] == prev_c:
                             policy_proba = self._policy(self.qval_tree[hin][kn])
-                            proba *= policy_proba[a]*(bn[a, c%2]/np.sum(bn[a, :]))
+                            proba *= policy_proba[a]*np.divide(bn[a, c%2], np.sum(bn[a, :]), dtype=np.float32)
 
                             c      = kn[-1]
                             prev_c = kn[-2]
@@ -183,18 +190,18 @@ class Tree:
         need_history += [deepcopy(self.need_tree)]
 
         # compute evb for every backup
-        num = 0
-        while True: # for N steps
+        while True:
             max_evb = 0
 
-            nqval_tree = {hi:{} for hi in range(self.horizon)} # self.tree with new updated value estimates for each node
+            nqval_tree = {hi:{} for hi in range(self.horizon)} # tree with new (updated) Q value estimates for each node
             for hi in reversed(range(self.horizon-1)):
                 for k, b in self.tree[hi].items():
                     
-                    q        = self.qval_tree[hi][k].copy()  # Q values of this belief state
-                    v        = np.dot(self._policy(q), q)     # value of this belief state
+                    q        = self.qval_tree[hi][k].copy() # current Q values of this belief state
+                    v        = np.dot(self._policy(q), q)   # value of this belief state
 
-                    # -- probability of reaching this belief state -- #
+                    # -- probability of reaching this belief state (Need) -- #
+                    # again, computed with the default (softmax) policy
                     prev_c = k[-2]
                     c      = k[-1]
                     a      = k[0]
@@ -203,7 +210,7 @@ class Tree:
                         for kn, bn in self.tree[hin].items():
                             if kn[-1] == prev_c:
                                 policy_proba = self._policy(self.qval_tree[hin][kn])
-                                proba *= policy_proba[a]*(bn[a, c%2]/np.sum(bn[a, :]))
+                                proba *= policy_proba[a]*np.divide(bn[a, c%2], np.sum(bn[a, :]), dtype=np.float32)
 
                                 c      = kn[-1]
                                 prev_c = kn[-2]
@@ -214,6 +221,7 @@ class Tree:
                             
                     v_primes = []
 
+                    # compute the new (updated) Q value 
                     c = k[-1]
                     for a in range(2):
                         v_primes = []
@@ -224,8 +232,10 @@ class Tree:
                                 if len(v_primes) == 2:
                                     break
 
-                        # new (updated) Q value for action a
-                        q_upd = (b[a, 0]/np.sum(b[a, :]))*(1 + self.gamma*v_primes[0]) + (b[a, 1]/np.sum(b[a, :]))*(0 + self.gamma*v_primes[1])
+                        # new (updated) Q value for action [a]
+                        b0 = np.divide(b[a, 0], np.sum(b[a, :]), dtype=np.float32)
+                        b1 = np.divide(b[a, 1], np.sum(b[a, :]), dtype=np.float32)
+                        q_upd = b0*(1 + self.gamma*v_primes[0]) + b1*(0 + self.gamma*v_primes[1])
 
                         if a == 0:
                             q_new = np.array([q_upd, q[1]], np.float32)
@@ -236,13 +246,7 @@ class Tree:
 
                         new_key = tuple(list(k) + [a])
                         
-                        # can i get this proba here? it should be 
-                        # different after each new replay update 
-                        # (for the updated state, of course)
-
-                        # proba = 0.5
                         evb   = proba*(v_new - v)
-                        # evb = v_new - v
                             
                         if evb > max_evb:
                             max_evb = evb
@@ -250,6 +254,7 @@ class Tree:
                         self.evb_tree[hi][new_key]   = evb
                         nqval_tree[hi][new_key] = q_upd
 
+            # break the loop based on \xi evb threshold
             if max_evb <= self.xi:
                 break
 
@@ -262,18 +267,17 @@ class Tree:
             if max_val <= 0:
                 return qval_history, need_history, backups
 
+            # execute update (replay) with the highest evb
             hi = backup[0]
             k  = backup[1][:-1]
             a  = backup[1][-1]
 
             qvals    = self.qval_tree[hi][k]
             new_qval = nqval_tree[hi][backup[1]]
-            # print('replay', num, ' ', k, a, max_val, qvals[a], new_qval)
             qvals[a] = new_qval
             self.qval_tree[hi][k] = qvals
 
-            num += 1
-
+            # save history
             qval_history += [deepcopy(self.qval_tree)]
             need_history += [deepcopy(self.need_tree)]
             backups      += [[self.tree[hi][k], backup[0], backup[1]]]
