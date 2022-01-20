@@ -1,5 +1,5 @@
 import numpy as np
-from copy import deepcopy, copy
+from copy import deepcopy
 
 class Tree:
 
@@ -25,7 +25,7 @@ class Tree:
         '''
 
         if np.all(q_values == 0):
-            return np.array([0.5, 0.5], dtype=np.float32)
+            return np.array([0.5, 0.5])
 
         if self.policy_temp:
             t = self.policy_temp
@@ -35,7 +35,11 @@ class Tree:
         if self.policy_type == 'softmax':
             return np.exp(q_values*t)/np.sum(np.exp(q_values*t))
         elif self.policy_type == 'greedy':
-            return np.array(q_values >= q_values.max()).astype(int)
+            if np.all(q_values == q_values.max()):
+                a = np.random.choice([1, 0], p=[0.5, 0.5])
+                return np.array([a, 1-a])
+            else:
+                return np.array(q_values >= q_values.max()).astype(int)
         else:
             raise KeyError('Unknown policy type')
 
@@ -109,12 +113,12 @@ class Tree:
         # first asign values to leaf nodes -- immediate reward
         hi = self.horizon - 1
         for k, b in self.tree[hi].items():
-            self.qval_tree[hi][k] = np.array([b[0, 0]/np.sum(b[0, :]), b[1, 0]/np.sum(b[1, :])], dtype=np.float32)
+            self.qval_tree[hi][k] = np.array([b[0, 0]/np.sum(b[0, :]), b[1, 0]/np.sum(b[1, :])])
 
         # then propagate those values backwards
         for hi in reversed(range(self.horizon-1)):
             for k, b in self.tree[hi].items():
-                self.qval_tree[hi][k] = np.zeros(2, dtype=np.float32)
+                self.qval_tree[hi][k] = np.zeros(2)
 
                 c        = k[-1]
                 for a in range(2):
@@ -127,10 +131,7 @@ class Tree:
                             if len(v_primes) == 2:
                                 break
                     
-                    b0 = np.divide(b[a, 0], np.sum(b[a, :]), dtype=np.float32)
-                    b1 = np.divide(b[a, 1], np.sum(b[a, :]), dtype=np.float32)
-
-                    self.qval_tree[hi][k][a] = b0*(1 + self.gamma*v_primes[0]) + b1*(0 + self.gamma*v_primes[1])
+                    self.qval_tree[hi][k][a] = (b[a, 0]/np.sum(b[a, :]))*(1.0 + self.gamma*v_primes[0]) + (b[a, 1]/np.sum(b[a, :]))*(0.0 + self.gamma*v_primes[1])
 
         return None
 
@@ -164,7 +165,7 @@ class Tree:
                     q_values = self.root_q_values.copy()
                 # otherwise it's the immediate model-based expected reward
                 else:
-                    q_values = np.array([b[0, 0]/np.sum(b[0, :]), b[1, 0]/np.sum(b[1, :])], dtype=np.float32)
+                    q_values = np.array([b[0, 0]/np.sum(b[0, :]), b[1, 0]/np.sum(b[1, :])])
                 
                 self.qval_tree[hi][k] = q_values.copy() # change temperature?
 
@@ -177,7 +178,7 @@ class Tree:
                     for kn, bn in self.tree[hin].items():
                         if kn[-1] == prev_c:
                             policy_proba = self._policy(self.qval_tree[hin][kn])
-                            proba *= policy_proba[a]*np.divide(bn[a, c%2], np.sum(bn[a, :]), dtype=np.float32)
+                            proba *= policy_proba[a]*(bn[a, c%2]/np.sum(bn[a, :]))
 
                             c      = kn[-1]
                             prev_c = kn[-2]
@@ -210,7 +211,7 @@ class Tree:
                         for kn, bn in self.tree[hin].items():
                             if kn[-1] == prev_c:
                                 policy_proba = self._policy(self.qval_tree[hin][kn])
-                                proba *= policy_proba[a]*np.divide(bn[a, c%2], np.sum(bn[a, :]), dtype=np.float32)
+                                proba *= policy_proba[a]*(bn[a, c%2]/np.sum(bn[a, :]))
 
                                 c      = kn[-1]
                                 prev_c = kn[-2]
@@ -233,14 +234,13 @@ class Tree:
                                     break
 
                         # new (updated) Q value for action [a]
-                        b0 = np.divide(b[a, 0], np.sum(b[a, :]), dtype=np.float32)
-                        b1 = np.divide(b[a, 1], np.sum(b[a, :]), dtype=np.float32)
-                        q_upd = b0*(1 + self.gamma*v_primes[0]) + b1*(0 + self.gamma*v_primes[1])
+                        q_upd = (b[a, 0]/np.sum(b[a, :]))*(1.0 + self.gamma*v_primes[0]) + (b[a, 1]/np.sum(b[a, :]))*(0.0 + self.gamma*v_primes[1])
+
 
                         if a == 0:
-                            q_new = np.array([q_upd, q[1]], np.float32)
+                            q_new = np.array([q_upd, q[1]])
                         else:
-                            q_new = np.array([q[0], q_upd], np.float32)
+                            q_new = np.array([q[0], q_upd])
                         
                         v_new   = np.dot(self._policy(q_new), q_new) 
 
