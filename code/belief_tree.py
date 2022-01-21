@@ -107,13 +107,17 @@ class Tree:
         ----
         '''
 
+        rnd = 8
+
         self.gamma = gamma
         self.qval_tree  = {hi:{} for hi in range(self.horizon)}
 
         # first asign values to leaf nodes -- immediate reward
         hi = self.horizon - 1
         for k, b in self.tree[hi].items():
-            self.qval_tree[hi][k] = np.array([b[0, 0]/np.sum(b[0, :]), b[1, 0]/np.sum(b[1, :])])
+            b0 = np.round(b[0, 0]/np.sum(b[0, :]), rnd)
+            b1 = np.round(b[1, 0]/np.sum(b[1, :]), rnd)
+            self.qval_tree[hi][k] = np.array([b0, b1])
 
         # then propagate those values backwards
         for hi in reversed(range(self.horizon-1)):
@@ -131,7 +135,9 @@ class Tree:
                             if len(v_primes) == 2:
                                 break
                     
-                    self.qval_tree[hi][k][a] = (b[a, 0]/np.sum(b[a, :]))*(1.0 + self.gamma*v_primes[0]) + (b[a, 1]/np.sum(b[a, :]))*(0.0 + self.gamma*v_primes[1])
+                    b0 = np.round(b[a, 0]/np.sum(b[a, :]), rnd)
+                    b1 = np.round(b[a, 1]/np.sum(b[a, :]), rnd)
+                    self.qval_tree[hi][k][a] = b0*(1.0 + self.gamma*v_primes[0]) + b1*(0.0 + self.gamma*v_primes[1])
 
         return None
 
@@ -144,6 +150,8 @@ class Tree:
         xi    -- EVB threshold
         ----
         '''
+
+        rnd = 8
 
         self.gamma = gamma
         self.xi    = xi
@@ -164,8 +172,13 @@ class Tree:
                 if (hi == 0):
                     q_values = self.root_q_values.copy()
                 # otherwise it's the immediate model-based expected reward
+                # elif (hi == self.horizon-1):
                 else:
-                    q_values = np.array([b[0, 0]/np.sum(b[0, :]), b[1, 0]/np.sum(b[1, :])])
+                    b0 = np.round(b[0, 0]/np.sum(b[0, :]), rnd)
+                    b1 = np.round(b[1, 0]/np.sum(b[1, :]), rnd)
+                    q_values = np.array([b0, b1])
+                # else:
+                    # q_values = np.zeros(2)
                 
                 self.qval_tree[hi][k] = q_values.copy() # change temperature?
 
@@ -178,7 +191,8 @@ class Tree:
                     for kn, bn in self.tree[hin].items():
                         if kn[-1] == prev_c:
                             policy_proba = self._policy(self.qval_tree[hin][kn])
-                            proba *= policy_proba[a]*(bn[a, c%2]/np.sum(bn[a, :]))
+                            bc           = np.round(bn[a, c%2]/np.sum(bn[a, :]), rnd)
+                            proba       *= policy_proba[a]*bc
 
                             c      = kn[-1]
                             prev_c = kn[-2]
@@ -191,6 +205,7 @@ class Tree:
         need_history += [deepcopy(self.need_tree)]
 
         # compute evb for every backup
+        num = 1
         while True:
             max_evb = 0
 
@@ -211,7 +226,8 @@ class Tree:
                         for kn, bn in self.tree[hin].items():
                             if kn[-1] == prev_c:
                                 policy_proba = self._policy(self.qval_tree[hin][kn])
-                                proba *= policy_proba[a]*(bn[a, c%2]/np.sum(bn[a, :]))
+                                bc           = np.round(bn[a, c%2]/np.sum(bn[a, :]), rnd)
+                                proba       *= policy_proba[a]*bc
 
                                 c      = kn[-1]
                                 prev_c = kn[-2]
@@ -234,7 +250,9 @@ class Tree:
                                     break
 
                         # new (updated) Q value for action [a]
-                        q_upd = (b[a, 0]/np.sum(b[a, :]))*(1.0 + self.gamma*v_primes[0]) + (b[a, 1]/np.sum(b[a, :]))*(0.0 + self.gamma*v_primes[1])
+                        b0 = np.round(b[a, 0]/np.sum(b[a, :]), rnd)
+                        b1 = np.round(b[a, 1]/np.sum(b[a, :]), rnd)
+                        q_upd = b0*(1.0 + self.gamma*v_primes[0]) + b1*(0.0 + self.gamma*v_primes[1])
 
 
                         if a == 0:
@@ -276,6 +294,9 @@ class Tree:
             new_qval = nqval_tree[hi][backup[1]]
             qvals[a] = new_qval
             self.qval_tree[hi][k] = qvals
+
+            # print('Replay %u'%num)
+            num += 1
 
             # save history
             qval_history += [deepcopy(self.qval_tree)]

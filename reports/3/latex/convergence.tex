@@ -1,0 +1,62 @@
+\documentclass{article}
+
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath, amsfonts}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{subcaption}
+\usepackage{caption}
+\usepackage{graphicx}
+
+\setlength{\parindent}{0pt}
+
+\begin{document}
+
+\section*{Empirical convergence analysis}
+
+I am still puzzled by the choice of policy \textit{inside} the tree. The options are, for instance, to set all 
+$Q$-values for the intermediate nodes within the tree to $0$ -- in which case the policy would be uniform; or, 
+alternatively, those $Q$-values could be set to the immediate expected reward according to those intermediate 
+belief states. The former choice will force the replays to be initiated at the leaves of the tree (i.e., at the 
+final horizon reached), since only the leaf values would have non-zero values to propagate. As for the other 
+option, the replay patterns would be very different because of the Need term which discounts states that are further away.     
+\bigbreak
+Moreover, I think that the uniform policy would make it less likely that distal beliefs for the sub-optimal action (at 
+the root) get replayed. Indeed, the choice of the tree policy seems to affect the rate of convergence. I generated 
+convergence plots for the two policies for comparison. 
+
+\subsection*{Replay threshold}
+The plots below show how the value of the root state changes with the EVB threshold $\xi$ at multiple horizons 
+and for various prior beliefs. Note that the root $Q$-values (i.e, the current MF $Q$-values) were set to $0$ 
+everywhere unless specified otherwise.
+
+\bigbreak
+Numbers on top of each data point indicate the number of replays. Titles specify the prior beliefs at the root.
+
+\newpage
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=.75\textwidth]{../data/convergence/xi/alpha05_beta01_alpha11_beta11.png}
+\end{figure}
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=.75\textwidth]{../data/convergence/xi/alpha05_beta02_alpha13_beta12.png}
+\end{figure}
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=.75\textwidth]{../data/convergence/xi/alpha09_beta06_alpha13_beta12.png}
+\end{figure}
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=.75\textwidth]{../data/convergence/xi/alpha010_beta06_alpha13_beta12.png}
+\end{figure}
+
+\newpage
+
+\subsection*{Number of replays}
+
+\end{document}
