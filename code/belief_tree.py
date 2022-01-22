@@ -5,6 +5,17 @@ class Tree:
 
     def __init__(self, root_belief, root_q_values, policy_temp, policy_type):
         
+        '''
+        ----
+        MAB agent
+
+        root_belief   -- current posterior belief
+        root_q_values -- MF Q values at the current state
+        policy_temp   -- inverse temperature
+        policy_type   -- softmax / greeedy
+        ----
+        '''
+        
         self.root_belief   = root_belief
         self.root_q_values = root_q_values
         self.policy_temp   = policy_temp
