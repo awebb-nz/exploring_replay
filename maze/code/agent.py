@@ -1,10 +1,10 @@
-from turtle import update
 import numpy as np
 from copy import deepcopy
+import os, shutil
 
 class Environment:
 
-    def __init__(self, config, blocked_state_actions: list):
+    def __init__(self, config, blocked_state_actions: list, start_state, goal_state):
 
         '''
         ----
@@ -20,6 +20,9 @@ class Environment:
 
         self.num_states            = self.num_x_states*self.num_y_states
         self.num_actions           = 4
+
+        self.start_state           = start_state
+        self.goal_state            = goal_state
 
         return None
 
@@ -94,7 +97,7 @@ class Environment:
 
 class Agent(Environment):
 
-    def __init__(self, config, start_coords, goal_coords, blocked_state_actions, uncertain_state_coords, uncertain_action, alpha, gamma, horizon, xi, policy_temp=None, policy_type='softmax'):
+    def __init__(self, config, start_state, goal_state, blocked_state_actions, uncertain_state_coords, uncertain_action, alpha, gamma, horizon, xi, policy_temp=None, policy_type='softmax'):
         
         '''
         ----
@@ -113,10 +116,7 @@ class Agent(Environment):
         ----
         '''
         
-        super().__init__(config, blocked_state_actions)
-
-        self.start_state = self._convert_coords_to_state(start_coords)
-        self.goal_state  = self._convert_coords_to_state(goal_coords)
+        super().__init__(config, blocked_state_actions, start_state, goal_state)
 
         self.Q = np.zeros((self.num_states, self.num_actions))
         # beta prior for the uncertain transition
@@ -288,21 +288,21 @@ class Agent(Environment):
                         
         return ntree
 
-    def _get_update(self, btrees, ntrees, qtrees):
+    def _get_updates(self, btrees, ntrees, qtrees):
 
-        max_evb = 0
-        idx     = []
+        nqval_trees = [{hi:{} for hi in range(self.horizon)} for s in range(self.num_states)]
+        evb_trees   = [{hi:{} for hi in range(self.horizon)} for s in range(self.num_states)]
         for s in range(self.num_states):
-            btree = btrees[s]
-            qtree = qtrees[s]
-            ntree = ntrees[s]
+            btree      = btrees[s]
+            qtree      = qtrees[s]
+            ntree      = ntrees[s]
 
             for hi in reversed(range(self.horizon-1)):
                 for k, b in btree[hi].items():
                     q_old = qtree[hi][k].copy()
                     v_old = np.dot(self._policy(q_old), q_old)
                     
-                    s = k[1]
+                    prev_s = k[1]
                     c = k[-1]
                     for a in range(self.num_actions):
                         tds = []
@@ -315,35 +315,35 @@ class Agent(Environment):
                                 tds += [rew + self.gamma*np.max(q1)]
 
                                 # if it's the uncertain (s, a) pair then this generates 2 belief states
-                                if (s == self.uncertain_state) and (a == self.uncertain_action):
+                                if (prev_s == self.uncertain_state) and (a == self.uncertain_action):
                                     if len(tds) == 2:
                                         break
                                 # otherwise there's only one possible next state
                                 else: 
                                     break
 
-                    # get the new (updated) q value
-                    q_new = q_old.copy()
-                    if len(tds) == 2:
-                        b0 = b[0]/np.sum(b)
-                        b1 = 1 - b[1]/np.sum(b)
-                        q_new[a] = b0*tds[0] + b1*tds[1]
-                    else:
-                        q_new[a] = tds[0]
+                        # get the new (updated) q value
+                        q_new = q_old.copy()
+                        if len(tds) == 2:
+                            b0 = b[0]/np.sum(b)
+                            b1 = 1 - b[1]/np.sum(b)
+                            q_new[a] = b0*tds[0] + b1*tds[1]
+                        else:
+                            q_new[a] = tds[0]
 
-                    v_new = np.dot(self._policy(q_new), q_new)
-                    evb   = ntree[hi][k] * (v_new - v_old)
+                        new_key = tuple(list(k) + [a])
+                        nqval_trees[s][hi][new_key] = q_new
 
-                    if evb > max_evb:
-                        idx     = [s, hi, k, evb, q_new]
-                        max_evb = evb 
+                        v_new   = np.dot(self._policy(q_new), q_new)
+                        evb     = ntree[hi][k] * (v_new - v_old)
 
-        if len(idx) == 0:
-            idx = [None, None, None, 0.0, None]
-            
-        return idx
+                        evb_trees[s][hi][new_key] = evb
+
+        return nqval_trees, evb_trees
 
     def _replay(self):
+        
+        Q_history    = [self.Q.copy()]
 
         belief_trees = []
         qval_trees   = []
@@ -357,25 +357,56 @@ class Agent(Environment):
             need_trees   += [need_tree] 
         
         while True:
-            update = self._get_update(belief_trees, need_trees, qval_trees)
-            s, hi, k, evb, q_new = update
-            if evb < self.xi:
+            new_qval_trees, evb_trees = self._get_updates(belief_trees, need_trees, qval_trees)
+            max_evb = 0
+            idx     = []
+            for s in range(self.num_states):
+                evb_tree = evb_trees[s]
+                for hi in range(self.horizon):
+                    for k, evb in evb_tree[hi].items():
+                        if evb > max_evb:
+                            max_evb = evb
+                            idx     = [s, hi, k]
+                            q_new   = new_qval_trees[s][hi][k]
+
+            if max_evb < self.xi:
                 break
             else:
-                qval_trees[s][hi][k] = q_new
+                print('Replay', idx)
+                s, hi, k = idx[0], idx[1], idx[2]
+                qval_trees[s][hi][k[:-1]] = q_new
                 need_trees[s] = self._build_need_tree(belief_trees[s], qval_trees[s])
+
+                if hi == 0:
+                    self.Q[s, :] = q_new
+                    Q_history   += [self.Q.copy()] 
+
+                    qval_trees   = []
+                    need_trees   = []
+                    for s in range(self.num_states):
+                        belief_tree   = belief_trees[s]
+                        qval_tree     = self._build_qval_tree(belief_tree)
+                        qval_trees   += [qval_tree]
+                        need_tree     = self._build_need_tree(belief_tree, qval_tree)
+                        need_trees   += [need_tree] 
 
         for s in range(self.num_states):
             for _, v in qval_trees[s][0].items():
                 self.Q[s, :] = v
+        return Q_history
 
-        return None
+    def run_simulation(self, num_steps=100, save_path=None):
 
-    def run_simulation(self, num_steps=100):
+        if save_path:
+            if os.path.isdir(save_path):
+                shutil.rmtree(save_path)
+            os.makedirs(save_path)
 
         s = self.start_state
 
-        for _ in range(num_steps):
+        for step in range(num_steps):
+            
+            print('Step %u/%u'%(step+1, num_steps))
 
             probs = self._policy(self.Q[s, :])
             a     = np.random.choice(range(self.num_actions), p=probs)
@@ -387,7 +418,10 @@ class Agent(Environment):
             if (s == self.uncertain_state) and (a == self.uncertain_action):
                 self.M = self._belief_update(self.M, s, s1)
 
-            self._replay()
+            Q_history = self._replay()
+
+            if save_path:
+                np.savez(os.path.join(save_path, 'Q_%u.npz'%step), Q_history=Q_history)
 
             if s1 == self.goal_state:
                 s = self.start_state
