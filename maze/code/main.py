@@ -26,15 +26,16 @@ blocked_state_actions = [[1, 1], [2, 1], [3, 1], [4, 1],
 # --- Specify agent parameters ---
 
 # discount factor
-gamma = 0.9
+gamma   = 0.9 
+alpha   = 0.4
+horizon = 3
+xi      = 0.2
 
-# learning rate 
-alpha = 0.4
 
 # --- Main function ---
 def main():
-    agent = Agent(config, start_coords, goal_coords, blocked_state_actions, [1, 2], 0, alpha, gamma)
-    agent.run_simulation(num_steps=5000)
+    agent = Agent(config, start_coords, goal_coords, blocked_state_actions, [1, 2], 0, alpha, gamma, horizon, xi)
+    agent.run_simulation(num_steps=500)
     print(agent.Q)
     print(agent.M)
     return None

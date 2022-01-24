@@ -1,14 +1,15 @@
+from turtle import update
 import numpy as np
 from copy import deepcopy
 
 class Environment:
 
-    def __init__(self, config, blocked_state_actions):
+    def __init__(self, config, blocked_state_actions: list):
 
         '''
         ----
-        config     -- matrix which specifies the env
-        rew_matrix -- matrix which specifies reward received at each location
+        config                -- matrix which specifies the env
+        blocked_state_actions -- list with state-action pairs [s, a] which are blocked
         ----
         '''
 
@@ -26,10 +27,14 @@ class Environment:
 
         '''
         ----
-        s -- current state of the agent
-        a -- chosen action
+        s        -- current state of the agent
+        a        -- chosen action
+        unlocked -- whether the action is available or not (for blocked_state_actions)
         ----
         '''
+
+        if s == self.goal_state:
+            return self.start_state, 0
 
         y_coord, x_coord = self._convert_state_to_coords(s)
 
@@ -63,7 +68,7 @@ class Environment:
                 x1_coord, y1_coord = x_coord + 1, y_coord
 
             # check the barriers
-            if ([s, a] not in self.blocked_state_actions) and (unlocked == False):
+            if (unlocked == True) or ([s, a] not in self.blocked_state_actions):
                 r  = self.config[y1_coord, x1_coord]
                 s1 = self._convert_coords_to_state([y1_coord, x1_coord])
                 return s1, r
@@ -90,7 +95,24 @@ class Environment:
 class Agent(Environment):
 
     def __init__(self, config, start_coords, goal_coords, blocked_state_actions, uncertain_state_coords, uncertain_action, alpha, gamma, horizon, xi, policy_temp=None, policy_type='softmax'):
-
+        
+        '''
+        ----
+        config                 -- matrix which specifies the env
+        start_coords           -- start state coordinates
+        goal_coords            -- goal state coordinates 
+        blocked_state_actions  -- list with state-action pairs [s, a] which are blocked
+        uncertain_state_coords -- blockage which the agent is uncertain about
+        uncertain_action       -- ''-''
+        alpha                  -- value learning rate
+        gamma                  -- discount factor
+        horizon                -- planning / replay horizon
+        xi                     -- replay EVB threshold
+        policy_temp            -- inverse temperature
+        policy_type            -- softmax / greedy
+        ----
+        '''
+        
         super().__init__(config, blocked_state_actions)
 
         self.start_state = self._convert_coords_to_state(start_coords)
@@ -101,10 +123,11 @@ class Agent(Environment):
         self.M = np.ones(2)
         # transition matrix for other transitions
         self.T = np.zeros((self.num_states, self.num_actions, self.num_states))
-        for s in range(self.num_states):
+        for s in np.delete(range(self.num_states), self.goal_state):
             for a in range(self.num_actions):
                 s1 = self._get_new_state(s, a)
                 self.T[s, a, s1] = 1
+        self.T[self.goal_state, :, self.start_state] = 1
 
         self.uncertain_state  = self._convert_coords_to_state(uncertain_state_coords)
         self.uncertain_action = uncertain_action
@@ -204,18 +227,18 @@ class Agent(Environment):
                 prev_s1 = k[1]
                 for a in range(self.num_actions):
                     if (prev_s1 == self.uncertain_state) and (a == self.uncertain_action):
-                        s1 = self._get_new_state(prev_s1, a, unlocked=False)
-                        b1 = self._belief_update(b, prev_s1, s1)
+                        s1, _    = self._get_new_state(prev_s1, a, unlocked=True)
+                        b1       = self._belief_update(b, prev_s1, s1)
                         btree[hi][(a, s1, prev_c, c)] = b1
-                        c += 1
-                        s1 = self._get_new_state(prev_s1, a, unlocked=True)
-                        b1 = self._belief_update(b, prev_s1, s1)
+                        c       += 1
+                        s1, _    = self._get_new_state(prev_s1, a, unlocked=False)
+                        b1       = self._belief_update(b, prev_s1, s1)
                         btree[hi][(a, s1, prev_c, c)] = b1
-                        c += 1
+                        c       += 1
                     else:
-                        s1 = self._get_new_state(prev_s1, a)
+                        s1, _    = self._get_new_state(prev_s1, a)
                         btree[hi][(a, s1, prev_c, c)] = b
-                        c += 1
+                        c       += 1
 
         return btree
 
@@ -226,13 +249,99 @@ class Agent(Environment):
         for hi in range(self.horizon):
             for k, _ in btree[hi].items():
                 s = k[1]
-                qtree[hi][k] = self.Q[s, :]
+                qtree[hi][k] = self.Q[s, :].copy()
 
         return qtree
 
-    def _build_need_tree(self, btree, ntree):
+    def _build_need_tree(self, btree, qtree):
 
         ntree = {hi:{} for hi in range(self.horizon)}
+
+        for hi in reversed(range(self.horizon)):
+            for k, b in btree[hi].items():
+
+                prev_c = k[-2]
+                a      = k[0]
+                proba  = 1
+
+                for hin in reversed(range(hi)):
+                    for kn, bn in btree[hin].items():
+                        if kn[-1] == prev_c:
+                            policy_proba = self._policy(qtree[hin][kn])
+                            # if it's the uncertain action & state
+                            if (kn[1] == self.uncertain_state) and (a == self.uncertain_action):
+                                # if successful
+                                s1, _ = self._get_new_state(kn[1], a, unlocked=True)
+                                if k[1] == s1:
+                                    bc = bn[0]/np.sum(bn)
+                                else:
+                                    bc = bn[1]/np.sum(bn)
+                            else:
+                                bc = 1
+                            proba *= policy_proba[a]*bc
+
+                            prev_c = kn[-2]
+                            a      = kn[0]
+                            break
+
+                ntree[hi][k] = proba
+                        
+        return ntree
+
+    def _get_update(self, btrees, ntrees, qtrees):
+
+        max_evb = 0
+        idx     = []
+        for s in range(self.num_states):
+            btree = btrees[s]
+            qtree = qtrees[s]
+            ntree = ntrees[s]
+
+            for hi in reversed(range(self.horizon-1)):
+                for k, b in btree[hi].items():
+                    q_old = qtree[hi][k].copy()
+                    v_old = np.dot(self._policy(q_old), q_old)
+                    
+                    s = k[1]
+                    c = k[-1]
+                    for a in range(self.num_actions):
+                        tds = []
+                        for k1, q1 in qtree[hi+1].items():
+                            prev_c = k1[-2]
+                            s1     = k1[1]
+                            if (prev_c == c) and (k1[0] == a):
+                                y, x = self._convert_state_to_coords(s1)
+                                rew  = self.config[y, x]
+                                tds += [rew + self.gamma*np.max(q1)]
+
+                                # if it's the uncertain (s, a) pair then this generates 2 belief states
+                                if (s == self.uncertain_state) and (a == self.uncertain_action):
+                                    if len(tds) == 2:
+                                        break
+                                # otherwise there's only one possible next state
+                                else: 
+                                    break
+
+                    # get the new (updated) q value
+                    q_new = q_old.copy()
+                    if len(tds) == 2:
+                        b0 = b[0]/np.sum(b)
+                        b1 = 1 - b[1]/np.sum(b)
+                        q_new[a] = b0*tds[0] + b1*tds[1]
+                    else:
+                        q_new[a] = tds[0]
+
+                    v_new = np.dot(self._policy(q_new), q_new)
+                    evb   = ntree[hi][k] * (v_new - v_old)
+
+                    if evb > max_evb:
+                        idx     = [s, hi, k, evb, q_new]
+                        max_evb = evb 
+
+        if len(idx) == 0:
+            idx = [None, None, None, 0.0, None]
+            
+        return idx
 
     def _replay(self):
 
@@ -245,7 +354,20 @@ class Agent(Environment):
             qval_tree     = self._build_qval_tree(belief_tree)
             qval_trees   += [qval_tree]
             need_tree     = self._build_need_tree(belief_tree, qval_tree)
-            need_trees   += [need_tree]
+            need_trees   += [need_tree] 
+        
+        while True:
+            update = self._get_update(belief_trees, need_trees, qval_trees)
+            s, hi, k, evb, q_new = update
+            if evb < self.xi:
+                break
+            else:
+                qval_trees[s][hi][k] = q_new
+                need_trees[s] = self._build_need_tree(belief_trees[s], qval_trees[s])
+
+        for s in range(self.num_states):
+            for _, v in qval_trees[s][0].items():
+                self.Q[s, :] = v
 
         return None
 
@@ -264,6 +386,8 @@ class Agent(Environment):
             # check if attempted the shortcut
             if (s == self.uncertain_state) and (a == self.uncertain_action):
                 self.M = self._belief_update(self.M, s, s1)
+
+            self._replay()
 
             if s1 == self.goal_state:
                 s = self.start_state
