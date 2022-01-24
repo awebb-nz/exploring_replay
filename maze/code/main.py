@@ -26,14 +26,15 @@ config[goal_coords[0], goal_coords[1]] = rew_value
 blocked_state_actions = [[1, 1], [2, 1], [3, 1], [4, 1],
                         [6, 0], [7, 0], [8, 0], [9, 0]]
 
-# --- Specify agent parameters ---
+# --- Specify simulation parameters ---
 num_steps = 50
 save_path = '/home/georgy/Documents/Dayan_lab/PhD/bandits/maze/data'
-# discount factor
+
+# --- Specify agent parameters ---
 gamma     = 0.9 
 alpha     = 0.4
 horizon   = 3
-xi        = 0.1
+xi        = 0.05
 
 # --- Main function ---
 def main():

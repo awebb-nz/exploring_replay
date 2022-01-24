@@ -1,3 +1,4 @@
+from sre_parse import State
 import numpy as np
 from copy import deepcopy
 import os, shutil
@@ -121,13 +122,15 @@ class Agent(Environment):
         self.Q = np.zeros((self.num_states, self.num_actions))
         # beta prior for the uncertain transition
         self.M = np.ones(2)
+
         # transition matrix for other transitions
         self.T = np.zeros((self.num_states, self.num_actions, self.num_states))
         for s in np.delete(range(self.num_states), self.goal_state):
             for a in range(self.num_actions):
-                s1 = self._get_new_state(s, a)
+                s1, _ = self._get_new_state(s, a)
                 self.T[s, a, s1] = 1
-        self.T[self.goal_state, :, self.start_state] = 1
+        for a in range(self.num_actions):
+            self.T[self.goal_state, a, self.start_state] = 1
 
         self.uncertain_state  = self._convert_coords_to_state(uncertain_state_coords)
         self.uncertain_action = uncertain_action
@@ -138,6 +141,8 @@ class Agent(Environment):
         self.gamma       = gamma
         self.horizon     = horizon
         self.xi          = xi
+
+        self.state       = self.start_state
 
         return None
         
@@ -173,6 +178,23 @@ class Agent(Environment):
                 return np.array(q_values >= q_values.max()).astype(int)
         else:
             raise KeyError('Unknown policy type')
+
+    def _compute_gain(self, q_before, q_after):
+
+        probs_before = self._policy(q_before)
+        probs_after  = self._policy(q_after)
+
+        return np.dot((probs_after-probs_before), q_after)
+
+    def _compute_need(self, T, Q):
+
+        Ts = np.zeros((self.num_states, self.num_states))
+        for s in range(self.num_states):
+            probs = self._policy(Q[s, :])
+            for a in range(self.num_actions):
+                Ts[s, :] += probs[a]*T[s, a, :]
+
+        return np.linalg.inv(np.eye(self.num_states) - self.gamma*Ts)
 
     def _belief_update(self, M, s, s1):
 
@@ -248,8 +270,7 @@ class Agent(Environment):
 
         for hi in range(self.horizon):
             for k, _ in btree[hi].items():
-                s = k[1]
-                qtree[hi][k] = self.Q[s, :].copy()
+                qtree[hi][k] = self.Q.copy()
 
         return qtree
 
@@ -267,11 +288,16 @@ class Agent(Environment):
                 for hin in reversed(range(hi)):
                     for kn, bn in btree[hin].items():
                         if kn[-1] == prev_c:
-                            policy_proba = self._policy(qtree[hin][kn])
+                            
+                            state  = kn[1]
+                            Q_vals = qtree[hin][kn].copy()
+                            q_vals = Q_vals[state, :]
+
+                            policy_proba = self._policy(q_vals)
                             # if it's the uncertain action & state
-                            if (kn[1] == self.uncertain_state) and (a == self.uncertain_action):
+                            if (state == self.uncertain_state) and (a == self.uncertain_action):
                                 # if successful
-                                s1, _ = self._get_new_state(kn[1], a, unlocked=True)
+                                s1, _ = self._get_new_state(state, a, unlocked=True)
                                 if k[1] == s1:
                                     bc = bn[0]/np.sum(bn)
                                 else:
@@ -299,23 +325,29 @@ class Agent(Environment):
 
             for hi in reversed(range(self.horizon-1)):
                 for k, b in btree[hi].items():
-                    q_old = qtree[hi][k].copy()
-                    v_old = np.dot(self._policy(q_old), q_old)
                     
-                    prev_s = k[1]
-                    c = k[-1]
+                    state = k[1]
+                    c     = k[-1]
+                    
+                    Q_old      = qtree[hi][k].copy()
+                    q_old_vals = Q_old[state, :].copy()
+                    v_old      = np.dot(self._policy(q_old_vals), q_old_vals)
+                    
                     for a in range(self.num_actions):
                         tds = []
-                        for k1, q1 in qtree[hi+1].items():
+                        for k1, Q_prime in qtree[hi+1].items():
+                            
                             prev_c = k1[-2]
                             s1     = k1[1]
+                            q_prime_vals  = Q_prime[s1, :].copy()
+                            
                             if (prev_c == c) and (k1[0] == a):
                                 y, x = self._convert_state_to_coords(s1)
                                 rew  = self.config[y, x]
-                                tds += [rew + self.gamma*np.max(q1)]
+                                tds += [rew + self.gamma*np.max(q_prime_vals)]
 
                                 # if it's the uncertain (s, a) pair then this generates 2 belief states
-                                if (prev_s == self.uncertain_state) and (a == self.uncertain_action):
+                                if (state == self.uncertain_state) and (a == self.uncertain_action):
                                     if len(tds) == 2:
                                         break
                                 # otherwise there's only one possible next state
@@ -323,21 +355,34 @@ class Agent(Environment):
                                     break
 
                         # get the new (updated) q value
-                        q_new = q_old.copy()
+                        Q_new      = Q_old.copy()
+                        q_new_vals = q_old_vals.copy()
                         if len(tds) == 2:
                             b0 = b[0]/np.sum(b)
                             b1 = 1 - b[1]/np.sum(b)
-                            q_new[a] = b0*tds[0] + b1*tds[1]
+                            q_new_vals[a] = b0*tds[0] + b1*tds[1]
                         else:
-                            q_new[a] = tds[0]
+                            q_new_vals[a] = tds[0]
 
+                        Q_new[state, :]   = q_new_vals
                         new_key = tuple(list(k) + [a])
-                        nqval_trees[s][hi][new_key] = q_new
+                        nqval_trees[s][hi][new_key] = Q_new
 
-                        v_new   = np.dot(self._policy(q_new), q_new)
-                        evb     = ntree[hi][k] * (v_new - v_old)
+                        # v_new   = np.dot(self._policy(q_new_vals), q_new_vals)
+                        # evb     = ntree[hi][k] * (v_new - v_old)
 
-                        evb_trees[s][hi][new_key] = evb
+                        gain = self._compute_gain(q_old_vals, q_new_vals)
+
+
+                        T   = self.T.copy()
+                        T[self.uncertain_state, self.uncertain_action, :] = np.zeros(self.num_states)
+                        s1l  = self._get_new_state(self.uncertain_state, self.uncertain_action, unlocked=False)
+                        s1u  = self._get_new_state(self.uncertain_state, self.uncertain_action, unlocked=True)
+                        T[self.uncertain_state, self.uncertain_action, s1u] = b[0]/np.sum(b)
+                        T[self.uncertain_state, self.uncertain_action, s1l] = (1-b[0]/np.sum(b))
+                        need = self._compute_need(T, Q_old)
+
+                        evb_trees[s][hi][new_key] = ntree[hi][k] * gain * need[self.state, state]
 
         return nqval_trees, evb_trees
 
@@ -367,18 +412,18 @@ class Agent(Environment):
                         if evb > max_evb:
                             max_evb = evb
                             idx     = [s, hi, k]
-                            q_new   = new_qval_trees[s][hi][k]
+                            Q_new   = new_qval_trees[s][hi][k]
 
             if max_evb < self.xi:
                 break
             else:
                 print('Replay', idx)
                 s, hi, k = idx[0], idx[1], idx[2]
-                qval_trees[s][hi][k[:-1]] = q_new
+                qval_trees[s][hi][k[:-1]] = Q_new
                 need_trees[s] = self._build_need_tree(belief_trees[s], qval_trees[s])
 
                 if hi == 0:
-                    self.Q[s, :] = q_new
+                    self.Q = Q_new
                     Q_history   += [self.Q.copy()] 
 
                     qval_trees   = []
@@ -392,7 +437,7 @@ class Agent(Environment):
 
         for s in range(self.num_states):
             for _, v in qval_trees[s][0].items():
-                self.Q[s, :] = v
+                self.Q[s, :] = v[s, :]
         return Q_history
 
     def run_simulation(self, num_steps=100, save_path=None):
@@ -402,30 +447,28 @@ class Agent(Environment):
                 shutil.rmtree(save_path)
             os.makedirs(save_path)
 
-        s = self.start_state
-
         for step in range(num_steps):
             
             print('Step %u/%u'%(step+1, num_steps))
 
-            probs = self._policy(self.Q[s, :])
+            probs = self._policy(self.Q[self.state, :])
             a     = np.random.choice(range(self.num_actions), p=probs)
-            s1, r = self._get_new_state(s, a)
+            s1, r = self._get_new_state(self.state, a)
 
-            self.Q[s, :] = self._qval_update(self.Q, s, a, r, s1)
+            self.Q[self.state, :] = self._qval_update(self.Q, self.state, a, r, s1)
             
             # check if attempted the shortcut
-            if (s == self.uncertain_state) and (a == self.uncertain_action):
-                self.M = self._belief_update(self.M, s, s1)
+            if (self.state == self.uncertain_state) and (a == self.uncertain_action):
+                self.M = self._belief_update(self.M, self.state, s1)
 
             Q_history = self._replay()
 
             if save_path:
-                np.savez(os.path.join(save_path, 'Q_%u.npz'%step), Q_history=Q_history)
+                np.savez(os.path.join(save_path, 'Q_%u.npz'%step), Q_history=Q_history, move=[self.state, a, r, s1])
 
             if s1 == self.goal_state:
-                s = self.start_state
+                self.state = self.start_state
             else:
-                s = s1
+                self.state = s1
 
         return None
