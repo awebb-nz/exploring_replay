@@ -374,15 +374,17 @@ class Agent(Environment):
                         gain = self._compute_gain(q_old_vals, q_new_vals)
 
 
-                        T   = self.T.copy()
+                        T     = self.T.copy()
                         T[self.uncertain_state, self.uncertain_action, :] = np.zeros(self.num_states)
-                        s1l  = self._get_new_state(self.uncertain_state, self.uncertain_action, unlocked=False)
-                        s1u  = self._get_new_state(self.uncertain_state, self.uncertain_action, unlocked=True)
+                        s1l   = self._get_new_state(self.uncertain_state, self.uncertain_action, unlocked=False)
+                        s1u   = self._get_new_state(self.uncertain_state, self.uncertain_action, unlocked=True)
                         T[self.uncertain_state, self.uncertain_action, s1u] = b[0]/np.sum(b)
                         T[self.uncertain_state, self.uncertain_action, s1l] = (1-b[0]/np.sum(b))
-                        need = self._compute_need(T, Q_old)
-
-                        evb_trees[s][hi][new_key] = ntree[hi][k] * gain * need[self.state, state]
+                        need  = self._compute_need(T, Q_old)
+                        pneed = ntree[hi][k]
+                        # if (state == self.uncertain_state) and (a == self.uncertain_action):
+                            # print(hi, new_key, pneed, need[self.state, state], gain)
+                        evb_trees[s][hi][new_key] = pneed * gain * need[self.state, state]
 
         return nqval_trees, evb_trees
 
@@ -461,10 +463,11 @@ class Agent(Environment):
             if (self.state == self.uncertain_state) and (a == self.uncertain_action):
                 self.M = self._belief_update(self.M, self.state, s1)
 
-            Q_history = self._replay()
+            if step > 100:
+                Q_history = self._replay()
 
-            if save_path:
-                np.savez(os.path.join(save_path, 'Q_%u.npz'%step), Q_history=Q_history, move=[self.state, a, r, s1])
+                if save_path:
+                    np.savez(os.path.join(save_path, 'Q_%u.npz'%step), Q_history=Q_history, move=[self.state, a, r, s1])
 
             if s1 == self.goal_state:
                 self.state = self.start_state

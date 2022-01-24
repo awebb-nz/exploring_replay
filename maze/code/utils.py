@@ -88,7 +88,7 @@ def plot_maze_values(Q, move, ax, num_y_states, num_x_states, goal_state, blocke
             if [st, ac] in blocked_state_actions:
                 if ac == 0:
                     i, j = np.argwhere(np.arange(num_states).reshape(num_y_states, num_x_states) == st).flatten()
-                    ax.hlines(i+1, j, j+1, linewidth=6, color='b')
+                    ax.hlines(i, j, j+1, linewidth=6, color='b')
 
     collection = PatchCollection(patches, match_original=True)
     ax.add_collection(collection)
