@@ -1,4 +1,3 @@
-from sre_parse import State
 import numpy as np
 from copy import deepcopy
 import os, shutil
@@ -119,7 +118,19 @@ class Agent(Environment):
         
         super().__init__(config, blocked_state_actions, start_state, goal_state)
 
+        # initialise MF Q values
         self.Q = np.zeros((self.num_states, self.num_actions))
+
+        # set edge Q values to np.nan
+        for s in np.delete(range(self.num_states), self.goal_state):
+            y, x = self._convert_state_to_coords(s)
+            if (y == 0) or (y == self.num_y_states - 1) or (x == 0) or (x == self.num_x_states - 1):
+                for a in range(self.num_actions):
+                    if ([s, a] not in self.blocked_state_actions):
+                        s1, _ = self._get_new_state(s, a)
+                        if s1 == s:
+                            self.Q[s, a] = np.nan
+
         # beta prior for the uncertain transition
         self.M = np.ones(2)
 
@@ -146,20 +157,28 @@ class Agent(Environment):
 
         return None
         
-    def _policy(self, q_values):
+    def _policy(self, q_vals):
 
         '''
         ----
         Agent's policy
 
-        q_values -- q values at the current state
-        temp     -- inverse temperature
-        type     -- softmax / greeedy
+        q_vals -- q values at the current state
         ----
         '''
 
-        if np.all(q_values == q_values.max()):
-            return np.ones(self.num_actions)/self.num_actions
+        nan_idcs = np.argwhere(np.isnan(q_vals)).flatten()
+        if len(nan_idcs) > 0:
+            q_vals_allowed = np.delete(q_vals, nan_idcs)
+        else:
+            q_vals_allowed = q_vals
+
+        if np.all(q_vals_allowed == q_vals_allowed.max()):
+            probs = np.ones(len(q_vals_allowed))/len(q_vals_allowed)
+            if len(nan_idcs) > 0:
+                for nan_idx in nan_idcs:
+                    probs = np.insert(probs, nan_idx, 0)
+            return probs
 
         if self.policy_temp:
             t = self.policy_temp
@@ -167,15 +186,24 @@ class Agent(Environment):
             t = 1
             
         if self.policy_type == 'softmax':
-            return np.exp(q_values*t)/np.sum(np.exp(q_values*t))
+            probs = np.exp(q_vals_allowed*t)/np.sum(np.exp(q_vals_allowed*t))
+            if len(nan_idcs) > 0:
+                for nan_idx in nan_idcs:
+                    probs = np.insert(probs, nan_idx, 0)
+            return probs
         elif self.policy_type == 'greedy':
-            if np.all(q_values == q_values.max()):
-                a        = np.random.choice(range(self.num_actions), p=np.ones(self.num_actions)/self.num_actions)
-                probs    = np.zeros(self.num_actions)
-                probs[a] = 1
+            if np.all(q_vals_allowed == q_vals_allowed.max()):
+                ps           = np.ones(self.num_actions)
+                ps[nan_idcs] = 0
+                ps          /= ps.sum()
+                a            = np.random.choice(range(self.num_actions), p=ps)
+                probs        = np.zeros(self.num_actions)
+                probs[a]     = 1
                 return probs
             else:
-                return np.array(q_values >= q_values.max()).astype(int)
+                probs = np.zeros(self.num_actions)
+                probs[np.nanargmax(q_vals)] = 1
+                return probs
         else:
             raise KeyError('Unknown policy type')
 
@@ -184,7 +212,7 @@ class Agent(Environment):
         probs_before = self._policy(q_before)
         probs_after  = self._policy(q_after)
 
-        return np.dot((probs_after-probs_before), q_after)
+        return np.nansum((probs_after-probs_before)*q_after)
 
     def _compute_need(self, T, Q):
 
@@ -233,7 +261,7 @@ class Agent(Environment):
         ''' 
 
         qvals     = Q[s, :].copy()
-        qvals[a] += self.alpha*(r + self.gamma*np.max(Q[s1, :]) - qvals[a])
+        qvals[a] += self.alpha*(r + self.gamma*np.nanmax(Q[s1, :]) - qvals[a])
 
         return qvals
 
@@ -248,19 +276,20 @@ class Agent(Environment):
                 prev_c  = k[-1]
                 prev_s1 = k[1]
                 for a in range(self.num_actions):
-                    if (prev_s1 == self.uncertain_state) and (a == self.uncertain_action):
-                        s1, _    = self._get_new_state(prev_s1, a, unlocked=True)
-                        b1       = self._belief_update(b, prev_s1, s1)
-                        btree[hi][(a, s1, prev_c, c)] = b1
-                        c       += 1
-                        s1, _    = self._get_new_state(prev_s1, a, unlocked=False)
-                        b1       = self._belief_update(b, prev_s1, s1)
-                        btree[hi][(a, s1, prev_c, c)] = b1
-                        c       += 1
-                    else:
-                        s1, _    = self._get_new_state(prev_s1, a)
-                        btree[hi][(a, s1, prev_c, c)] = b
-                        c       += 1
+                    if ~np.isnan(self.Q[prev_s1, a]):
+                        if (prev_s1 == self.uncertain_state) and (a == self.uncertain_action):
+                            s1, _    = self._get_new_state(prev_s1, a, unlocked=True)
+                            b1       = self._belief_update(b, prev_s1, s1)
+                            btree[hi][(a, s1, prev_c, c)] = b1
+                            c       += 1
+                            s1, _    = self._get_new_state(prev_s1, a, unlocked=False)
+                            b1       = self._belief_update(b, prev_s1, s1)
+                            btree[hi][(a, s1, prev_c, c)] = b1
+                            c       += 1
+                        else:
+                            s1, _    = self._get_new_state(prev_s1, a)
+                            btree[hi][(a, s1, prev_c, c)] = b
+                            c       += 1
 
         return btree
 
@@ -331,60 +360,61 @@ class Agent(Environment):
                     
                     Q_old      = qtree[hi][k].copy()
                     q_old_vals = Q_old[state, :].copy()
-                    v_old      = np.dot(self._policy(q_old_vals), q_old_vals)
+                    # v_old      = np.dot(self._policy(q_old_vals), q_old_vals)
                     
                     for a in range(self.num_actions):
-                        tds = []
-                        for k1, Q_prime in qtree[hi+1].items():
-                            
-                            prev_c = k1[-2]
-                            s1     = k1[1]
-                            q_prime_vals  = Q_prime[s1, :].copy()
-                            
-                            if (prev_c == c) and (k1[0] == a):
-                                y, x = self._convert_state_to_coords(s1)
-                                rew  = self.config[y, x]
-                                tds += [rew + self.gamma*np.max(q_prime_vals)]
+                        if ~np.isnan(self.Q[state, a]):
+                            tds = []
+                            for k1, Q_prime in qtree[hi+1].items():
+                                
+                                prev_c = k1[-2]
+                                s1     = k1[1]
+                                q_prime_vals  = Q_prime[s1, :].copy()
+                                
+                                if (prev_c == c) and (k1[0] == a):
+                                    y, x = self._convert_state_to_coords(s1)
+                                    rew  = self.config[y, x]
+                                    tds += [rew + self.gamma*np.nanmax(q_prime_vals)]
 
-                                # if it's the uncertain (s, a) pair then this generates 2 belief states
-                                if (state == self.uncertain_state) and (a == self.uncertain_action):
-                                    if len(tds) == 2:
+                                    # if it's the uncertain (s, a) pair then this generates 2 belief states
+                                    if (state == self.uncertain_state) and (a == self.uncertain_action):
+                                        if len(tds) == 2:
+                                            break
+                                    # otherwise there's only one possible next state
+                                    else: 
                                         break
-                                # otherwise there's only one possible next state
-                                else: 
-                                    break
 
-                        # get the new (updated) q value
-                        Q_new      = Q_old.copy()
-                        q_new_vals = q_old_vals.copy()
-                        if len(tds) == 2:
-                            b0 = b[0]/np.sum(b)
-                            b1 = 1 - b[1]/np.sum(b)
-                            q_new_vals[a] = b0*tds[0] + b1*tds[1]
-                        else:
-                            q_new_vals[a] = tds[0]
+                            # get the new (updated) q value
+                            Q_new      = Q_old.copy()
+                            q_new_vals = q_old_vals.copy()
+                            if len(tds) == 2:
+                                b0 = b[0]/np.sum(b)
+                                b1 = 1 - b[1]/np.sum(b)
+                                q_new_vals[a] = b0*tds[0] + b1*tds[1]
+                            else:
+                                q_new_vals[a] = tds[0]
 
-                        Q_new[state, :]   = q_new_vals
-                        new_key = tuple(list(k) + [a])
-                        nqval_trees[s][hi][new_key] = Q_new
+                            Q_new[state, :]   = q_new_vals
+                            new_key = tuple(list(k) + [a])
+                            nqval_trees[s][hi][new_key] = Q_new
 
-                        # v_new   = np.dot(self._policy(q_new_vals), q_new_vals)
-                        # evb     = ntree[hi][k] * (v_new - v_old)
+                            # v_new   = np.dot(self._policy(q_new_vals), q_new_vals)
+                            # evb     = ntree[hi][k] * (v_new - v_old)
 
-                        gain = self._compute_gain(q_old_vals, q_new_vals)
+                            gain = self._compute_gain(q_old_vals, q_new_vals)
 
 
-                        T     = self.T.copy()
-                        T[self.uncertain_state, self.uncertain_action, :] = np.zeros(self.num_states)
-                        s1l   = self._get_new_state(self.uncertain_state, self.uncertain_action, unlocked=False)
-                        s1u   = self._get_new_state(self.uncertain_state, self.uncertain_action, unlocked=True)
-                        T[self.uncertain_state, self.uncertain_action, s1u] = b[0]/np.sum(b)
-                        T[self.uncertain_state, self.uncertain_action, s1l] = (1-b[0]/np.sum(b))
-                        need  = self._compute_need(T, Q_old)
-                        pneed = ntree[hi][k]
-                        # if (state == self.uncertain_state) and (a == self.uncertain_action):
-                            # print(hi, new_key, pneed, need[self.state, state], gain)
-                        evb_trees[s][hi][new_key] = pneed * gain * need[self.state, state]
+                            T     = self.T.copy()
+                            T[self.uncertain_state, self.uncertain_action, :] = np.zeros(self.num_states)
+                            s1l   = self._get_new_state(self.uncertain_state, self.uncertain_action, unlocked=False)
+                            s1u   = self._get_new_state(self.uncertain_state, self.uncertain_action, unlocked=True)
+                            T[self.uncertain_state, self.uncertain_action, s1u] = b[0]/np.sum(b)
+                            T[self.uncertain_state, self.uncertain_action, s1l] = (1-b[0]/np.sum(b))
+                            need  = self._compute_need(T, Q_old)
+                            pneed = ntree[hi][k]
+                            # if (state == self.uncertain_state) and (a == self.uncertain_action):
+                                # print(hi, new_key, pneed, need[self.state, state], gain)
+                            evb_trees[s][hi][new_key] = pneed * gain * need[self.state, state]
 
         return nqval_trees, evb_trees
 

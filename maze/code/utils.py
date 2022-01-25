@@ -27,16 +27,24 @@ def plot_simulation(agent, data_path, save_path):
         Q_history = data['Q_history']
         move      = data['move']
 
-        fig       = plt.figure(figsize=(12, 5))
-        ax        = plt.subplot(111)
+        fig = plt.figure(figsize=(12, 10))
+        ax  = plt.subplot(211)
         plot_maze_values(Q_history[0], move, ax, num_y_states, num_x_states, goal_state, blocked_state_actions)
+        ax1 = plt.subplot(212)
+        plot_replay_action([], ax1, num_y_states, num_x_states, goal_state, blocked_state_actions)
         plt.savefig(os.path.join(save_path, 'move_%s.png')%file.split('_')[-1][:-4])
         plt.close()
 
         for idx, Q_rep in enumerate(Q_history[1:]):
-            fig       = plt.figure(figsize=(12, 5))
-            ax        = plt.subplot(111)
+            if idx == 0:
+                sr, ar = np.argwhere(np.nan_to_num(Q_rep, nan=0) != np.nan_to_num(Q_history[0], nan=0)).flatten()
+            else:
+                sr, ar = np.argwhere(np.nan_to_num(Q_history[idx], nan=0) != np.nan_to_num(Q_rep, nan=0)).flatten()
+            fig = plt.figure(figsize=(12, 10))
+            ax  = plt.subplot(211)
             plot_maze_values(Q_rep, move, ax, num_y_states, num_x_states, goal_state, blocked_state_actions)
+            ax1 = plt.subplot(212)
+            plot_replay_action([sr, ar], ax1, num_y_states, num_x_states, goal_state, blocked_state_actions)
             plt.savefig(os.path.join(save_path, 'move_%s_%u.png')%(file.split('_')[-1][:-4], idx))
             plt.close()
 
@@ -84,11 +92,14 @@ def plot_maze_values(Q, move, ax, num_y_states, num_x_states, goal_state, blocke
     patches = []
     for st in np.delete(range(num_states), goal_state):
         for ac in range(4):
-            patches += add_patches(st, ac, Q[st, ac]/np.max(Q), num_y_states, num_x_states)
+            if ~np.isnan(Q[st, ac]):
+                patches += add_patches(st, ac, Q[st, ac]/np.nanmax(Q), num_y_states, num_x_states)
             if [st, ac] in blocked_state_actions:
+                i, j = np.argwhere(np.arange(num_states).reshape(num_y_states, num_x_states) == st).flatten()
                 if ac == 0:
-                    i, j = np.argwhere(np.arange(num_states).reshape(num_y_states, num_x_states) == st).flatten()
                     ax.hlines(i, j, j+1, linewidth=6, color='b')
+                elif ac == 3:
+                    ax.vlines(j+1, i-1, i-2, linewidth=6, color='b')
 
     collection = PatchCollection(patches, match_original=True)
     ax.add_collection(collection)
@@ -116,5 +127,62 @@ def plot_maze_values(Q, move, ax, num_y_states, num_x_states, goal_state, blocke
     ax.set_ylim(0, num_y_states)
 
     ax.set_title('[' + ' '.join(map(str, move)) + ']')
+
+    return None
+
+def plot_replay_action(move, ax, num_y_states, num_x_states, goal_state, blocked_state_actions):
+
+    num_states = num_y_states * num_x_states
+
+    Q_plot = np.zeros((num_states, 4))
+    if np.all(Q_plot == 0):
+        sns.heatmap(Q_plot, cmap=['white'], annot=False, fmt='.2f', cbar=True, ax=ax)
+    else:
+        sns.heatmap(Q_plot, cmap='Greys', annot=True, fmt='.2f', cbar=True, ax=ax)
+    
+    # arrows for actions
+    patches = []
+    for st in np.delete(range(num_states), goal_state):
+        for ac in range(4):
+            if len(move) > 0:
+                if (st == move[0]) and (ac == move[1]):
+                    patches += add_patches(st, ac, 1, num_y_states, num_x_states)
+            else:
+                pass
+            if [st, ac] in blocked_state_actions:
+                i, j = np.argwhere(np.arange(num_states).reshape(num_y_states, num_x_states) == st).flatten()
+                if ac == 0:
+                    ax.hlines(i, j, j+1, linewidth=6, color='b')
+                elif ac == 3:
+                    ax.vlines(j+1, i-1, i-2, linewidth=6, color='b')
+
+    collection = PatchCollection(patches, match_original=True)
+    ax.add_collection(collection)
+                
+    # state grid
+    for st_x in range(num_x_states):
+        for st_y in range(num_y_states):
+            ax.axhline(st_y, c='k', linewidth=0.6)
+            ax.axvline(st_x, c='k', linewidth=0.6)
+
+    goal_y, goal_x   = np.argwhere(np.arange(num_states).reshape(num_y_states, num_x_states) == goal_state).flatten()
+
+    # goal symbol
+    ax.scatter(goal_x+0.5, num_y_states - goal_y -0.5, s=600, c='orange', marker=r'$\clubsuit$', alpha=0.7)
+
+    # agent location
+    if len(move) > 0:
+        agent_state      = move[0]
+        agent_y, agent_x = np.argwhere(np.arange(num_states).reshape(num_y_states, num_x_states) == agent_state).flatten()
+    
+        # agent location
+        ax.scatter(agent_x+0.5, num_y_states - agent_y -0.5, s=600, c='green', alpha=0.7)
+        ax.set_title('[' + ' '.join(map(str, move)) + ']')
+
+    ax.set_xticks([])
+    ax.set_yticks([])
+
+    ax.set_xlim(0, num_x_states)
+    ax.set_ylim(0, num_y_states)
 
     return None
