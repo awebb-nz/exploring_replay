@@ -97,7 +97,7 @@ class Environment:
 
 class Agent(Environment):
 
-    def __init__(self, config, start_state, goal_state, blocked_state_actions, uncertain_state_coords, uncertain_action, alpha, gamma, horizon, xi, policy_temp=None, policy_type='softmax'):
+    def __init__(self, config, start_state, goal_state, blocked_state_actions, uncertain_state_coords, uncertain_action, alpha, alpha_r, gamma, horizon, xi, policy_temp=None, policy_type='softmax'):
         
         '''
         ----
@@ -107,7 +107,8 @@ class Agent(Environment):
         blocked_state_actions  -- list with state-action pairs [s, a] which are blocked
         uncertain_state_coords -- blockage which the agent is uncertain about
         uncertain_action       -- ''-''
-        alpha                  -- value learning rate
+        alpha                  -- on-line value learning rate
+        alpha_r                -- replay learning rate
         gamma                  -- discount factor
         horizon                -- planning / replay horizon
         xi                     -- replay EVB threshold
@@ -118,21 +119,37 @@ class Agent(Environment):
         
         super().__init__(config, blocked_state_actions, start_state, goal_state)
 
+        self.uncertain_state  = self._convert_coords_to_state(uncertain_state_coords)
+        self.uncertain_action = uncertain_action
+
+        self.policy_temp = policy_temp
+        self.policy_type = policy_type
+        self.alpha       = alpha
+        self.alpha_r     = alpha_r
+        self.gamma       = gamma
+        self.horizon     = horizon
+        self.xi          = xi
+
+        self.state       = self.start_state
+
         # initialise MF Q values
         self.Q = np.zeros((self.num_states, self.num_actions))
 
         # set edge Q values to np.nan
         for s in np.delete(range(self.num_states), self.goal_state):
-            y, x = self._convert_state_to_coords(s)
-            if (y == 0) or (y == self.num_y_states - 1) or (x == 0) or (x == self.num_x_states - 1):
-                for a in range(self.num_actions):
-                    if ([s, a] not in self.blocked_state_actions):
-                        s1, _ = self._get_new_state(s, a)
-                        if s1 == s:
-                            self.Q[s, a] = np.nan
+            # y, x = self._convert_state_to_coords(s)
+            # if (y == 0) or (y == self.num_y_states - 1) or (x == 0) or (x == self.num_x_states - 1):
+            for a in range(self.num_actions):
+                if (s == self.uncertain_state) and (a == self.uncertain_action):
+                    pass
+                else:
+                    s1, _ = self._get_new_state(s, a)
+                    if s1 == s:
+                        self.Q[s, a] = np.nan
 
         # beta prior for the uncertain transition
-        self.M = np.ones(2)
+        self.M_init = np.ones(2)
+        self.M      = np.array([1, 10]) 
 
         # transition matrix for other transitions
         self.T = np.zeros((self.num_states, self.num_actions, self.num_states))
@@ -142,18 +159,6 @@ class Agent(Environment):
                 self.T[s, a, s1] = 1
         for a in range(self.num_actions):
             self.T[self.goal_state, a, self.start_state] = 1
-
-        self.uncertain_state  = self._convert_coords_to_state(uncertain_state_coords)
-        self.uncertain_action = uncertain_action
-
-        self.policy_temp = policy_temp
-        self.policy_type = policy_type
-        self.alpha       = alpha
-        self.gamma       = gamma
-        self.horizon     = horizon
-        self.xi          = xi
-
-        self.state       = self.start_state
 
         return None
         
@@ -268,6 +273,11 @@ class Agent(Environment):
     def _build_belief_tree(self, s):
 
         btree = {hi:{} for hi in range(self.horizon)}
+
+        # don't plan at the goal state
+        if s == self.goal_state:
+            return btree
+
         btree[0][(None, s, 0, 0)] = self.M
 
         for hi in range(1, self.horizon):
@@ -275,6 +285,11 @@ class Agent(Environment):
             for k, b in btree[hi-1].items():
                 prev_c  = k[-1]
                 prev_s1 = k[1]
+
+                # terminate at the goal state
+                if prev_s1 == self.goal_state:
+                    continue
+
                 for a in range(self.num_actions):
                     if ~np.isnan(self.Q[prev_s1, a]):
                         if (prev_s1 == self.uncertain_state) and (a == self.uncertain_action):
@@ -298,6 +313,8 @@ class Agent(Environment):
         qtree = {hi:{} for hi in range(self.horizon)}
 
         for hi in range(self.horizon):
+            if len(btree[hi]) == 0:
+                return qtree
             for k, _ in btree[hi].items():
                 qtree[hi][k] = self.Q.copy()
 
@@ -308,6 +325,8 @@ class Agent(Environment):
         ntree = {hi:{} for hi in range(self.horizon)}
 
         for hi in reversed(range(self.horizon)):
+            if len(btree[hi]) == 0:
+                return ntree
             for k, b in btree[hi].items():
 
                 prev_c = k[-2]
@@ -353,28 +372,40 @@ class Agent(Environment):
             ntree      = ntrees[s]
 
             for hi in reversed(range(self.horizon-1)):
+                if len(btree[hi+1]) == 0:
+                    continue
                 for k, b in btree[hi].items():
                     
                     state = k[1]
                     c     = k[-1]
-                    
+
                     Q_old      = qtree[hi][k].copy()
                     q_old_vals = Q_old[state, :].copy()
                     # v_old      = np.dot(self._policy(q_old_vals), q_old_vals)
                     
                     for a in range(self.num_actions):
-                        if ~np.isnan(self.Q[state, a]):
-                            tds = []
+                        
+                        tds = []
+
+                        if state == self.goal_state:
+                            y, x   = self._convert_state_to_coords(state)
+                            rew    = self.config[y, x]
+
+                            tds += [q_old_vals[a] + self.alpha_r*(rew - q_old_vals[a])]
+
+                        elif ~np.isnan(self.Q[state, a]):
+                            
                             for k1, Q_prime in qtree[hi+1].items():
                                 
                                 prev_c = k1[-2]
                                 s1     = k1[1]
-                                q_prime_vals  = Q_prime[s1, :].copy()
+                                
+                                q_prime_vals = Q_prime[s1, :].copy() 
                                 
                                 if (prev_c == c) and (k1[0] == a):
                                     y, x = self._convert_state_to_coords(s1)
                                     rew  = self.config[y, x]
-                                    tds += [rew + self.gamma*np.nanmax(q_prime_vals)]
+                                    tds += [q_old_vals[a] + self.alpha_r*(rew + self.gamma*np.nanmax(q_prime_vals) - q_old_vals[a])]
 
                                     # if it's the uncertain (s, a) pair then this generates 2 belief states
                                     if (state == self.uncertain_state) and (a == self.uncertain_action):
@@ -383,6 +414,8 @@ class Agent(Environment):
                                     # otherwise there's only one possible next state
                                     else: 
                                         break
+                                else:
+                                    pass
 
                             # get the new (updated) q value
                             Q_new      = Q_old.copy()
@@ -440,6 +473,8 @@ class Agent(Environment):
             for s in range(self.num_states):
                 evb_tree = evb_trees[s]
                 for hi in range(self.horizon):
+                    if len(evb_tree[hi]) == 0:
+                        continue
                     for k, evb in evb_tree[hi].items():
                         if evb > max_evb:
                             max_evb = evb
@@ -479,6 +514,8 @@ class Agent(Environment):
                 shutil.rmtree(save_path)
             os.makedirs(save_path)
 
+        replay = False
+
         for step in range(num_steps):
             
             print('Step %u/%u'%(step+1, num_steps))
@@ -493,7 +530,17 @@ class Agent(Environment):
             if (self.state == self.uncertain_state) and (a == self.uncertain_action):
                 self.M = self._belief_update(self.M, self.state, s1)
 
-            if step > 100:
+            if s1 == self.goal_state:
+                replay  = True
+                counter = 0
+
+
+            if replay:
+                counter  += 1
+
+                if counter == 50:
+                    self.M = self.M_init.copy()
+
                 Q_history = self._replay()
 
                 if save_path:
