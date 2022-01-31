@@ -1,0 +1,112 @@
+\documentclass{article}
+
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath, amsfonts}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{subcaption}
+\usepackage{caption}
+\usepackage{graphicx}
+
+\setlength{\parindent}{0pt}
+
+\begin{document}
+
+\section*{Empirical convergence analysis}
+
+\subsection*{Replay threshold}
+The plots below show how the value of the root state changes with the EVB threshold $\xi$ at multiple horizons 
+and for various prior beliefs. Note that the root $Q$-values (i.e, the current MF $Q$-values) were set to $0$ 
+everywhere.
+
+\bigbreak
+
+Numbers on top of each data point indicate the number of replays executed at that horizon for that EVB threshold. 
+Titles specify the prior beliefs at the root.
+
+\bigbreak
+
+It's nice too see that everything converges to the Bayes-optimal solution when the EVB threshold is set to $0$. 
+Another interesting observation is that horizons $h$ need fewer replays to get higher value estimates than 
+the Bayes-optimal value funciton for horizons $h-1$. And, moreover, it seems that the greater the conflict is 
+between the two arms (i.e., in terms of uncertainty and value) -- the more replays it takes to converge.
+
+\newpage
+
+\begin{figure}[ht!]
+    \centering
+    \includegraphics[width=.8\textwidth]{../data/convergence/xi/alpha05_beta01_alpha11_beta11.png}
+\end{figure}
+\begin{figure}[ht!]
+    \centering
+    \includegraphics[width=.8\textwidth]{../data/convergence/xi/alpha05_beta02_alpha13_beta12.png}
+\end{figure}
+\begin{figure}[ht!]
+    \centering
+    \includegraphics[width=.8\textwidth]{../data/convergence/xi/alpha09_beta06_alpha13_beta12.png}
+\end{figure}
+\begin{figure}[ht!]
+    \centering
+    \includegraphics[width=.8\textwidth]{../data/convergence/xi/alpha010_beta06_alpha13_beta12.png}
+\end{figure}
+
+\newpage
+
+\subsection*{Number of replays}
+
+I also created heatmaps for the different combinations of prior beliefs, where the values illustate 
+how many replays it takes to converge to the true value function.
+
+\bigbreak
+
+These plots look rather strange -- and it seems like there is some sort of oscillatory nature to 
+those patterns. One issue that came up with these plots is the small visible irregularities which 
+I think are a result of (potentially) numerical errors -- but I haven't quite managed to resolve 
+those yet. I will try to fix that.
+
+\begin{figure}[ht!]
+    \centering
+    \includegraphics[width=.75\textwidth]{../data/convergence/num_replays/horizon3_alpha1_beta1.png}
+    \caption{Horizon 2}
+\end{figure}
+\begin{figure}[ht!]
+    \centering
+    \includegraphics[width=.75\textwidth]{../data/convergence/num_replays/horizon4_alpha1_beta1.png}
+    \caption{Horizon 3}
+\end{figure}
+\begin{figure}[ht!]
+    \centering
+    \includegraphics[width=.75\textwidth]{../data/convergence/num_replays/horizon5_alpha1_beta1.png}
+    \caption{Horizon 4}
+\end{figure}
+
+\newpage
+
+\subsection*{Maze simulations}
+
+I also simulated the maze environment. The prioritisation of each experience was detemined by:
+
+\begin{equation*}
+    EVB(<s, b>, a) = p(b_{\rho} \rightarrow b, \pi) \times \text{Need}(s \mid b, \pi) \times \text{Gain}(s, a \mid b, \pi)
+\end{equation*}
+
+where $p(b_{\rho} \rightarrow b, \pi)$ is the probability of reaching belief $b$ from the root belief $b_{\rho}$ under the current 
+policy $\pi$, $\text{Need}(s \mid b, \pi)$ is the Need of state $s$ computed with the transition model implied by the belief $b$ and 
+the current policy, and $\text{Gain}(s, a \mid b)$ is the Gain associated with updating the $Q$-value $Q(<s, b>, a)$ towards the 
+expected value of the next belief, $\mathbb{E}_{b', s' \sim p(b', s'\mid b, s, a, \pi)}[R(s') + \gamma v(<b', s'>)]$.
+
+\bigbreak
+
+The implementation is very similar to that of the bandit case -- during planning (replay), the agent generates a planning tree 
+from every state and for every action. The updates can then happen either in distal parts of the trees (only 1 update is allowed 
+at each iteration), or at the root. The value of each node is initialised to the agent's current MF $Q$-values
+
+\bigbreak
+
+There is a strange limitation to this prioritisation scheme: namely, it only considers what happens \emph{locally} to the 
+value function considered for an update. In the bandit case this wasn't so much of an issue -- since all updates are indeed 
+local and only affect the updated nodes. In the maze, however, it's different -- if one of the root action values is updated, 
+then this also changes the initialised node values in trees that stem from other nearby state-actions (if those are within the 
+reach depending on the horizon). 
+
+\end{document}

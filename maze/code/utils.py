@@ -97,9 +97,9 @@ def plot_maze_values(Q, move, ax, num_y_states, num_x_states, goal_state, blocke
             if [st, ac] in blocked_state_actions:
                 i, j = np.argwhere(np.arange(num_states).reshape(num_y_states, num_x_states) == st).flatten()
                 if ac == 0:
-                    ax.hlines(i, j, j+1, linewidth=6, color='b')
+                    ax.hlines((num_y_states-i), j, j+1, linewidth=6, color='b')
                 elif ac == 3:
-                    ax.vlines(j+1, i-1, i-2, linewidth=6, color='b')
+                    ax.vlines(j+1, (num_y_states-i)-1, (num_y_states-i), linewidth=6, color='b')
 
     collection = PatchCollection(patches, match_original=True)
     ax.add_collection(collection)
@@ -126,7 +126,7 @@ def plot_maze_values(Q, move, ax, num_y_states, num_x_states, goal_state, blocke
     ax.set_xlim(0, num_x_states)
     ax.set_ylim(0, num_y_states)
 
-    ax.set_title('[' + ' '.join(map(str, move)) + ']')
+    ax.set_title('[' + ' '.join(map(str, [int(i) for i in move])) + ']')
 
     return None
 
@@ -152,9 +152,9 @@ def plot_replay_action(move, ax, num_y_states, num_x_states, goal_state, blocked
             if [st, ac] in blocked_state_actions:
                 i, j = np.argwhere(np.arange(num_states).reshape(num_y_states, num_x_states) == st).flatten()
                 if ac == 0:
-                    ax.hlines(i, j, j+1, linewidth=6, color='b')
+                    ax.hlines((num_y_states-i), j, j+1, linewidth=6, color='b')
                 elif ac == 3:
-                    ax.vlines(j+1, i-1, i-2, linewidth=6, color='b')
+                    ax.vlines(j+1, (num_y_states-i)-1, (num_y_states-i), linewidth=6, color='b')
 
     collection = PatchCollection(patches, match_original=True)
     ax.add_collection(collection)
@@ -177,7 +177,7 @@ def plot_replay_action(move, ax, num_y_states, num_x_states, goal_state, blocked
     
         # agent location
         ax.scatter(agent_x+0.5, num_y_states - agent_y -0.5, s=600, c='green', alpha=0.7)
-        ax.set_title('[' + ' '.join(map(str, move)) + ']')
+        ax.set_title('[' + ' '.join(map(str, [int(i) for i in move])) + ']')
 
     ax.set_xticks([])
     ax.set_yticks([])
