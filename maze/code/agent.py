@@ -150,6 +150,8 @@ class Agent(Environment):
                     if s1 == s:
                         self.Q[s, a] = np.nan
 
+        self.Q_nans = self.Q.copy()
+
         # beta prior for the uncertain transition
         self.M = np.ones(2)
 
@@ -282,17 +284,22 @@ class Agent(Environment):
                 # terminate at the goal state
                 if prev_s1 == self.goal_state:
                     continue
-
+                
                 for a in range(self.num_actions):
                     if ~np.isnan(self.Q[prev_s1, a]):
-                        s1u, _    = self._get_new_state(prev_s1, a, unlocked=True)
-                        b1        = self._belief_update(b, prev_s1, s1u)
-                        btree[hi][(a, s1u, prev_c, c)] = b1
-                        c        += 1
+                        if (prev_s1 == self.uncertain_states_actions[0]) and (a==self.uncertain_states_actions[1]):
+                            s1u, _    = self._get_new_state(prev_s1, a, unlocked=True)
+                            b1        = self._belief_update(b, prev_s1, s1u)
+                            btree[hi][(a, s1u, prev_c, c)] = b1
+                            c        += 1
 
-                        if (s == self.uncertain_states_actions[0]) and (a==self.uncertain_states_actions[1]):
                             b1        = self._belief_update(b, prev_s1, prev_s1)
                             btree[hi][(a, prev_s1, prev_c, c)] = b1
+                            c        += 1
+                        else:
+                            s1u, _    = self._get_new_state(prev_s1, a, unlocked=False)
+                            b1        = b.copy()
+                            btree[hi][(a, s1u, prev_c, c)] = b1
                             c        += 1
 
         return btree
@@ -303,9 +310,13 @@ class Agent(Environment):
 
         for hi in range(self.horizon):
             if len(btree[hi]) == 0:
-                return qtree
+                continue
             for k, _ in btree[hi].items():
-                qtree[hi][k] = self.Q.copy()
+                if (hi == 0) or (hi == (self.horizon - 1)):
+                    qtree[hi][k] = self.Q.copy()
+                else:
+                    qtree[hi][k] = self.Q_nans.copy()
+
 
         return qtree
 
@@ -315,7 +326,7 @@ class Agent(Environment):
 
         for hi in reversed(range(self.horizon)):
             if len(btree[hi]) == 0:
-                return ntree
+                continue
             for k, b in btree[hi].items():
                 
                 next_state = k[1] 
@@ -325,7 +336,7 @@ class Agent(Environment):
 
                 for hin in reversed(range(hi)):
                     for kn, bn in btree[hin].items():
-                        if kn[-1] == prev_c:
+                        if (kn[-1] == prev_c):
                             
                             state  = kn[1]
                             Q_vals = qtree[hin][kn].copy()
@@ -333,10 +344,10 @@ class Agent(Environment):
 
                             policy_proba = self._policy(q_vals)
 
-                            # if successful
-                            s1, _ = self._get_new_state(state, a, unlocked=True)
-
                             if (state == self.uncertain_states_actions[0]) and (a == self.uncertain_states_actions[1]):
+                                # if successful
+                                s1, _ = self._get_new_state(state, a, unlocked=True)
+
                                 if next_state == s1:
                                     bc = bn[0]/np.sum(bn)
                                 else:
@@ -357,8 +368,8 @@ class Agent(Environment):
 
     def _get_updates(self, btrees, ntrees, qtrees):
 
-        nqval_trees = [{hi:{} for hi in range(self.horizon)} for s in range(self.num_states)]
-        evb_trees   = [{hi:{} for hi in range(self.horizon)} for s in range(self.num_states)]
+        nqval_trees = [{hi:{} for hi in range(self.horizon)} for _ in range(self.num_states)]
+        evb_trees   = [{hi:{} for hi in range(self.horizon)} for _ in range(self.num_states)]
         for s in range(self.num_states):
             btree      = btrees[s]
             qtree      = qtrees[s]
@@ -374,11 +385,11 @@ class Agent(Environment):
                     if state == self.goal_state:
                         continue
 
-                    c     = k[-1]
+                    c          = k[-1]
 
                     Q_old      = qtree[hi][k].copy()
                     q_old_vals = Q_old[state, :].copy()
-                    v_old      = np.dot(self._policy(q_old_vals), q_old_vals)
+                    v_old      = np.nansum(self._policy(q_old_vals) * q_old_vals)
                     
                     for a in range(self.num_actions):
                         
@@ -424,12 +435,12 @@ class Agent(Environment):
                             new_key = tuple(list(k) + [a])
                             nqval_trees[s][hi][new_key] = Q_new
 
-                            v_new = np.dot(self._policy(q_new_vals), q_new_vals)
+                            v_new = np.nansum(self._policy(q_new_vals) * q_new_vals)
 
                             pneed = ntree[hi][k]
 
                             if (hi == 0):
-
+                                
                                 gain   = self._compute_gain(q_old_vals, q_new_vals)
 
                                 Ta     = np.zeros((self.num_states, self.num_actions, self.num_states))
@@ -449,7 +460,7 @@ class Agent(Environment):
 
                                 need   = self._compute_need(Ta, Q_old)
 
-                                evb_trees[s][hi][new_key] = pneed * gain * need[self.state, state]
+                                evb_trees[s][hi][new_key] = gain * need[self.state, state]
 
                             else:
                                 evb_trees[s][hi][new_key] = pneed * (v_new - v_old)
@@ -471,6 +482,7 @@ class Agent(Environment):
             need_tree     = self._build_need_tree(belief_tree, qval_tree)
             need_trees   += [need_tree] 
         
+        counter = 0
         while True:
             new_qval_trees, evb_trees = self._get_updates(belief_trees, need_trees, qval_trees)
             max_evb = 0
@@ -493,11 +505,14 @@ class Agent(Environment):
                 qval_trees[s][hi][k[:-1]] = Q_new
                 need_trees[s] = self._build_need_tree(belief_trees[s], qval_trees[s])
 
+                # for st in range(self.num_states):
+                #     print(evb_trees[st][0])
+
                 if hi == 0:
+
                     print('Replay', idx)
                     self.Q = Q_new
                     Q_history   += [self.Q.copy()] 
-
                     qval_trees   = []
                     need_trees   = []
                     for s in range(self.num_states):
@@ -534,19 +549,15 @@ class Agent(Environment):
             self.Q[self.state, :] = self._qval_update(self.Q, self.state, a, r, s1)
             self.M = self._belief_update(self.M, self.state, s1)
 
-            if s1 == self.goal_state:
+            if (step == 3000):
                 replay  = True
+                self.M  = np.ones(2)
 
             if replay:
-
-                # counter += 1
-                # if counter == 60:
-                #     return None
                 
-                # if counter == 30:
-                #     for idx, su in enumerate(self.uncertain_states_actions[0]):
-                #         for au in self.uncertain_states_actions[1][idx]:
-                #             self.M[su, au, :] = np.ones(2)
+                counter += 1
+                if counter == 40:
+                    return None
 
                 Q_history = self._replay()
 

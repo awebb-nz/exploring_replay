@@ -3,20 +3,21 @@ from agent import Agent
 from utils import plot_simulation
 import os
 
-# --- Specify the environment ---
-#         0  0  0  0   0  1
-#                      X --
-#         0  0  0  0 | 0  0
-#         0  0  0  0 | 0  0
-#            ------------ X
-#         0  0  0  0   0  0
+# --- Specify the environment --- #
+#                                 #
+#        0  0  0  0  0  g         #
+#        0  0  0  0  0  0         #
+#           ----------- X         #
+#        0  0  0  0  0  0         #
+#        0  0  s  0  0  0         #
+#                                 #
+# # # # # # # # # # # # # # # # # # 
 
-config       = np.zeros((4, 6))
-
+config        = np.zeros((4, 6))
 goal_coords   = [0, 5]
 start_coords  = [3, 2]
-
 rew_value     = 1
+
 config[goal_coords[0], goal_coords[1]] = rew_value
 
 blocked_state_actions = [
@@ -27,24 +28,28 @@ blocked_state_actions = [
 uncertain_states_actions = [17, 0]
 
 # --- Specify simulation parameters ---
-num_steps = 250
-save_path = '/home/georgy/Documents/Dayan_lab/PhD/bandits/maze/data'
+#
+num_steps  = 4000
+save_path  = '/home/georgy/Documents/Dayan_lab/PhD/bandits/maze/data'
+save_data  = os.path.join(save_path, 'moves')
+save_plots = os.path.join(save_path, 'plots')
 
 # --- Specify agent parameters ---
-gamma     = 0.9
-alpha     = 1.0
-alpha_r   = 1.0
-horizon   = 3
-xi        = 1e-2
+#
+gamma   = 0.9
+alpha   = 1.0
+alpha_r = 1.0
+horizon = 3
+xi      = 1e-1
 
 # --- Main function ---
 def main():
     np.random.seed(0)
-    agent      = Agent(config, start_coords, goal_coords, blocked_state_actions, uncertain_states_actions, alpha, alpha_r, gamma, horizon, xi, policy_temp=2)
-    save_data  = os.path.join(save_path, 'moves')
+    # initialise the agent
+    agent = Agent(config, start_coords, goal_coords, blocked_state_actions, uncertain_states_actions, alpha, alpha_r, gamma, horizon, xi, policy_temp=2)
+    # run the simulation
     agent.run_simulation(num_steps=num_steps, save_path=save_data)
-    
-    save_plots = os.path.join(save_path, 'plots')
+    # plot moves & replays
     plot_simulation(agent, save_data, save_plots)
 
     return None
