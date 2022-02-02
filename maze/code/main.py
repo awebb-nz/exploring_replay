@@ -13,10 +13,10 @@ import os
 #                                 #
 # # # # # # # # # # # # # # # # # # 
 
-config        = np.zeros((4, 6))
-goal_coords   = [0, 5]
-start_coords  = [3, 2]
-rew_value     = 1
+config       = np.zeros((4, 6))
+goal_coords  = [0, 5]
+start_coords = [3, 2]
+rew_value    = 1
 
 config[goal_coords[0], goal_coords[1]] = rew_value
 
@@ -39,8 +39,8 @@ save_plots = os.path.join(save_path, 'plots')
 gamma   = 0.9
 alpha   = 1.0
 alpha_r = 1.0
-horizon = 3
-xi      = 1e-1
+horizon = 4 # minus 1
+xi      = 1e-2
 
 # --- Main function ---
 def main():
@@ -48,7 +48,7 @@ def main():
     # initialise the agent
     agent = Agent(config, start_coords, goal_coords, blocked_state_actions, uncertain_states_actions, alpha, alpha_r, gamma, horizon, xi, policy_temp=2)
     # run the simulation
-    agent.run_simulation(num_steps=num_steps, save_path=save_data)
+    # agent.run_simulation(num_steps=num_steps, save_path=save_data)
     # plot moves & replays
     plot_simulation(agent, save_data, save_plots)
 

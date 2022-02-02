@@ -312,15 +312,15 @@ class Agent(Environment):
             if len(btree[hi]) == 0:
                 continue
             for k, _ in btree[hi].items():
-                if (hi == 0) or (hi == (self.horizon - 1)):
-                    qtree[hi][k] = self.Q.copy()
-                else:
-                    qtree[hi][k] = self.Q_nans.copy()
+                # if (hi == 0) or (hi == (self.horizon - 1)):
+                qtree[hi][k] = self.Q.copy()
+                # else:
+                    # qtree[hi][k] = self.Q_nans.copy()
 
 
         return qtree
 
-    def _build_need_tree(self, btree, qtree):
+    def _build_pneed_tree(self, btree, qtree):
 
         ntree = {hi:{} for hi in range(self.horizon)}
 
@@ -366,20 +366,22 @@ class Agent(Environment):
                         
         return ntree
 
-    def _get_updates(self, btrees, ntrees, qtrees):
+    def _get_updates(self, btrees, pntrees, qtrees):
 
         nqval_trees = [{hi:{} for hi in range(self.horizon)} for _ in range(self.num_states)]
         evb_trees   = [{hi:{} for hi in range(self.horizon)} for _ in range(self.num_states)]
+        need_save   = np.zeros((self.num_states))
+        gain_save   = np.full((self.num_states, self.num_actions), np.nan)
+
         for s in range(self.num_states):
             btree      = btrees[s]
             qtree      = qtrees[s]
-            ntree      = ntrees[s]
+            pntree     = pntrees[s]
 
             for hi in reversed(range(self.horizon-1)):
                 if len(btree[hi+1]) == 0:
                     continue
                 for k, b in btree[hi].items():
-                    
                     state = k[1]
 
                     if state == self.goal_state:
@@ -429,18 +431,16 @@ class Agent(Environment):
                                 b1 = b[1]/np.sum(b)
                                 q_new_vals[a] = b0*tds[0] + b1*tds[1]
                             
-                            # print(s, hi, q_new_vals)
-
                             Q_new[state, :]   = q_new_vals
                             new_key = tuple(list(k) + [a])
                             nqval_trees[s][hi][new_key] = Q_new
 
                             v_new = np.nansum(self._policy(q_new_vals) * q_new_vals)
 
-                            pneed = ntree[hi][k]
+                            pneed = pntree[hi][k]
 
                             if (hi == 0):
-                                
+
                                 gain   = self._compute_gain(q_old_vals, q_new_vals)
 
                                 Ta     = np.zeros((self.num_states, self.num_actions, self.num_states))
@@ -448,7 +448,7 @@ class Agent(Environment):
                                     for at in range(self.num_actions):
                                         s1l, _ = self._get_new_state(st, at, unlocked=False)
 
-                                        if (state == self.uncertain_states_actions[0]) and (a==self.uncertain_states_actions[1]):
+                                        if (st == self.uncertain_states_actions[0]) and (at == self.uncertain_states_actions[1]):
                                             
                                             s1u, _ = self._get_new_state(st, at, unlocked=True)
                                         
@@ -459,32 +459,42 @@ class Agent(Environment):
                                             Ta[st, at, s1l] = 1
 
                                 need   = self._compute_need(Ta, Q_old)
-
                                 evb_trees[s][hi][new_key] = gain * need[self.state, state]
+
+                                gain_save[state, a] = gain
+                                need_save[state]    = need[self.state, state]
+
+                                # print(hi, k, a, q_old_vals[a], q_new_vals[a], gain, need[self.state, state])
 
                             else:
                                 evb_trees[s][hi][new_key] = pneed * (v_new - v_old)
 
-        return nqval_trees, evb_trees
+                                # print(hi, k, a, q_old_vals[a], q_new_vals[a], (v_new - v_old), pneed)
+
+                            
+
+        return nqval_trees, evb_trees, gain_save, need_save
 
     def _replay(self):
         
         Q_history    = [self.Q.copy()]
+        gain_history = [None]
+        need_history = [None]
 
         belief_trees = []
         qval_trees   = []
-        need_trees   = []
+        pneed_trees   = []
+
         for s in range(self.num_states):
             belief_tree   = self._build_belief_tree(s)
             belief_trees += [belief_tree]
             qval_tree     = self._build_qval_tree(belief_tree)
             qval_trees   += [qval_tree]
-            need_tree     = self._build_need_tree(belief_tree, qval_tree)
-            need_trees   += [need_tree] 
+            pneed_tree    = self._build_pneed_tree(belief_tree, qval_tree)
+            pneed_trees  += [pneed_tree] 
         
-        counter = 0
         while True:
-            new_qval_trees, evb_trees = self._get_updates(belief_trees, need_trees, qval_trees)
+            new_qval_trees, evb_trees, gain, need = self._get_updates(belief_trees, pneed_trees, qval_trees)
             max_evb = 0
             idx     = []
             for s in range(self.num_states):
@@ -502,30 +512,33 @@ class Agent(Environment):
                 break
             else:
                 s, hi, k = idx[0], idx[1], idx[2]
-                qval_trees[s][hi][k[:-1]] = Q_new
-                need_trees[s] = self._build_need_tree(belief_trees[s], qval_trees[s])
 
-                # for st in range(self.num_states):
-                #     print(evb_trees[st][0])
+                if hi == 0:
+                    print('Replay', idx, qval_trees[s][hi][k[:-1]][s, k[-1]], new_qval_trees[s][hi][k][s, k[-1]], max_evb)
+
+                qval_trees[s][hi][k[:-1]] = Q_new
+                pneed_trees[s] = self._build_pneed_tree(belief_trees[s], qval_trees[s])
 
                 if hi == 0:
 
-                    print('Replay', idx)
                     self.Q = Q_new
-                    Q_history   += [self.Q.copy()] 
-                    qval_trees   = []
-                    need_trees   = []
+                    Q_history    += [self.Q.copy()]
+                    gain_history += [gain]
+                    need_history += [need]
+
+                    qval_trees    = []
+                    pneed_trees   = []
                     for s in range(self.num_states):
-                        belief_tree   = belief_trees[s]
-                        qval_tree     = self._build_qval_tree(belief_tree)
-                        qval_trees   += [qval_tree]
-                        need_tree     = self._build_need_tree(belief_tree, qval_tree)
-                        need_trees   += [need_tree] 
+                        belief_tree  = belief_trees[s]
+                        qval_tree    = self._build_qval_tree(belief_tree)
+                        qval_trees  += [qval_tree]
+                        pneed_tree   = self._build_pneed_tree(belief_tree, qval_tree)
+                        pneed_trees += [pneed_tree] 
 
         for s in range(self.num_states):
             for _, v in qval_trees[s][0].items():
                 self.Q[s, :] = v[s, :]
-        return Q_history
+        return Q_history, gain_history, need_history
 
     def run_simulation(self, num_steps=100, save_path=None):
 
@@ -542,31 +555,32 @@ class Agent(Environment):
             print('Step %u/%u'%(step+1, num_steps))
             print('Counter %u'%counter)
 
-            probs = self._policy(self.Q[self.state, :])
-            a     = np.random.choice(range(self.num_actions), p=probs)
-            s1, r = self._get_new_state(self.state, a)
+            s = self.state
+            probs  = self._policy(self.Q[s, :])
+            a      = np.random.choice(range(self.num_actions), p=probs)
+            s1, r  = self._get_new_state(s, a) 
 
-            self.Q[self.state, :] = self._qval_update(self.Q, self.state, a, r, s1)
-            self.M = self._belief_update(self.M, self.state, s1)
+            self.Q[self.state, :] = self._qval_update(self.Q, s, a, r, s1)
+            self.M = self._belief_update(self.M, s, s1)
 
-            if (step == 3000):
-                replay  = True
-                self.M  = np.ones(2)
+            self.state = s1
+
+            if step == 3000:
+                replay = True
+                self.M = np.ones(2)
 
             if replay:
-                
+
                 counter += 1
-                if counter == 40:
+                if counter == 25:
                     return None
 
-                Q_history = self._replay()
+                Q_history, gain_history, need_history = self._replay()
 
                 if save_path:
-                    np.savez(os.path.join(save_path, 'Q_%u.npz'%step), Q_history=Q_history, move=[self.state, a, r, s1])
+                    np.savez(os.path.join(save_path, 'Q_%u.npz'%step), Q_history=Q_history, gain_history=gain_history, need_history=need_history, move=[s, a, r, s1])
 
             if s1 == self.goal_state:
                 self.state = self.start_state
-            else:
-                self.state = s1
 
         return None
