@@ -118,16 +118,14 @@ class Tree:
         ----
         '''
 
-        rnd = 8
-
         self.gamma = gamma
         self.qval_tree  = {hi:{} for hi in range(self.horizon)}
 
         # first asign values to leaf nodes -- immediate reward
         hi = self.horizon - 1
         for k, b in self.tree[hi].items():
-            b0 = np.round(b[0, 0]/np.sum(b[0, :]), rnd)
-            b1 = np.round(b[1, 0]/np.sum(b[1, :]), rnd)
+            b0 = b[0, 0]/np.sum(b[0, :])
+            b1 = b[1, 0]/np.sum(b[1, :])
             self.qval_tree[hi][k] = np.array([b0, b1])
 
         # then propagate those values backwards
@@ -146,8 +144,8 @@ class Tree:
                             if len(v_primes) == 2:
                                 break
                     
-                    b0 = np.round(b[a, 0]/np.sum(b[a, :]), rnd)
-                    b1 = np.round(b[a, 1]/np.sum(b[a, :]), rnd)
+                    b0 = b[a, 0]/np.sum(b[a, :])
+                    b1 = b[a, 1]/np.sum(b[a, :])
                     self.qval_tree[hi][k][a] = b0*(1.0 + self.gamma*v_primes[0]) + b1*(0.0 + self.gamma*v_primes[1])
 
         return None
@@ -161,8 +159,6 @@ class Tree:
         xi    -- EVB threshold
         ----
         '''
-
-        rnd = 8
 
         self.gamma = gamma
         self.xi    = xi
@@ -185,8 +181,8 @@ class Tree:
                 # otherwise it's the immediate model-based expected reward
                 # elif (hi == self.horizon-1):
                 else:
-                    b0 = np.round(b[0, 0]/np.sum(b[0, :]), rnd)
-                    b1 = np.round(b[1, 0]/np.sum(b[1, :]), rnd)
+                    b0 = b[0, 0]/np.sum(b[0, :])
+                    b1 = b[1, 0]/np.sum(b[1, :])
                     q_values = np.array([b0, b1])
                 # else:
                     # q_values = np.zeros(2)
@@ -202,7 +198,7 @@ class Tree:
                     for kn, bn in self.tree[hin].items():
                         if kn[-1] == prev_c:
                             policy_proba = self._policy(self.qval_tree[hin][kn])
-                            bc           = np.round(bn[a, c%2]/np.sum(bn[a, :]), rnd)
+                            bc           = bn[a, c%2]/np.sum(bn[a, :])
                             proba       *= policy_proba[a]*bc
 
                             c      = kn[-1]
@@ -237,7 +233,7 @@ class Tree:
                         for kn, bn in self.tree[hin].items():
                             if kn[-1] == prev_c:
                                 policy_proba = self._policy(self.qval_tree[hin][kn])
-                                bc           = np.round(bn[a, c%2]/np.sum(bn[a, :]), rnd)
+                                bc           = bn[a, c%2]/np.sum(bn[a, :])
                                 proba       *= policy_proba[a]*bc
 
                                 c      = kn[-1]
@@ -261,8 +257,8 @@ class Tree:
                                     break
 
                         # new (updated) Q value for action [a]
-                        b0 = np.round(b[a, 0]/np.sum(b[a, :]), rnd)
-                        b1 = np.round(b[a, 1]/np.sum(b[a, :]), rnd)
+                        b0 = b[a, 0]/np.sum(b[a, :])
+                        b1 = b[a, 1]/np.sum(b[a, :])
                         q_upd = b0*(1.0 + self.gamma*v_primes[0]) + b1*(0.0 + self.gamma*v_primes[1])
 
 
