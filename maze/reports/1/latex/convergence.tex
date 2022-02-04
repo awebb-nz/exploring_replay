@@ -44,21 +44,21 @@ for the more certain arm it goes more "in depth".
 
 \begin{figure}[ht!]
     \centering
-    \includegraphics[width=1\textwidth]{../data/convergence/xi/alpha05_beta01_alpha11_beta11_complete.png}
+    \includegraphics[width=1\textwidth]{../../../../bandit/data/convergence/xi/alpha05_beta01_alpha11_beta11_complete.png}
     \caption{Note that the same inverse temperature parameter $\beta$ was used within the tree and at the 
     root (which is the plotted root value).}
 \end{figure}
 \begin{figure}[ht!]
     \centering
-    \includegraphics[width=1\textwidth]{../data/convergence/xi/alpha05_beta02_alpha13_beta12_complete.png}
+    \includegraphics[width=1\textwidth]{../../../../bandit/data/convergence/xi/alpha05_beta02_alpha13_beta12_complete.png}
 \end{figure}
 \begin{figure}[ht!]
     \centering
-    \includegraphics[width=1\textwidth]{../data/convergence/xi/alpha09_beta06_alpha13_beta12_complete.png}
+    \includegraphics[width=1\textwidth]{../../../../bandit/data/convergence/xi/alpha09_beta06_alpha13_beta12_complete.png}
 \end{figure}
 \begin{figure}[ht!]
     \centering
-    \includegraphics[width=1\textwidth]{../data/convergence/xi/alpha010_beta06_alpha13_beta12_complete.png}
+    \includegraphics[width=1\textwidth]{../../../../bandit/data/convergence/xi/alpha010_beta06_alpha13_beta12_complete.png}
 \end{figure}
 
 \clearpage
@@ -140,31 +140,31 @@ only root updates are shown.
 
 \begin{figure}[ht!]
     \centering
-    \includegraphics[width=1\textwidth]{../data/plots/move_3001.png}
+    \includegraphics[width=1\textwidth]{../../../data/plots/move_3001.png}
 \end{figure}
 \begin{figure}[ht!]
     \centering
-    \includegraphics[width=1\textwidth]{../data/plots/move_3001_0.png}
+    \includegraphics[width=1\textwidth]{../../../data/plots/move_3001_0.png}
 \end{figure}
 \begin{figure}[ht!]
     \centering
-    \includegraphics[width=1\textwidth]{../data/plots/move_3001_1.png}
+    \includegraphics[width=1\textwidth]{../../../data/plots/move_3001_1.png}
 \end{figure}
 \begin{figure}[ht!]
     \centering
-    \includegraphics[width=1\textwidth]{../data/plots/move_3001_2.png}
+    \includegraphics[width=1\textwidth]{../../../data/plots/move_3001_2.png}
 \end{figure}
 \begin{figure}[ht!]
     \centering
-    \includegraphics[width=1\textwidth]{../data/plots/move_3001_3.png}
+    \includegraphics[width=1\textwidth]{../../../data/plots/move_3001_3.png}
 \end{figure}
 \begin{figure}[ht!]
     \centering
-    \includegraphics[width=1\textwidth]{../data/plots/move_3001_4.png}
+    \includegraphics[width=1\textwidth]{../../../data/plots/move_3001_4.png}
 \end{figure}
 \begin{figure}[ht!]
     \centering
-    \includegraphics[width=1\textwidth]{../data/plots/move_3001_5.png}
+    \includegraphics[width=1\textwidth]{../../../data/plots/move_3001_5.png}
 \end{figure}
 
 \clearpage
@@ -183,5 +183,32 @@ is the reason why the model predicts such exploratory replays to proceed in a fo
 One thing which feels a bit uncomfortable is that Gain turns out to be much more powerful than Need (because Gain can dramatically change 
 Need). This, of course, depends on the horizon and learning rates (replay learning rate was set to $1$ in this simulation)
 
+\bigbreak
 
+For clarity, I also wrote down a very high-level pseudocode of the algorithm on the next page.
+
+\newpage
+
+\textbf{Initialise}\\ 
+\begin{tabular}{ll}
+    $x$ & $\leftarrow \text{current physical state}$\\
+    $b_{\rho}$ & $\leftarrow \text{current belief}$ \\
+    $H$ & $\leftarrow \text{horizon}$\\ 
+    $\alpha_r$ & $\leftarrow \text{replay learning rate}$\\
+    $\gamma$ & $\leftarrow \text{discount factor}$    
+\end{tabular}
+
+\bigbreak
+\textbf{while} $\max_{z, a, t_{s}(h)} \text{EVB}_{t_{s}(h)}(z, a) > \xi$ \textbf{do}\\
+\hspace*{0.5cm} \textbf{for each} $s \in \mathcal{S}$ \textbf{do} \\
+\hspace*{0.5cm} \hspace*{0.5cm} build belief tree $t_s$ with root information state $z_{\rho}=<s_{\rho}=s, b_{\rho}>$\\
+\hspace*{0.5cm} \hspace*{0.5cm} \textbf{for each} $h$ in $(H-1)$ \textbf{do}\\
+\hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} \textbf{for each} information state $z=<s, b> \in t_s(h)$ \textbf{do}\\
+\hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} \textbf{for each} action $a\in \mathcal{A}$ \textbf{do}\\
+\hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} \textbf{if} $(h > 1)$ \textbf{do}\\
+\hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} $\text{EVB}_{t_{s}(h)}(z, a) \leftarrow p(z_{\rho} \rightarrow z, \pi) \times \mathbb{E}_{z' \sim p(z' \mid z, a, \pi)}\big[v(z')-v(z)\big]$\\
+\hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} \textbf{else if} $h == 1$ \textbf{do}\\
+\hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} $\text{EVB}_{t_{s}(h)}(z_{\rho}, a) \leftarrow \text{Need}(<x, b_{\rho}> \rightarrow z_{\rho}, \pi) \times \text{Gain}(z_{\rho}, a)$\\
+\hspace*{0.5cm} \textbf{execute} replay update $\text{argmax}_{z, a, t_{s}(h)} \, \, \text{EVB}_{t_{s}(h)}(z, a)$ as\\
+\hspace*{0.5cm} \hspace*{0.5cm} $Q(z, a) \leftarrow Q(z, a) + \alpha_r \mathbb{E}_{z'\sim p(z'\mid z, a, \pi)}\big[R(z') + \gamma \max_{a' \in \mathcal{A}}Q(z', a') - Q(z, a)\big]$
 \end{document}
