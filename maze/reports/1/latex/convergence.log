@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.23 (TeX Live 2021/Arch Linux) (preloaded format=pdflatex 2022.1.7)  27 JAN 2022 18:56
+This is pdfTeX, Version 3.141592653-2.6-1.40.23 (TeX Live 2021/Arch Linux) (preloaded format=pdflatex 2022.1.7)  4 FEB 2022 12:42
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -368,67 +368,85 @@ File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 ) [1
 
 {/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}]
-<../data/convergence/xi/alpha05_beta01_alpha11_beta11.png, id=15, 722.7pt x 578.16pt>
-File: ../data/convergence/xi/alpha05_beta01_alpha11_beta11.png Graphic file (type png)
-<use ../data/convergence/xi/alpha05_beta01_alpha11_beta11.png>
-Package pdftex.def Info: ../data/convergence/xi/alpha05_beta01_alpha11_beta11.png  used on input line 38.
-(pdftex.def)             Requested size: 398.93158pt x 319.14465pt.
-<../data/convergence/xi/alpha05_beta02_alpha13_beta12.png, id=17, 722.7pt x 578.16pt>
-File: ../data/convergence/xi/alpha05_beta02_alpha13_beta12.png Graphic file (type png)
-<use ../data/convergence/xi/alpha05_beta02_alpha13_beta12.png>
-Package pdftex.def Info: ../data/convergence/xi/alpha05_beta02_alpha13_beta12.png  used on input line 42.
-(pdftex.def)             Requested size: 398.93158pt x 319.14465pt.
-<../data/convergence/xi/alpha09_beta06_alpha13_beta12.png, id=18, 722.7pt x 578.16pt>
-File: ../data/convergence/xi/alpha09_beta06_alpha13_beta12.png Graphic file (type png)
-<use ../data/convergence/xi/alpha09_beta06_alpha13_beta12.png>
-Package pdftex.def Info: ../data/convergence/xi/alpha09_beta06_alpha13_beta12.png  used on input line 46.
-(pdftex.def)             Requested size: 398.93158pt x 319.14465pt.
-<../data/convergence/xi/alpha010_beta06_alpha13_beta12.png, id=19, 722.7pt x 578.16pt>
-File: ../data/convergence/xi/alpha010_beta06_alpha13_beta12.png Graphic file (type png)
-<use ../data/convergence/xi/alpha010_beta06_alpha13_beta12.png>
-Package pdftex.def Info: ../data/convergence/xi/alpha010_beta06_alpha13_beta12.png  used on input line 50.
-(pdftex.def)             Requested size: 398.93158pt x 319.14465pt.
- [2 <../data/convergence/xi/alpha05_beta01_alpha11_beta11.png> <../data/convergence/xi/alpha05_beta02_alpha13_beta12.png>]
+<../data/convergence/xi/alpha05_beta01_alpha11_beta11_complete.png, id=21, 1011.78pt x 1300.86pt>
+File: ../data/convergence/xi/alpha05_beta01_alpha11_beta11_complete.png Graphic file (type png)
+<use ../data/convergence/xi/alpha05_beta01_alpha11_beta11_complete.png>
+Package pdftex.def Info: ../data/convergence/xi/alpha05_beta01_alpha11_beta11_complete.png  used on input line 47.
+(pdftex.def)             Requested size: 498.66258pt x 641.13884pt.
+<../data/convergence/xi/alpha05_beta02_alpha13_beta12_complete.png, id=23, 1011.78pt x 1300.86pt>
+File: ../data/convergence/xi/alpha05_beta02_alpha13_beta12_complete.png Graphic file (type png)
+<use ../data/convergence/xi/alpha05_beta02_alpha13_beta12_complete.png>
+Package pdftex.def Info: ../data/convergence/xi/alpha05_beta02_alpha13_beta12_complete.png  used on input line 53.
+(pdftex.def)             Requested size: 498.66258pt x 641.13884pt.
+<../data/convergence/xi/alpha09_beta06_alpha13_beta12_complete.png, id=24, 1011.78pt x 1300.86pt>
+File: ../data/convergence/xi/alpha09_beta06_alpha13_beta12_complete.png Graphic file (type png)
+<use ../data/convergence/xi/alpha09_beta06_alpha13_beta12_complete.png>
+Package pdftex.def Info: ../data/convergence/xi/alpha09_beta06_alpha13_beta12_complete.png  used on input line 57.
+(pdftex.def)             Requested size: 498.66258pt x 641.13884pt.
+<../data/convergence/xi/alpha010_beta06_alpha13_beta12_complete.png, id=25, 1011.78pt x 1300.86pt>
+File: ../data/convergence/xi/alpha010_beta06_alpha13_beta12_complete.png Graphic file (type png)
+<use ../data/convergence/xi/alpha010_beta06_alpha13_beta12_complete.png>
+Package pdftex.def Info: ../data/convergence/xi/alpha010_beta06_alpha13_beta12_complete.png  used on input line 61.
+(pdftex.def)             Requested size: 498.66258pt x 641.13884pt.
+ [2 <../data/convergence/xi/alpha05_beta01_alpha11_beta11_complete.png>] [3 <../data/convergence/xi/alpha05_beta02_alpha13_beta12_complete.png>] [4 <../data/convergence/xi/alpha09_beta06_alpha13_beta12_complete.png>] [5 <../data/convergence/xi/alpha010_beta06_alpha13_beta12_complete.png>] [6
 
-LaTeX Warning: Text page 3 contains only floats.
+] [7
 
-[3 <../data/convergence/xi/alpha09_beta06_alpha13_beta12.png> <../data/convergence/xi/alpha010_beta06_alpha13_beta12.png>]
-<../data/convergence/num_replays/horizon3_alpha1_beta1.png, id=36, 722.7pt x 578.16pt>
-File: ../data/convergence/num_replays/horizon3_alpha1_beta1.png Graphic file (type png)
-<use ../data/convergence/num_replays/horizon3_alpha1_beta1.png>
-Package pdftex.def Info: ../data/convergence/num_replays/horizon3_alpha1_beta1.png  used on input line 69.
-(pdftex.def)             Requested size: 373.99693pt x 299.19812pt.
-<../data/convergence/num_replays/horizon4_alpha1_beta1.png, id=37, 722.7pt x 578.16pt>
-File: ../data/convergence/num_replays/horizon4_alpha1_beta1.png Graphic file (type png)
-<use ../data/convergence/num_replays/horizon4_alpha1_beta1.png>
-Package pdftex.def Info: ../data/convergence/num_replays/horizon4_alpha1_beta1.png  used on input line 74.
-(pdftex.def)             Requested size: 373.99693pt x 299.19812pt.
-<../data/convergence/num_replays/horizon5_alpha1_beta1.png, id=38, 722.7pt x 578.16pt>
-File: ../data/convergence/num_replays/horizon5_alpha1_beta1.png Graphic file (type png)
-<use ../data/convergence/num_replays/horizon5_alpha1_beta1.png>
-Package pdftex.def Info: ../data/convergence/num_replays/horizon5_alpha1_beta1.png  used on input line 79.
-(pdftex.def)             Requested size: 373.99693pt x 299.19812pt.
- [4 <../data/convergence/num_replays/horizon3_alpha1_beta1.png>]
+]
+<../data/plots/move_3001.png, id=62, 1951.29pt x 1156.32pt>
+File: ../data/plots/move_3001.png Graphic file (type png)
+<use ../data/plots/move_3001.png>
+Package pdftex.def Info: ../data/plots/move_3001.png  used on input line 143.
+(pdftex.def)             Requested size: 498.66258pt x 295.50171pt.
+<../data/plots/move_3001_0.png, id=63, 1951.29pt x 1156.32pt>
+File: ../data/plots/move_3001_0.png Graphic file (type png)
+<use ../data/plots/move_3001_0.png>
+Package pdftex.def Info: ../data/plots/move_3001_0.png  used on input line 147.
+(pdftex.def)             Requested size: 498.66258pt x 295.50171pt.
+<../data/plots/move_3001_1.png, id=64, 1951.29pt x 1156.32pt>
+File: ../data/plots/move_3001_1.png Graphic file (type png)
+<use ../data/plots/move_3001_1.png>
+Package pdftex.def Info: ../data/plots/move_3001_1.png  used on input line 151.
+(pdftex.def)             Requested size: 498.66258pt x 295.50171pt.
+<../data/plots/move_3001_2.png, id=65, 1951.29pt x 1156.32pt>
+File: ../data/plots/move_3001_2.png Graphic file (type png)
+<use ../data/plots/move_3001_2.png>
+Package pdftex.def Info: ../data/plots/move_3001_2.png  used on input line 155.
+(pdftex.def)             Requested size: 498.66258pt x 295.50171pt.
+<../data/plots/move_3001_3.png, id=66, 1951.29pt x 1156.32pt>
+File: ../data/plots/move_3001_3.png Graphic file (type png)
+<use ../data/plots/move_3001_3.png>
+Package pdftex.def Info: ../data/plots/move_3001_3.png  used on input line 159.
+(pdftex.def)             Requested size: 498.66258pt x 295.50171pt.
+<../data/plots/move_3001_4.png, id=67, 1951.29pt x 1156.32pt>
+File: ../data/plots/move_3001_4.png Graphic file (type png)
+<use ../data/plots/move_3001_4.png>
+Package pdftex.def Info: ../data/plots/move_3001_4.png  used on input line 163.
+(pdftex.def)             Requested size: 498.66258pt x 295.50171pt.
+<../data/plots/move_3001_5.png, id=68, 1951.29pt x 1156.32pt>
+File: ../data/plots/move_3001_5.png Graphic file (type png)
+<use ../data/plots/move_3001_5.png>
+Package pdftex.def Info: ../data/plots/move_3001_5.png  used on input line 167.
+(pdftex.def)             Requested size: 498.66258pt x 295.50171pt.
+ [8 <../data/plots/move_3001.png> <../data/plots/move_3001_0.png>] [9 <../data/plots/move_3001_1.png> <../data/plots/move_3001_2.png>] [10 <../data/plots/move_3001_3.png> <../data/plots/move_3001_4.png>] [11 <../data/plots/move_3001_5.png>] [12
 
-LaTeX Warning: Text page 5 contains only floats.
-
-[5 <../data/convergence/num_replays/horizon4_alpha1_beta1.png> <../data/convergence/num_replays/horizon5_alpha1_beta1.png>] [6] (./convergence.aux)
+] (./convergence.aux)
 Package rerunfilecheck Info: File `convergence.out' has not changed.
 (rerunfilecheck)             Checksum: D41D8CD98F00B204E9800998ECF8427E;0.
  ) 
 Here is how much of TeX's memory you used:
- 11190 strings out of 478353
- 179668 string characters out of 5854636
- 482198 words of memory out of 5000000
- 29170 multiletter control sequences out of 15000+600000
- 406685 words of font info for 40 fonts, out of 8000000 for 9000
+ 11228 strings out of 478353
+ 180341 string characters out of 5854636
+ 485200 words of memory out of 5000000
+ 29194 multiletter control sequences out of 15000+600000
+ 406647 words of font info for 40 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  67i,6n,77p,371b,328s stack positions out of 5000i,500n,10000p,200000b,80000s
-</usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy5.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb>
-Output written on convergence.pdf (6 pages, 437382 bytes).
+</usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy5.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb>
+Output written on convergence.pdf (12 pages, 2259435 bytes).
 PDF statistics:
- 112 PDF objects out of 1000 (max. 8388607)
- 69 compressed objects within 1 object stream
- 18 named destinations out of 1000 (max. 500000)
- 36 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 157 PDF objects out of 1000 (max. 8388607)
+ 98 compressed objects within 1 object stream
+ 28 named destinations out of 1000 (max. 500000)
+ 56 words of extra memory for PDF output out of 10000 (max. 10000000)
 

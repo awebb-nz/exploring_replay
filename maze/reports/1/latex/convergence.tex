@@ -17,96 +17,171 @@
 \subsection*{Replay threshold}
 The plots below show how the value of the root state changes with the EVB threshold $\xi$ at multiple horizons 
 and for various prior beliefs. Note that the root $Q$-values (i.e, the current MF $Q$-values) were set to $0$ 
-everywhere.
+everywhere, and the $Q$-values at all other belief states were set to the expected immediate reward.
 
 \bigbreak
 
-Numbers on top of each data point indicate the number of replays executed at that horizon for that EVB threshold. 
-Titles specify the prior beliefs at the root.
+The prioritisation was determined by:
+
+\begin{equation*}
+    \text{EVB(b, a)} = p(b_{\rho}\rightarrow b, \pi) \times \mathbb{E}_{b' \sim p(b' \mid b, a, \pi)}\big[v(b')-v(b)\big]
+\end{equation*}
+
+where $b_{\rho}$ is the root belief and $\pi$ is a softmax policy.
 
 \bigbreak
 
-It's nice too see that everything converges to the Bayes-optimal solution when the EVB threshold is set to $0$. 
-Another interesting observation is that horizons $h$ need fewer replays to get higher value estimates than 
-the Bayes-optimal value funciton for horizons $h-1$. And, moreover, it seems that the greater the conflict is 
-between the two arms (i.e., in terms of uncertainty and value) -- the more replays it takes to converge.
+A couple of interesting observations. First, it looks like higher inverse temperature ($\beta$) needs 
+fewer replays to approach the Bayes-optimal value at the root (it doesn't completely get there though 
+because of the softmax). Second, there is an interesting horizon - $\xi$ trade-off -- higher horizons 
+need fewer replays to get a better root value estimate than lower horizons; this means that one can 
+(potentially) increase the horizon at the expense of setting a stricter (higher) $\xi$ threshold. As 
+we have seen before, there is also a somewhat "emergent" depth-breadth trade-off which depends on 
+uncertainty -- i.e., for the more uncertain arm the algorithm tends to backup values "in breadth", and 
+for the more certain arm it goes more "in depth".  
 
 \newpage
 
 \begin{figure}[ht!]
     \centering
-    \includegraphics[width=.8\textwidth]{../data/convergence/xi/alpha05_beta01_alpha11_beta11.png}
+    \includegraphics[width=1\textwidth]{../data/convergence/xi/alpha05_beta01_alpha11_beta11_complete.png}
+    \caption{Note that the same inverse temperature parameter $\beta$ was used within the tree and at the 
+    root (which is the plotted root value).}
 \end{figure}
 \begin{figure}[ht!]
     \centering
-    \includegraphics[width=.8\textwidth]{../data/convergence/xi/alpha05_beta02_alpha13_beta12.png}
+    \includegraphics[width=1\textwidth]{../data/convergence/xi/alpha05_beta02_alpha13_beta12_complete.png}
 \end{figure}
 \begin{figure}[ht!]
     \centering
-    \includegraphics[width=.8\textwidth]{../data/convergence/xi/alpha09_beta06_alpha13_beta12.png}
+    \includegraphics[width=1\textwidth]{../data/convergence/xi/alpha09_beta06_alpha13_beta12_complete.png}
 \end{figure}
 \begin{figure}[ht!]
     \centering
-    \includegraphics[width=.8\textwidth]{../data/convergence/xi/alpha010_beta06_alpha13_beta12.png}
+    \includegraphics[width=1\textwidth]{../data/convergence/xi/alpha010_beta06_alpha13_beta12_complete.png}
 \end{figure}
 
-\newpage
+\clearpage
 
 \subsection*{Number of replays}
 
-I also created heatmaps for the different combinations of prior beliefs, where the values illustate 
-how many replays it takes to converge to the true value function.
+The heatmaps still look a bit odd to me even after setting $\xi > 0$.
 
-\bigbreak
+% \begin{figure}[ht!]
+%     \centering
+%     \includegraphics[width=.75\textwidth]{../data/convergence/num_replays/horizon3_alpha1_beta1.png}
+%     \caption{Horizon 2}
+% \end{figure}
+% \begin{figure}[ht!]
+%     \centering
+%     \includegraphics[width=.75\textwidth]{../data/convergence/num_replays/horizon4_alpha1_beta1.png}
+%     \caption{Horizon 3}
+% \end{figure}
+% \begin{figure}[ht!]
+%     \centering
+%     \includegraphics[width=.75\textwidth]{../data/convergence/num_replays/horizon5_alpha1_beta1.png}
+%     \caption{Horizon 4}
+% \end{figure}
 
-These plots look rather strange -- and it seems like there is some sort of oscillatory nature to 
-those patterns. One issue that came up with these plots is the small visible irregularities which 
-I think are a result of (potentially) numerical errors -- but I haven't quite managed to resolve 
-those yet. I will try to fix that.
-
-\begin{figure}[ht!]
-    \centering
-    \includegraphics[width=.75\textwidth]{../data/convergence/num_replays/horizon3_alpha1_beta1.png}
-    \caption{Horizon 2}
-\end{figure}
-\begin{figure}[ht!]
-    \centering
-    \includegraphics[width=.75\textwidth]{../data/convergence/num_replays/horizon4_alpha1_beta1.png}
-    \caption{Horizon 3}
-\end{figure}
-\begin{figure}[ht!]
-    \centering
-    \includegraphics[width=.75\textwidth]{../data/convergence/num_replays/horizon5_alpha1_beta1.png}
-    \caption{Horizon 4}
-\end{figure}
-
-\newpage
+\clearpage
 
 \subsection*{Maze simulations}
 
-I also simulated the maze environment. The prioritisation of each experience was detemined by:
+The prioritisation of experiences \textbf{at distal beliefs} was detemined by:
 
 \begin{equation*}
-    EVB(<s, b>, a) = p(b_{\rho} \rightarrow b, \pi) \times \text{Need}(s \mid b, \pi) \times \text{Gain}(s, a \mid b, \pi)
+    \text{EVB}(<s, b>, a) = p(<s_{\rho}, b_{\rho}> \rightarrow <s, b>, \pi) \times \mathbb{E}_{<s', b'> \sim p(<s', b'> \mid <s, b>, a, \pi)}\big[v(<s', b'>)-v(<s,b>)\big]
 \end{equation*}
 
-where $p(b_{\rho} \rightarrow b, \pi)$ is the probability of reaching belief $b$ from the root belief $b_{\rho}$ under the current 
-policy $\pi$, $\text{Need}(s \mid b, \pi)$ is the Need of state $s$ computed with the transition model implied by the belief $b$ and 
-the current policy, and $\text{Gain}(s, a \mid b)$ is the Gain associated with updating the $Q$-value $Q(<s, b>, a)$ towards the 
-expected value of the next belief, $\mathbb{E}_{b', s' \sim p(b', s'\mid b, s, a, \pi)}[R(s') + \gamma v(<b', s'>)]$.
+where $s_{\rho}$ is the root physical state and $b_{\rho}$ is the root belief.
 
 \bigbreak
 
 The implementation is very similar to that of the bandit case -- during planning (replay), the agent generates a planning tree 
 from every state and for every action. The updates can then happen either in distal parts of the trees (only 1 update is allowed 
-at each iteration), or at the root. The value of each node is initialised to the agent's current MF $Q$-values
+at each iteration), or at the root. The value of each tree node is initialised to the agent's current MF $Q$-values.
 
 \bigbreak
 
-There is a strange limitation to this prioritisation scheme: namely, it only considers what happens \emph{locally} to the 
-value function considered for an update. In the bandit case this wasn't so much of an issue -- since all updates are indeed 
-local and only affect the updated nodes. In the maze, however, it's different -- if one of the root action values is updated, 
-then this also changes the initialised node values in trees that stem from other nearby state-actions (if those are within the 
-reach depending on the horizon). 
+For the \textbf{root action updates}, the EVB is computed with in the standard M\&D fashion:
+
+\begin{equation*}
+    \text{EVB}(<s_{\rho}, b_{\rho}>, a) = \text{Need}(<x, b_{\rho}> \rightarrow <s_{\rho}, b_{\rho}>, \pi) \times \text{Gain}(<s_{\rho}, b_{\rho}>, a)
+\end{equation*}
+
+This is a bit tricky to write down in a less cryptic way. Essentially, the assumption is that state 
+$s_{\rho}$ can be reached from the agent's current location $x$ without belief dynamics -- that is, 
+Need in this case is exactly the same as in M\&D.
+
+\bigbreak
+
+The crucial difference is the Gain term. Our Bayes-adaptive prioritised sweeping procedure effectively 
+"chooses" which computation to perform at the root. Since it approximates a Bayes-optimal value (yet with 
+a heuristic at the distal beliefs in the form of the current MF $Q$-values), the future information gain 
+is subsumed by M\&D's Gain at the root.
+
+\bigbreak
+
+Below I show an example exploratory replay from a toy simulation. First, the agent was simulated in the 
+environment for 3000 moves without being allowed to replay (so only MF learning) -- and luckily, with 
+this seed, it never got to experience some of the bottom rightmost states (the ones where MF $Q$-values are 
+all 0). The agent is completely certain 
+about all transitions; however, at move 3000 I set its Beta posterior to $(1, 1)$ for the action 'up' below 
+the rightmost barrier -- hence making it expect that the probability of that barrier being removed is $0.5$.
+I then let it replay with horizon 2.
+
+\bigbreak
+
+The top left plots show MF $Q$-values and the agent's current location (green dot); the bottom left plots show 
+the replay chosen by the agent; the top right plots show Gain; and the bottom right plots show Need. Note that 
+only root updates are shown.
+
+\newpage
+
+\begin{figure}[ht!]
+    \centering
+    \includegraphics[width=1\textwidth]{../data/plots/move_3001.png}
+\end{figure}
+\begin{figure}[ht!]
+    \centering
+    \includegraphics[width=1\textwidth]{../data/plots/move_3001_0.png}
+\end{figure}
+\begin{figure}[ht!]
+    \centering
+    \includegraphics[width=1\textwidth]{../data/plots/move_3001_1.png}
+\end{figure}
+\begin{figure}[ht!]
+    \centering
+    \includegraphics[width=1\textwidth]{../data/plots/move_3001_2.png}
+\end{figure}
+\begin{figure}[ht!]
+    \centering
+    \includegraphics[width=1\textwidth]{../data/plots/move_3001_3.png}
+\end{figure}
+\begin{figure}[ht!]
+    \centering
+    \includegraphics[width=1\textwidth]{../data/plots/move_3001_4.png}
+\end{figure}
+\begin{figure}[ht!]
+    \centering
+    \includegraphics[width=1\textwidth]{../data/plots/move_3001_5.png}
+\end{figure}
+
+\clearpage
+
+I think this is very interesting and there are quite a few important considerations here. First, the horizon really 
+matters -- since it helps overcome the very low Need at (currenty) unexpected states. In the example shown above, 
+for instance, if the horizon was set to 1, there would be no exploratory replays at all. This is because Need at the 
+state adjacent to the shortcut is very small. However, for a larger horizon (2), the agent could plan crossing the 
+barrier from a state which had a slightly higher Need -- just enough so that the expected value of that replay crossed 
+the threshold, even though Gain was slightly lower due to $\gamma$ (which was set to $0.9$ in this simulation). That replay, in turn, 
+increased the Need for the subsequent state (the one adjacent to the barrier), and hence that replay followed next. This 
+is the reason why the model predicts such exploratory replays to proceed in a forward manner. 
+
+\bigbreak
+
+One thing which feels a bit uncomfortable is that Gain turns out to be much more powerful than Need (because Gain can dramatically change 
+Need). This, of course, depends on the horizon and learning rates (replay learning rate was set to $1$ in this simulation)
+
 
 \end{document}
