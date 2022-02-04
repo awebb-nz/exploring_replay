@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.23 (TeX Live 2021/Arch Linux) (preloaded format=pdflatex 2022.1.7)  4 FEB 2022 15:37
+This is pdfTeX, Version 3.141592653-2.6-1.40.23 (TeX Live 2021/Arch Linux) (preloaded format=pdflatex 2022.1.7)  4 FEB 2022 18:05
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -390,63 +390,61 @@ Package pdftex.def Info: ../../../../bandit/data/convergence/xi/alpha010_beta06_
 (pdftex.def)             Requested size: 498.66258pt x 641.13884pt.
  [2 <../../../../bandit/data/convergence/xi/alpha05_beta01_alpha11_beta11_complete.png>] [3 <../../../../bandit/data/convergence/xi/alpha05_beta02_alpha13_beta12_complete.png>] [4 <../../../../bandit/data/convergence/xi/alpha09_beta06_alpha13_beta12_complete.png>] [5 <../../../../bandit/data/convergence/xi/alpha010_beta06_alpha13_beta12_complete.png>] [6
 
-] [7
-
 ]
-<../../../data/plots/move_3001.png, id=62, 1951.29pt x 1156.32pt>
+<../../../data/plots/move_3001.png, id=56, 1951.29pt x 1156.32pt>
 File: ../../../data/plots/move_3001.png Graphic file (type png)
 <use ../../../data/plots/move_3001.png>
-Package pdftex.def Info: ../../../data/plots/move_3001.png  used on input line 143.
+Package pdftex.def Info: ../../../data/plots/move_3001.png  used on input line 121.
 (pdftex.def)             Requested size: 498.66258pt x 295.50171pt.
-<../../../data/plots/move_3001_0.png, id=63, 1951.29pt x 1156.32pt>
+<../../../data/plots/move_3001_0.png, id=57, 1951.29pt x 1156.32pt>
 File: ../../../data/plots/move_3001_0.png Graphic file (type png)
 <use ../../../data/plots/move_3001_0.png>
-Package pdftex.def Info: ../../../data/plots/move_3001_0.png  used on input line 147.
+Package pdftex.def Info: ../../../data/plots/move_3001_0.png  used on input line 125.
 (pdftex.def)             Requested size: 498.66258pt x 295.50171pt.
-<../../../data/plots/move_3001_1.png, id=64, 1951.29pt x 1156.32pt>
+<../../../data/plots/move_3001_1.png, id=58, 1951.29pt x 1156.32pt>
 File: ../../../data/plots/move_3001_1.png Graphic file (type png)
 <use ../../../data/plots/move_3001_1.png>
-Package pdftex.def Info: ../../../data/plots/move_3001_1.png  used on input line 151.
+Package pdftex.def Info: ../../../data/plots/move_3001_1.png  used on input line 129.
 (pdftex.def)             Requested size: 498.66258pt x 295.50171pt.
-<../../../data/plots/move_3001_2.png, id=65, 1951.29pt x 1156.32pt>
+<../../../data/plots/move_3001_2.png, id=59, 1951.29pt x 1156.32pt>
 File: ../../../data/plots/move_3001_2.png Graphic file (type png)
 <use ../../../data/plots/move_3001_2.png>
-Package pdftex.def Info: ../../../data/plots/move_3001_2.png  used on input line 155.
+Package pdftex.def Info: ../../../data/plots/move_3001_2.png  used on input line 133.
 (pdftex.def)             Requested size: 498.66258pt x 295.50171pt.
-<../../../data/plots/move_3001_3.png, id=66, 1951.29pt x 1156.32pt>
+<../../../data/plots/move_3001_3.png, id=60, 1951.29pt x 1156.32pt>
 File: ../../../data/plots/move_3001_3.png Graphic file (type png)
 <use ../../../data/plots/move_3001_3.png>
-Package pdftex.def Info: ../../../data/plots/move_3001_3.png  used on input line 159.
+Package pdftex.def Info: ../../../data/plots/move_3001_3.png  used on input line 137.
 (pdftex.def)             Requested size: 498.66258pt x 295.50171pt.
-<../../../data/plots/move_3001_4.png, id=67, 1951.29pt x 1156.32pt>
+<../../../data/plots/move_3001_4.png, id=61, 1951.29pt x 1156.32pt>
 File: ../../../data/plots/move_3001_4.png Graphic file (type png)
 <use ../../../data/plots/move_3001_4.png>
-Package pdftex.def Info: ../../../data/plots/move_3001_4.png  used on input line 163.
+Package pdftex.def Info: ../../../data/plots/move_3001_4.png  used on input line 141.
 (pdftex.def)             Requested size: 498.66258pt x 295.50171pt.
-<../../../data/plots/move_3001_5.png, id=68, 1951.29pt x 1156.32pt>
+<../../../data/plots/move_3001_5.png, id=62, 1951.29pt x 1156.32pt>
 File: ../../../data/plots/move_3001_5.png Graphic file (type png)
 <use ../../../data/plots/move_3001_5.png>
-Package pdftex.def Info: ../../../data/plots/move_3001_5.png  used on input line 167.
+Package pdftex.def Info: ../../../data/plots/move_3001_5.png  used on input line 145.
 (pdftex.def)             Requested size: 498.66258pt x 295.50171pt.
- [8 <../../../data/plots/move_3001.png> <../../../data/plots/move_3001_0.png>] [9 <../../../data/plots/move_3001_1.png> <../../../data/plots/move_3001_2.png>] [10 <../../../data/plots/move_3001_3.png> <../../../data/plots/move_3001_4.png>] [11 <../../../data/plots/move_3001_5.png>] [12
+ [7 <../../../data/plots/move_3001.png> <../../../data/plots/move_3001_0.png>] [8 <../../../data/plots/move_3001_1.png> <../../../data/plots/move_3001_2.png>] [9 <../../../data/plots/move_3001_3.png> <../../../data/plots/move_3001_4.png>] [10 <../../../data/plots/move_3001_5.png>] [11
 
-] [13] (./convergence.aux)
+] [12] (./convergence.aux)
 Package rerunfilecheck Info: File `convergence.out' has not changed.
 (rerunfilecheck)             Checksum: D41D8CD98F00B204E9800998ECF8427E;0.
  ) 
 Here is how much of TeX's memory you used:
- 11230 strings out of 478353
- 181017 string characters out of 5854636
- 488200 words of memory out of 5000000
+ 11228 strings out of 478353
+ 180999 string characters out of 5854636
+ 491200 words of memory out of 5000000
  29194 multiletter control sequences out of 15000+600000
  406647 words of font info for 40 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  67i,10n,77p,371b,328s stack positions out of 5000i,500n,10000p,200000b,80000s
 </usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi5.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy5.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb>
-Output written on convergence.pdf (13 pages, 2274808 bytes).
+Output written on convergence.pdf (12 pages, 2274491 bytes).
 PDF statistics:
- 169 PDF objects out of 1000 (max. 8388607)
- 106 compressed objects within 2 object streams
- 30 named destinations out of 1000 (max. 500000)
+ 163 PDF objects out of 1000 (max. 8388607)
+ 101 compressed objects within 2 object streams
+ 28 named destinations out of 1000 (max. 500000)
  56 words of extra memory for PDF output out of 10000 (max. 10000000)
 

@@ -63,28 +63,6 @@ for the more certain arm it goes more "in depth".
 
 \clearpage
 
-\subsection*{Number of replays}
-
-The heatmaps still look a bit odd to me even after setting $\xi > 0$.
-
-% \begin{figure}[ht!]
-%     \centering
-%     \includegraphics[width=.75\textwidth]{../data/convergence/num_replays/horizon3_alpha1_beta1.png}
-%     \caption{Horizon 2}
-% \end{figure}
-% \begin{figure}[ht!]
-%     \centering
-%     \includegraphics[width=.75\textwidth]{../data/convergence/num_replays/horizon4_alpha1_beta1.png}
-%     \caption{Horizon 3}
-% \end{figure}
-% \begin{figure}[ht!]
-%     \centering
-%     \includegraphics[width=.75\textwidth]{../data/convergence/num_replays/horizon5_alpha1_beta1.png}
-%     \caption{Horizon 4}
-% \end{figure}
-
-\clearpage
-
 \subsection*{Maze simulations}
 
 The prioritisation of experiences at \textbf{distal} information states was detemined by:
@@ -203,23 +181,35 @@ For clarity, I also wrote down a very high-level pseudocode of the algorithm on 
 \end{tabular}
 
 \bigbreak
+
+\textbf{for each} $s \in \mathcal{S}$ \textbf{do} \\
+\hspace*{0.5cm} build belief tree $t_s$ with root information state $z_{\rho}=<s_{\rho}=s, b_{\rho}>$ up to horizon $H$\\
+\hspace*{0.5cm} initialise $Q_{t_{s}(h)}(z=<k, b>, a) \leftarrow Q^{MF}(<k, b_{\rho}>, a) \; \; \forall h \in H, z \in t_{s}(h)$\\
+\textbf{done}\\
 \textbf{while} $\max_{z, a, t_{s}, h} \text{EVB}_{t_{s}(h)}(z, a) > \xi$ \textbf{do}\\
-\hspace*{0.5cm} \textbf{for each} $s \in \mathcal{S}$ \textbf{do} \\
-\hspace*{0.5cm} \hspace*{0.5cm} build belief tree $t_s$ with root information state $z_{\rho}=<s_{\rho}=s, b_{\rho}>$ up to horizon $H$\\
-\hspace*{0.5cm} \hspace*{0.5cm} initialise $Q(z=<k, b>, a) \leftarrow Q^{MF}(k, a) \; \; \forall z \in t_{s}$\\
-\hspace*{0.5cm} \hspace*{0.5cm} \textbf{for each} $h$ in $(H-1)$ \textbf{do}\\
-\hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} \textbf{for each} information state $z=<k, b> \in t_s(h)$ \textbf{do}\\
-\hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} \textbf{for each} action $a\in \mathcal{A}$ \textbf{do}\\
-\hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} \textbf{if} $(h > 1)$ \textbf{do}\\
-\hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} $\text{EVB}_{t_{s}(h)}(z, a) \leftarrow p(z_{\rho} \rightarrow z, \pi) \times \mathbb{E}_{z' \sim p(z' \mid z, a, \pi)}\big[v(z')-v(z)\big]$\\
-\hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} \textbf{else if} $(h == 1)$ \textbf{do}\\
-\hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} $\text{EVB}_{t_{s}(h)}(z_{\rho}, a) \leftarrow \text{Need}(<x, b_{\rho}> \rightarrow z_{\rho}, \pi) \times \text{Gain}(z_{\rho}, a)$\\
-\hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} \textbf{done} \\
-\hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} \textbf{done}\\
+\hspace*{0.5cm} \textbf{for each} $h$ in $(H-1)$ \textbf{do}\\
+\hspace*{0.5cm} \hspace*{0.5cm} \textbf{for each} information state $z=<k, b> \in t_s(h)$ \textbf{do}\\
+\hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} \textbf{for each} action $a\in \mathcal{A}$ \textbf{do}\\
+\hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} \textbf{if} $(h > 1)$ \textbf{do}\\
+\hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} $\text{EVB}_{t_{s}(h)}(z, a) \leftarrow p(z_{\rho} \rightarrow z, \pi) \times \mathbb{E}_{z' \sim p(z' \mid z, a, \pi)}\big[v(z')-v(z)\big]$\\
+\hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} \textbf{else if} $(h == 1)$ \textbf{do}\\
+\hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} $\text{EVB}_{t_{s}(h)}(z_{\rho}, a) \leftarrow \text{Need}(<x, b_{\rho}> \rightarrow z_{\rho}, \pi) \times \text{Gain}(z_{\rho}, a)$\\
+\hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} \textbf{done} \\
 \hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} \textbf{done}\\
 \hspace*{0.5cm} \hspace*{0.5cm} \textbf{done}\\
 \hspace*{0.5cm} \textbf{done}\\
-\hspace*{0.5cm} execute $\text{argmax}_{z, a, t_{s}, h} \, \, \text{EVB}_{t_{s}(h)}(z, a)$ as:\\
-\hspace*{0.5cm} \hspace*{0.5cm} $Q(z, a) \leftarrow Q(z, a) + \alpha_r \mathbb{E}_{z'\sim p(z'\mid z, a, \pi)}\big[R(z') + \gamma \max_{a' \in \mathcal{A}}Q(z', a') - Q(z, a)\big]$\\
+\hspace*{0.5cm} $z, a, t_s, h \leftarrow \text{argmax}_{z, a, t_{s}, h} \, \, \text{EVB}_{t_{s}(h)}(z, a)$\\
+\hspace*{0.5cm} \textbf{if} $(h == 1)$ \textbf{do}\\
+\hspace*{0.5cm} \hspace*{0.5cm} $Q^{MF}(z, a) \leftarrow Q_{t_{s}(h)}(z, a) + \alpha_r \mathbb{E}_{z'\sim p(z'\mid z, a, \pi)}\big[R(z') + \gamma \max_{a' \in \mathcal{A}}Q_{t_{s}(h+1)}(z', a') - Q(z, a)\big]$\\
+\hspace*{0.5cm} \hspace*{0.5cm} \textbf{for each} $s \in \mathcal{S}$ \textbf{do} \\
+\hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} build belief tree $t_s$ with root information state $z_{\rho}=<s_{\rho}=s, b_{\rho}>$ up to horizon $H$\\
+\hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} initialise $Q_{t_{s}(h)}(z=<k, b>, a) \leftarrow Q^{MF}(<k, b_{\rho}>, a) \; \; \forall h \in H, z \in t_{s}(h)$\\
+\hspace*{0.5cm} \hspace*{0.5cm} \textbf{done}\\
+\hspace*{0.5cm} \textbf{else if} $(h != 1)$ \textbf{do}\\
+\hspace*{0.5cm} \hspace*{0.5cm} $Q_{t_{s}(h)}(z, a) \leftarrow Q_{t_{s}(h)}(z, a) + \alpha_r \mathbb{E}_{z'\sim p(z'\mid z, a, \pi)}\big[R(z') + \gamma \max_{a' \in \mathcal{A}}Q_{t_{s}(h+1)}(z', a') - Q(z, a)\big]$\\
+\hspace*{0.5cm} \textbf{done}\\
 \textbf{repeat}
+
+
+
 \end{document}
