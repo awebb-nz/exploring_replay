@@ -15,8 +15,8 @@
 \section*{Empirical convergence analysis}
 
 \subsection*{Replay threshold}
-The plots below show how the value of the root state changes with the EVB threshold $\xi$ at multiple horizons 
-and for various prior beliefs. Note that the root $Q$-values (i.e, the current MF $Q$-values) were set to $0$ 
+The plots below show how the value of the root state changes with the EVB threshold $\xi$ at multiple horizons, 
+inverse temperatures, and for various prior beliefs. Note that the root $Q$-values (i.e, the current MF $Q$-values) were set to $0$ 
 everywhere, and the $Q$-values at all other belief states were set to the expected immediate reward.
 
 \bigbreak
@@ -87,7 +87,7 @@ The heatmaps still look a bit odd to me even after setting $\xi > 0$.
 
 \subsection*{Maze simulations}
 
-The prioritisation of experiences \textbf{at distal beliefs} was detemined by:
+The prioritisation of experiences at \textbf{distal} information states was detemined by:
 
 \begin{equation*}
     \text{EVB}(<s, b>, a) = p(<s_{\rho}, b_{\rho}> \rightarrow <s, b>, \pi) \times \mathbb{E}_{<s', b'> \sim p(<s', b'> \mid <s, b>, a, \pi)}\big[v(<s', b'>)-v(<s,b>)\big]
@@ -103,7 +103,7 @@ at each iteration), or at the root. The value of each tree node is initialised t
 
 \bigbreak
 
-For the \textbf{root action updates}, the EVB is computed with in the standard M\&D fashion:
+For the \textbf{root} action updates, the EVB is computed in the standard M\&D fashion:
 
 \begin{equation*}
     \text{EVB}(<s_{\rho}, b_{\rho}>, a) = \text{Need}(<x, b_{\rho}> \rightarrow <s_{\rho}, b_{\rho}>, \pi) \times \text{Gain}(<s_{\rho}, b_{\rho}>, a)
@@ -128,7 +128,7 @@ this seed, it never got to experience some of the bottom rightmost states (the o
 all 0). The agent is completely certain 
 about all transitions; however, at move 3000 I set its Beta posterior to $(1, 1)$ for the action 'up' below 
 the rightmost barrier -- hence making it expect that the probability of that barrier being removed is $0.5$.
-I then let it replay with horizon 2.
+I then let it replay with horizon 2. The start state is the square which is the 3rd from the left at the very bottom. 
 
 \bigbreak
 
@@ -181,7 +181,8 @@ is the reason why the model predicts such exploratory replays to proceed in a fo
 \bigbreak
 
 One thing which feels a bit uncomfortable is that Gain turns out to be much more powerful than Need (because Gain can dramatically change 
-Need). This, of course, depends on the horizon and learning rates (replay learning rate was set to $1$ in this simulation)
+Need). This, of course, depends on the horizon and learning rates (replay learning rate was set to $1$ in this simulation), as well as 
+the discount factor.
 
 \bigbreak
 
@@ -189,26 +190,36 @@ For clarity, I also wrote down a very high-level pseudocode of the algorithm on 
 
 \newpage
 
+\subsection*{Replay pseudocode}
+
 \textbf{Initialise}\\ 
 \begin{tabular}{ll}
-    $x$ & $\leftarrow \text{current physical state}$\\
-    $b_{\rho}$ & $\leftarrow \text{current belief}$ \\
+    $x$ & $\leftarrow \text{agent's current physical state}$\\
+    $b_{\rho}$ & $\leftarrow \text{agent's current belief}$ \\
     $H$ & $\leftarrow \text{horizon}$\\ 
     $\alpha_r$ & $\leftarrow \text{replay learning rate}$\\
-    $\gamma$ & $\leftarrow \text{discount factor}$    
+    $\gamma$ & $\leftarrow \text{discount factor}$\\ 
+    $\xi$ & $\leftarrow \text{EVB replay threshold}$  
 \end{tabular}
 
 \bigbreak
-\textbf{while} $\max_{z, a, t_{s}(h)} \text{EVB}_{t_{s}(h)}(z, a) > \xi$ \textbf{do}\\
+\textbf{while} $\max_{z, a, t_{s}, h} \text{EVB}_{t_{s}(h)}(z, a) > \xi$ \textbf{do}\\
 \hspace*{0.5cm} \textbf{for each} $s \in \mathcal{S}$ \textbf{do} \\
-\hspace*{0.5cm} \hspace*{0.5cm} build belief tree $t_s$ with root information state $z_{\rho}=<s_{\rho}=s, b_{\rho}>$\\
+\hspace*{0.5cm} \hspace*{0.5cm} build belief tree $t_s$ with root information state $z_{\rho}=<s_{\rho}=s, b_{\rho}>$ up to horizon $H$\\
+\hspace*{0.5cm} \hspace*{0.5cm} initialise $Q(z=<k, b>, a) \leftarrow Q^{MF}(k, a) \; \; \forall z \in t_{s}$\\
 \hspace*{0.5cm} \hspace*{0.5cm} \textbf{for each} $h$ in $(H-1)$ \textbf{do}\\
-\hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} \textbf{for each} information state $z=<s, b> \in t_s(h)$ \textbf{do}\\
+\hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} \textbf{for each} information state $z=<k, b> \in t_s(h)$ \textbf{do}\\
 \hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} \textbf{for each} action $a\in \mathcal{A}$ \textbf{do}\\
 \hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} \textbf{if} $(h > 1)$ \textbf{do}\\
 \hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} $\text{EVB}_{t_{s}(h)}(z, a) \leftarrow p(z_{\rho} \rightarrow z, \pi) \times \mathbb{E}_{z' \sim p(z' \mid z, a, \pi)}\big[v(z')-v(z)\big]$\\
-\hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} \textbf{else if} $h == 1$ \textbf{do}\\
+\hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} \textbf{else if} $(h == 1)$ \textbf{do}\\
 \hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} $\text{EVB}_{t_{s}(h)}(z_{\rho}, a) \leftarrow \text{Need}(<x, b_{\rho}> \rightarrow z_{\rho}, \pi) \times \text{Gain}(z_{\rho}, a)$\\
-\hspace*{0.5cm} \textbf{execute} replay update $\text{argmax}_{z, a, t_{s}(h)} \, \, \text{EVB}_{t_{s}(h)}(z, a)$ as\\
-\hspace*{0.5cm} \hspace*{0.5cm} $Q(z, a) \leftarrow Q(z, a) + \alpha_r \mathbb{E}_{z'\sim p(z'\mid z, a, \pi)}\big[R(z') + \gamma \max_{a' \in \mathcal{A}}Q(z', a') - Q(z, a)\big]$
+\hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} \textbf{done} \\
+\hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} \textbf{done}\\
+\hspace*{0.5cm} \hspace*{0.5cm} \hspace*{0.5cm} \textbf{done}\\
+\hspace*{0.5cm} \hspace*{0.5cm} \textbf{done}\\
+\hspace*{0.5cm} \textbf{done}\\
+\hspace*{0.5cm} execute $\text{argmax}_{z, a, t_{s}, h} \, \, \text{EVB}_{t_{s}(h)}(z, a)$ as:\\
+\hspace*{0.5cm} \hspace*{0.5cm} $Q(z, a) \leftarrow Q(z, a) + \alpha_r \mathbb{E}_{z'\sim p(z'\mid z, a, \pi)}\big[R(z') + \gamma \max_{a' \in \mathcal{A}}Q(z', a') - Q(z, a)\big]$\\
+\textbf{repeat}
 \end{document}
