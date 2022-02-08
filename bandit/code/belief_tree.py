@@ -272,6 +272,7 @@ class Tree:
                         new_key = tuple(list(k) + [a])
                         
                         evb   = proba*(v_new - v)
+                        # evb = (v_new - v)
                             
                         if evb > max_evb:
                             max_evb = evb
