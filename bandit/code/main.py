@@ -6,29 +6,35 @@ import os, shutil
 # --- Specify parameters ---
 
 # prior belief at the root
+
+alpha_0, beta_0 = 7, 5
+alpha_1, beta_1 = 2, 2
+
 M = np.array([
-    [3, 2],
-    [1, 1]
+    [alpha_0, beta_0],
+    [alpha_1, beta_1]
 ])
 
 # discount factor
 gamma = 0.9
-xi    = 0.0
+xi    = 0.1
+beta  = 2
 
 # MF Q values at the root
-Q = np.zeros(2)
+Q = np.array([0.5, 0.5])
 
 # planning horizon
 horizon = 4
 
 # save path
 root_folder = '/home/georgy/Documents/Dayan_lab/PhD/bandits'
-save_path   = os.path.join(root_folder, 'data/example_tree/seq/1/')
+save_path   = os.path.join(root_folder, 'rldm/figures/fig1/trees/2')
 
 # --- Main function for replay ---
 def main_replay(save_tree=True):
-    tree = Tree(M, Q, 1, 'softmax')
+    tree = Tree(M, Q, beta, 'softmax')
     tree.build_tree(horizon)
+
     qval_history, need_history, replay_history = tree.replay_updates(gamma, xi)
     print(len(replay_history)-1, 'replays', flush=True)
     if save_tree:
@@ -46,11 +52,20 @@ def main_replay(save_tree=True):
             this_save_path = os.path.join(save_path, 'tex_tree_%u.tex'%idx)
             generate_big_tex_tree(horizon, these_replays, qval_history[idx], need_history[idx], this_save_path)
 
+        # save params
+        with open(os.path.join(save_path, 'params.txt'), 'w') as f:
+            f.write('Horizon:       %u\n'%horizon)
+            f.write('Prior belief: (alpha_0: %u, beta_0: %u, alpha_1: %u, beta_1: %u)\n'%(alpha_0, beta_0, alpha_1, beta_1))
+            f.write('gamma:         %.2f\n'%gamma)
+            f.write('xi:            %.4f\n'%xi)
+            f.write('beta:          %.2f\n'%beta)
+            f.write('MF Q values:  [%.2f, %.2f]\n'%(Q[0], Q[1]))
+
     return None
 
 # --- Main function for full Bayesian updates ---
 def main_full():
-    tree = Tree(M, Q, 1, 'softmax')
+    tree = Tree(M, Q, beta, 'softmax')
     tree.build_tree(horizon)
     tree.full_updates(gamma)
 

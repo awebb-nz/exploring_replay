@@ -209,16 +209,18 @@ def generate_tex_tree(M, replays, save_path):
 
 def generate_big_tex_tree(h, replays, q_history, need_history, file_path):
 
-    y_max = 10
-    x_max = 9
+    y_max = 6
+    x_max = 7
 
     with open(file_path, 'w') as f:
+
+        f.write(r'\documentclass[tikz, border=1mm]{standalone}' + '\n')
+        f.write(r'\begin{document}' + '\n')
 
         f.write(r'\begin{minipage}{\textwidth}' + '\n')
         f.write(r'\centering' + '\n')
         f.write(r'\begin{tikzpicture}' + '\n') 
         f.write(r'\tikzstyle{between} = [rectangle, draw=none]' + '\n')
-        f.write(r'\tikzstyle{state}   = [rectangle, text centered, draw=black, minimum height=1mm, text width=3mm, inner sep=0pt, fill=orange, opacity=0.2]' + '\n')
         f.write(r'\tikzstyle{qval}    = [rectangle, text centered, draw=none, minimum height=1mm, text width=3mm, inner sep=0pt, fill=none]' + '\n')
 
         between_nodes = {hi:[] for hi in range(h)}
@@ -321,11 +323,12 @@ def generate_big_tex_tree(h, replays, q_history, need_history, file_path):
                                     break
 
                         if not text:
-                            f.write(r'\draw[->, thick, %s] (%s) -- (%s) node [near end, above, sloped, font=\tiny] () {\textcolor{blue}{%.2f}};'%(colour, k, k1, q_val) + '\n')
+                            f.write(r'\draw[->, thick, %s] (%s) -- (%s) node [pos=0.80, above=-0.2em, sloped, font=\tiny] () {\textcolor{blue}{%.2f}};'%(colour, k, k1, q_val) + '\n')
                         else:
-                            f.write(r'\draw[->, thick, %s] (%s) -- (%s) node [near start, above, sloped, font=\tiny] () {\textcolor{red}{update}} node [near end, above, sloped, font=\tiny] () {\textcolor{blue}{%.2f}};'%(colour, k, k1, q_val) + '\n')
+                            f.write(r'\draw[->, thick, %s] (%s) -- (%s) node [pos=0.35, above=-0.2em, sloped, font=\tiny] () {\textcolor{red}{update}} node [pos=0.80, above=-0.2em, sloped, font=\tiny] () {\textcolor{blue}{%.2f}};'%(colour, k, k1, q_val) + '\n')
 
         f.write(r'\end{tikzpicture}' + '\n')
         f.write(r'\end{minipage}' + '\n')
+        f.write(r'\end{document}')
 
     return None
