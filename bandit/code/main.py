@@ -1,14 +1,14 @@
 import numpy as np
 from belief_tree import Tree
 from tex_tree import generate_big_tex_tree
-import os, shutil
+import os, shutil, pickle
 
 # --- Specify parameters ---
 
 # prior belief at the root
 
 alpha_0, beta_0 = 7, 5
-alpha_1, beta_1 = 2, 2
+alpha_1, beta_1 = 3, 2
 
 M = np.array([
     [alpha_0, beta_0],
@@ -17,18 +17,18 @@ M = np.array([
 
 # discount factor
 gamma = 0.9
-xi    = 0.1
-beta  = 2
+xi    = 0.01
+beta  = 10
 
 # MF Q values at the root
-Q = np.array([0.5, 0.5])
+Q = np.array([0.0, 0.0])
 
 # planning horizon
 horizon = 4
 
 # save path
 root_folder = '/home/georgy/Documents/Dayan_lab/PhD/bandits'
-save_path   = os.path.join(root_folder, 'rldm/figures/fig1/trees/2')
+save_path   = os.path.join(root_folder, 'rldm/figures/fig1/trees/1')
 
 # --- Main function for replay ---
 def main_replay(save_tree=True):
@@ -37,6 +37,7 @@ def main_replay(save_tree=True):
 
     qval_history, need_history, replay_history = tree.replay_updates(gamma, xi)
     print(len(replay_history)-1, 'replays', flush=True)
+
     if save_tree:
         if os.path.exists(save_path):
             shutil.rmtree(save_path)
@@ -52,6 +53,9 @@ def main_replay(save_tree=True):
             this_save_path = os.path.join(save_path, 'tex_tree_%u.tex'%idx)
             generate_big_tex_tree(horizon, these_replays, qval_history[idx], need_history[idx], this_save_path)
 
+        with open(os.path.join(save_path, 'tree.pkl'), 'wb') as f:
+            pickle.dump(tree, f, pickle.HIGHEST_PROTOCOL)
+
         # save params
         with open(os.path.join(save_path, 'params.txt'), 'w') as f:
             f.write('Horizon:       %u\n'%horizon)
@@ -60,6 +64,8 @@ def main_replay(save_tree=True):
             f.write('xi:            %.4f\n'%xi)
             f.write('beta:          %.2f\n'%beta)
             f.write('MF Q values:  [%.2f, %.2f]\n'%(Q[0], Q[1]))
+
+    
 
     return None
 
@@ -71,4 +77,4 @@ def main_full():
 
 if __name__ == '__main__':
     main_replay()
-    # main_full()
+    main_full()

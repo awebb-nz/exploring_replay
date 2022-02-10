@@ -54,6 +54,53 @@ class Tree:
         else:
             raise KeyError('Unknown policy type')
 
+    def evaluate_policy(self, qval_tree):
+
+        '''
+        ----
+        Evaluate the tree policy
+
+        qval_tree -- tree with Q values for each belief
+        ----
+        '''
+
+        eval_tree  = {hi:{} for hi in range(self.horizon)}
+
+        # then propagate those values backwards
+        for hi in reversed(range(self.horizon-1)):
+            for k, b in self.belief_tree[hi].items():
+                
+                eval_tree[hi][k] = np.zeros(2)
+
+                c        = k[-1]
+                for a in range(2):
+                    v_primes = []
+                    if hi == (self.horizon - 2):
+                        for k1, q1 in qval_tree[hi+1].items():
+                            prev_c = k1[-2]
+                            prev_a = k1[0]
+                            if (prev_c == c) and (prev_a == a):
+                                v_primes += [np.dot(self._policy(q1), q1)]
+                                if len(v_primes) == 2:
+                                    break
+                    else:
+                        for k1, q1 in eval_tree[hi+1].items():
+                            prev_c = k1[-2]
+                            prev_a = k1[0]
+                            if (prev_c == c) and (prev_a == a):
+                                v_primes += [np.dot(self._policy(q1), q1)]
+                                if len(v_primes) == 2:
+                                    break
+                    
+                    b0 = b[a, 0]/np.sum(b[a, :])
+                    b1 = b[a, 1]/np.sum(b[a, :])
+
+                    probs = self._policy(qval_tree[hi][k])
+
+                    eval_tree[hi][k][a] = probs[a]*(b0*(1.0 + self.gamma*v_primes[0]) + b1*(0.0 + self.gamma*v_primes[1]))
+
+        return eval_tree[0]
+
     def _belief_update(self, curr_belief, arm, rew):
 
         '''
@@ -86,9 +133,9 @@ class Tree:
         self.horizon = horizon
 
         # initialise the hyperstate tree
-        self.tree = {hi:{} for hi in range(self.horizon)}
+        self.belief_tree = {hi:{} for hi in range(self.horizon)}
         
-        self.tree[0][(0, 0, 0)] = self.root_belief
+        self.belief_tree[0][(0, 0, 0)] = self.root_belief
     
         for hi in range(1, self.horizon):
             c = 0
@@ -96,15 +143,15 @@ class Tree:
                 for a in range(2):
                     for r in [1, 0]:
                         b1 = self._belief_update(self.root_belief, a, r)
-                        self.tree[hi][(a, 0, c)] = b1
+                        self.belief_tree[hi][(a, 0, c)] = b1
                         c += 1
             else:
-                for k, v in self.tree[hi-1].items():
+                for k, v in self.belief_tree[hi-1].items():
                     prev_c = k[-1]
                     for a in range(2):
                         for r in [1, 0]:
                             b1 = self._belief_update(v, a, r)
-                            self.tree[hi][(a, prev_c, c)] = b1
+                            self.belief_tree[hi][(a, prev_c, c)] = b1
                             c += 1
         return None
 
@@ -118,19 +165,19 @@ class Tree:
         ----
         '''
 
-        self.gamma = gamma
+        self.gamma      = gamma
         self.qval_tree  = {hi:{} for hi in range(self.horizon)}
 
         # first asign values to leaf nodes -- immediate reward
         hi = self.horizon - 1
-        for k, b in self.tree[hi].items():
+        for k, b in self.belief_tree[hi].items():
             b0 = b[0, 0]/np.sum(b[0, :])
             b1 = b[1, 0]/np.sum(b[1, :])
             self.qval_tree[hi][k] = np.array([b0, b1])
 
         # then propagate those values backwards
         for hi in reversed(range(self.horizon-1)):
-            for k, b in self.tree[hi].items():
+            for k, b in self.belief_tree[hi].items():
                 self.qval_tree[hi][k] = np.zeros(2)
 
                 c        = k[-1]
@@ -173,17 +220,17 @@ class Tree:
 
         # first assign initial q values & compute the initial Need
         for hi in range(self.horizon):
-            for k, b in self.tree[hi].items():
+            for k, b in self.belief_tree[hi].items():
 
                 # Q values at the root are the MF Q values
-                if (hi == 0):
-                    q_values = self.root_q_values.copy()
+                # if (hi == 0):
+                    # q_values = self.root_q_values.copy()
                 # otherwise it's the immediate model-based expected reward
                 # elif (hi == self.horizon-1):
-                else:
-                    b0 = b[0, 0]/np.sum(b[0, :])
-                    b1 = b[1, 0]/np.sum(b[1, :])
-                    q_values = np.array([b0, b1])
+                # else:
+                b0 = b[0, 0]/np.sum(b[0, :])
+                b1 = b[1, 0]/np.sum(b[1, :])
+                q_values = np.array([b0, b1])
                 # else:
                     # q_values = np.zeros(2)
                 
@@ -195,7 +242,7 @@ class Tree:
                 a      = k[0]
                 proba  = 1
                 for hin in reversed(range(hi)):
-                    for kn, bn in self.tree[hin].items():
+                    for kn, bn in self.belief_tree[hin].items():
                         if kn[-1] == prev_c:
                             policy_proba = self._policy(self.qval_tree[hin][kn])
                             bc           = bn[a, c%2]/np.sum(bn[a, :])
@@ -218,7 +265,7 @@ class Tree:
 
             nqval_tree = {hi:{} for hi in range(self.horizon)} # tree with new (updated) Q value estimates for each node
             for hi in reversed(range(self.horizon-1)):
-                for k, b in self.tree[hi].items():
+                for k, b in self.belief_tree[hi].items():
                     
                     q        = self.qval_tree[hi][k].copy() # current Q values of this belief state
                     v        = np.dot(self._policy(q), q)   # value of this belief state
@@ -230,7 +277,7 @@ class Tree:
                     a      = k[0]
                     proba  = 1
                     for hin in reversed(range(hi)):
-                        for kn, bn in self.tree[hin].items():
+                        for kn, bn in self.belief_tree[hin].items():
                             if kn[-1] == prev_c:
                                 policy_proba = self._policy(self.qval_tree[hin][kn])
                                 bc           = bn[a, c%2]/np.sum(bn[a, :])
@@ -309,6 +356,6 @@ class Tree:
             # save history
             qval_history += [deepcopy(self.qval_tree)]
             need_history += [deepcopy(self.need_tree)]
-            backups      += [[self.tree[hi][k], backup[0], backup[1]]]
+            backups      += [[self.belief_tree[hi][k], backup[0], backup[1]]]
 
         return  qval_history, need_history, backups

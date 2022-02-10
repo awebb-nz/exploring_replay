@@ -1,9 +1,9 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.23 (TeX Live 2021/Arch Linux) (preloaded format=pdflatex 2022.2.9)  9 FEB 2022 16:56
+This is pdfTeX, Version 3.141592653-2.6-1.40.23 (TeX Live 2021/Arch Linux) (preloaded format=pdflatex 2022.2.9)  10 FEB 2022 14:31
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
-**tex_tree_0.tex
-(./tex_tree_0.tex
+**tex_tree_16.tex
+(./tex_tree_16.tex
 LaTeX2e <2021-11-15> patch level 1
 L3 programming layer <2021-11-22>
 (/usr/share/texmf-dist/tex/latex/standalone/standalone.cls
@@ -342,8 +342,8 @@ File: l3backend-pdftex.def 2021-12-14 L3 backend support: PDF output (pdfTeX)
 \l__color_backend_stack_int=\count281
 \l__pdf_internal_box=\box62
 )
-No file tex_tree_0.aux.
-\openout1 = `tex_tree_0.aux'.
+No file tex_tree_16.aux.
+\openout1 = `tex_tree_16.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 2.
 LaTeX Font Info:    ... okay on input line 2.
@@ -382,322 +382,322 @@ File: epstopdf-sys.cfg 2010/07/13 v1.3 Configuration of (r)epstopdf for TeX Liv
 e
 ))
 Overfull \hbox (3.6866pt too wide) in paragraph at lines 72--72
- [][][]\OT1/cmr/m/n/5 0.59[] 
+ [][][]\OT1/cmr/m/n/5 0.63[] 
  []
 
 
 Overfull \hbox (3.6866pt too wide) in paragraph at lines 74--74
- [][][]\OT1/cmr/m/n/5 0.55[] 
+ [][][]\OT1/cmr/m/n/5 0.60[] 
  []
 
 
 Overfull \hbox (3.6866pt too wide) in paragraph at lines 76--76
- [][][]\OT1/cmr/m/n/5 0.62[] 
- []
-
-
-Overfull \hbox (3.6866pt too wide) in paragraph at lines 78--78
- [][][]\OT1/cmr/m/n/5 0.54[] 
- []
-
-
-Overfull \hbox (3.6866pt too wide) in paragraph at lines 80--80
- [][][]\OT1/cmr/m/n/5 0.55[] 
- []
-
-
-Overfull \hbox (3.6866pt too wide) in paragraph at lines 82--82
- [][][]\OT1/cmr/m/n/5 0.52[] 
- []
-
-
-Overfull \hbox (3.6866pt too wide) in paragraph at lines 84--84
- [][][]\OT1/cmr/m/n/5 0.59[] 
- []
-
-
-Overfull \hbox (3.6866pt too wide) in paragraph at lines 86--86
- [][][]\OT1/cmr/m/n/5 0.49[] 
- []
-
-
-Overfull \hbox (3.6866pt too wide) in paragraph at lines 88--88
- [][][]\OT1/cmr/m/n/5 0.62[] 
- []
-
-
-Overfull \hbox (3.6866pt too wide) in paragraph at lines 90--90
- [][][]\OT1/cmr/m/n/5 0.59[] 
- []
-
-
-Overfull \hbox (3.6866pt too wide) in paragraph at lines 92--92
- [][][]\OT1/cmr/m/n/5 0.64[] 
- []
-
-
-Overfull \hbox (3.6866pt too wide) in paragraph at lines 94--94
- [][][]\OT1/cmr/m/n/5 0.56[] 
- []
-
-
-Overfull \hbox (3.6866pt too wide) in paragraph at lines 96--96
- [][][]\OT1/cmr/m/n/5 0.54[] 
- []
-
-
-Overfull \hbox (3.6866pt too wide) in paragraph at lines 98--98
- [][][]\OT1/cmr/m/n/5 0.49[] 
- []
-
-
-Overfull \hbox (3.6866pt too wide) in paragraph at lines 100--100
- [][][]\OT1/cmr/m/n/5 0.56[] 
- []
-
-
-Overfull \hbox (3.6866pt too wide) in paragraph at lines 102--102
- [][][]\OT1/cmr/m/n/5 0.49[] 
- []
-
-
-Overfull \hbox (3.6866pt too wide) in paragraph at lines 104--104
- [][][]\OT1/cmr/m/n/5 0.55[] 
- []
-
-
-Overfull \hbox (3.6866pt too wide) in paragraph at lines 106--106
- [][][]\OT1/cmr/m/n/5 0.52[] 
- []
-
-
-Overfull \hbox (3.6866pt too wide) in paragraph at lines 108--108
- [][][]\OT1/cmr/m/n/5 0.59[] 
- []
-
-
-Overfull \hbox (3.6866pt too wide) in paragraph at lines 110--110
- [][][]\OT1/cmr/m/n/5 0.49[] 
- []
-
-
-Overfull \hbox (3.6866pt too wide) in paragraph at lines 112--112
- [][][]\OT1/cmr/m/n/5 0.52[] 
- []
-
-
-Overfull \hbox (3.6866pt too wide) in paragraph at lines 114--114
- [][][]\OT1/cmr/m/n/5 0.48[] 
- []
-
-
-Overfull \hbox (3.6866pt too wide) in paragraph at lines 116--116
- [][][]\OT1/cmr/m/n/5 0.55[] 
- []
-
-
-Overfull \hbox (3.6866pt too wide) in paragraph at lines 118--118
- [][][]\OT1/cmr/m/n/5 0.45[] 
- []
-
-
-Overfull \hbox (3.6866pt too wide) in paragraph at lines 120--120
- [][][]\OT1/cmr/m/n/5 0.59[] 
- []
-
-
-Overfull \hbox (3.6866pt too wide) in paragraph at lines 122--122
- [][][]\OT1/cmr/m/n/5 0.55[] 
- []
-
-
-Overfull \hbox (3.6866pt too wide) in paragraph at lines 124--124
- [][][]\OT1/cmr/m/n/5 0.61[] 
- []
-
-
-Overfull \hbox (3.6866pt too wide) in paragraph at lines 126--126
- [][][]\OT1/cmr/m/n/5 0.52[] 
- []
-
-
-Overfull \hbox (3.6866pt too wide) in paragraph at lines 128--128
- [][][]\OT1/cmr/m/n/5 0.49[] 
- []
-
-
-Overfull \hbox (3.6866pt too wide) in paragraph at lines 130--130
- [][][]\OT1/cmr/m/n/5 0.45[] 
- []
-
-
-Overfull \hbox (3.6866pt too wide) in paragraph at lines 132--132
- [][][]\OT1/cmr/m/n/5 0.52[] 
- []
-
-
-Overfull \hbox (3.6866pt too wide) in paragraph at lines 134--134
- [][][]\OT1/cmr/m/n/5 0.45[] 
- []
-
-
-Overfull \hbox (3.6866pt too wide) in paragraph at lines 136--136
- [][][]\OT1/cmr/m/n/5 0.62[] 
- []
-
-
-Overfull \hbox (3.6866pt too wide) in paragraph at lines 138--138
- [][][]\OT1/cmr/m/n/5 0.59[] 
- []
-
-
-Overfull \hbox (3.6866pt too wide) in paragraph at lines 140--140
- [][][]\OT1/cmr/m/n/5 0.64[] 
- []
-
-
-Overfull \hbox (3.6866pt too wide) in paragraph at lines 142--142
- [][][]\OT1/cmr/m/n/5 0.56[] 
- []
-
-
-Overfull \hbox (3.6866pt too wide) in paragraph at lines 144--144
- [][][]\OT1/cmr/m/n/5 0.59[] 
- []
-
-
-Overfull \hbox (3.6866pt too wide) in paragraph at lines 146--146
- [][][]\OT1/cmr/m/n/5 0.55[] 
- []
-
-
-Overfull \hbox (3.6866pt too wide) in paragraph at lines 148--148
- [][][]\OT1/cmr/m/n/5 0.61[] 
- []
-
-
-Overfull \hbox (3.6866pt too wide) in paragraph at lines 150--150
- [][][]\OT1/cmr/m/n/5 0.52[] 
- []
-
-
-Overfull \hbox (3.6866pt too wide) in paragraph at lines 152--152
- [][][]\OT1/cmr/m/n/5 0.64[] 
- []
-
-
-Overfull \hbox (3.6866pt too wide) in paragraph at lines 154--154
- [][][]\OT1/cmr/m/n/5 0.61[] 
- []
-
-
-Overfull \hbox (3.6866pt too wide) in paragraph at lines 156--156
  [][][]\OT1/cmr/m/n/5 0.65[] 
  []
 
 
-Overfull \hbox (3.6866pt too wide) in paragraph at lines 158--158
+Overfull \hbox (3.6866pt too wide) in paragraph at lines 78--78
  [][][]\OT1/cmr/m/n/5 0.58[] 
  []
 
 
-Overfull \hbox (3.6866pt too wide) in paragraph at lines 160--160
- [][][]\OT1/cmr/m/n/5 0.56[] 
+Overfull \hbox (3.6866pt too wide) in paragraph at lines 80--80
+ [][][]\OT1/cmr/m/n/5 0.60[] 
  []
 
 
-Overfull \hbox (3.6866pt too wide) in paragraph at lines 162--162
- [][][]\OT1/cmr/m/n/5 0.52[] 
+Overfull \hbox (3.6866pt too wide) in paragraph at lines 82--82
+ [][][]\OT1/cmr/m/n/5 0.57[] 
  []
 
 
-Overfull \hbox (3.6866pt too wide) in paragraph at lines 164--164
- [][][]\OT1/cmr/m/n/5 0.58[] 
+Overfull \hbox (3.6866pt too wide) in paragraph at lines 84--84
+ [][][]\OT1/cmr/m/n/5 0.62[] 
  []
 
 
-Overfull \hbox (3.6866pt too wide) in paragraph at lines 166--166
- [][][]\OT1/cmr/m/n/5 0.51[] 
- []
-
-
-Overfull \hbox (3.6866pt too wide) in paragraph at lines 168--168
+Overfull \hbox (3.6866pt too wide) in paragraph at lines 86--86
  [][][]\OT1/cmr/m/n/5 0.54[] 
  []
 
 
-Overfull \hbox (3.6866pt too wide) in paragraph at lines 170--170
- [][][]\OT1/cmr/m/n/5 0.49[] 
+Overfull \hbox (3.6866pt too wide) in paragraph at lines 88--88
+ [][][]\OT1/cmr/m/n/5 0.65[] 
  []
 
 
-Overfull \hbox (3.6866pt too wide) in paragraph at lines 172--172
- [][][]\OT1/cmr/m/n/5 0.56[] 
+Overfull \hbox (3.6866pt too wide) in paragraph at lines 90--90
+ [][][]\OT1/cmr/m/n/5 0.62[] 
  []
 
 
-Overfull \hbox (3.6866pt too wide) in paragraph at lines 174--174
- [][][]\OT1/cmr/m/n/5 0.49[] 
+Overfull \hbox (3.6866pt too wide) in paragraph at lines 92--92
+ [][][]\OT1/cmr/m/n/5 0.67[] 
  []
 
 
-Overfull \hbox (3.6866pt too wide) in paragraph at lines 176--176
- [][][]\OT1/cmr/m/n/5 0.49[] 
+Overfull \hbox (3.6866pt too wide) in paragraph at lines 94--94
+ [][][]\OT1/cmr/m/n/5 0.59[] 
  []
 
 
-Overfull \hbox (3.6866pt too wide) in paragraph at lines 178--178
- [][][]\OT1/cmr/m/n/5 0.45[] 
- []
-
-
-Overfull \hbox (3.6866pt too wide) in paragraph at lines 180--180
- [][][]\OT1/cmr/m/n/5 0.52[] 
- []
-
-
-Overfull \hbox (3.6866pt too wide) in paragraph at lines 182--182
- [][][]\OT1/cmr/m/n/5 0.45[] 
- []
-
-
-Overfull \hbox (3.6866pt too wide) in paragraph at lines 184--184
- [][][]\OT1/cmr/m/n/5 0.56[] 
- []
-
-
-Overfull \hbox (3.6866pt too wide) in paragraph at lines 186--186
- [][][]\OT1/cmr/m/n/5 0.52[] 
- []
-
-
-Overfull \hbox (3.6866pt too wide) in paragraph at lines 188--188
+Overfull \hbox (3.6866pt too wide) in paragraph at lines 96--96
  [][][]\OT1/cmr/m/n/5 0.58[] 
  []
 
 
-Overfull \hbox (3.6866pt too wide) in paragraph at lines 190--190
- [][][]\OT1/cmr/m/n/5 0.51[] 
+Overfull \hbox (3.6866pt too wide) in paragraph at lines 98--98
+ [][][]\OT1/cmr/m/n/5 0.54[] 
  []
 
 
-Overfull \hbox (3.6866pt too wide) in paragraph at lines 192--192
+Overfull \hbox (3.6866pt too wide) in paragraph at lines 100--100
+ [][][]\OT1/cmr/m/n/5 0.59[] 
+ []
+
+
+Overfull \hbox (3.6866pt too wide) in paragraph at lines 102--102
+ [][][]\OT1/cmr/m/n/5 0.53[] 
+ []
+
+
+Overfull \hbox (3.6866pt too wide) in paragraph at lines 104--104
+ [][][]\OT1/cmr/m/n/5 0.60[] 
+ []
+
+
+Overfull \hbox (3.6866pt too wide) in paragraph at lines 106--106
+ [][][]\OT1/cmr/m/n/5 0.57[] 
+ []
+
+
+Overfull \hbox (3.6866pt too wide) in paragraph at lines 108--108
+ [][][]\OT1/cmr/m/n/5 0.62[] 
+ []
+
+
+Overfull \hbox (3.6866pt too wide) in paragraph at lines 110--110
+ [][][]\OT1/cmr/m/n/5 0.54[] 
+ []
+
+
+Overfull \hbox (3.6866pt too wide) in paragraph at lines 112--112
+ [][][]\OT1/cmr/m/n/5 0.57[] 
+ []
+
+
+Overfull \hbox (3.6866pt too wide) in paragraph at lines 114--114
+ [][][]\OT1/cmr/m/n/5 0.54[] 
+ []
+
+
+Overfull \hbox (3.6866pt too wide) in paragraph at lines 116--116
+ [][][]\OT1/cmr/m/n/5 0.59[] 
+ []
+
+
+Overfull \hbox (3.6866pt too wide) in paragraph at lines 118--118
+ [][][]\OT1/cmr/m/n/5 0.50[] 
+ []
+
+
+Overfull \hbox (3.6866pt too wide) in paragraph at lines 120--120
+ [][][]\OT1/cmr/m/n/5 0.62[] 
+ []
+
+
+Overfull \hbox (3.6866pt too wide) in paragraph at lines 122--122
+ [][][]\OT1/cmr/m/n/5 0.59[] 
+ []
+
+
+Overfull \hbox (3.6866pt too wide) in paragraph at lines 124--124
+ [][][]\OT1/cmr/m/n/5 0.63[] 
+ []
+
+
+Overfull \hbox (3.6866pt too wide) in paragraph at lines 126--126
+ [][][]\OT1/cmr/m/n/5 0.56[] 
+ []
+
+
+Overfull \hbox (3.6866pt too wide) in paragraph at lines 128--128
+ [][][]\OT1/cmr/m/n/5 0.54[] 
+ []
+
+
+Overfull \hbox (3.6866pt too wide) in paragraph at lines 130--130
+ [][][]\OT1/cmr/m/n/5 0.50[] 
+ []
+
+
+Overfull \hbox (3.6866pt too wide) in paragraph at lines 132--132
+ [][][]\OT1/cmr/m/n/5 0.56[] 
+ []
+
+
+Overfull \hbox (3.6866pt too wide) in paragraph at lines 134--134
  [][][]\OT1/cmr/m/n/5 0.49[] 
  []
 
 
+Overfull \hbox (3.6866pt too wide) in paragraph at lines 136--136
+ [][][]\OT1/cmr/m/n/5 0.65[] 
+ []
+
+
+Overfull \hbox (3.6866pt too wide) in paragraph at lines 138--138
+ [][][]\OT1/cmr/m/n/5 0.62[] 
+ []
+
+
+Overfull \hbox (3.6866pt too wide) in paragraph at lines 140--140
+ [][][]\OT1/cmr/m/n/5 0.67[] 
+ []
+
+
+Overfull \hbox (3.6866pt too wide) in paragraph at lines 142--142
+ [][][]\OT1/cmr/m/n/5 0.59[] 
+ []
+
+
+Overfull \hbox (3.6866pt too wide) in paragraph at lines 144--144
+ [][][]\OT1/cmr/m/n/5 0.62[] 
+ []
+
+
+Overfull \hbox (3.6866pt too wide) in paragraph at lines 146--146
+ [][][]\OT1/cmr/m/n/5 0.59[] 
+ []
+
+
+Overfull \hbox (3.6866pt too wide) in paragraph at lines 148--148
+ [][][]\OT1/cmr/m/n/5 0.63[] 
+ []
+
+
+Overfull \hbox (3.6866pt too wide) in paragraph at lines 150--150
+ [][][]\OT1/cmr/m/n/5 0.56[] 
+ []
+
+
+Overfull \hbox (3.6866pt too wide) in paragraph at lines 152--152
+ [][][]\OT1/cmr/m/n/5 0.67[] 
+ []
+
+
+Overfull \hbox (3.6866pt too wide) in paragraph at lines 154--154
+ [][][]\OT1/cmr/m/n/5 0.63[] 
+ []
+
+
+Overfull \hbox (3.6866pt too wide) in paragraph at lines 156--156
+ [][][]\OT1/cmr/m/n/5 0.67[] 
+ []
+
+
+Overfull \hbox (3.6866pt too wide) in paragraph at lines 158--158
+ [][][]\OT1/cmr/m/n/5 0.60[] 
+ []
+
+
+Overfull \hbox (3.6866pt too wide) in paragraph at lines 160--160
+ [][][]\OT1/cmr/m/n/5 0.59[] 
+ []
+
+
+Overfull \hbox (3.6866pt too wide) in paragraph at lines 162--162
+ [][][]\OT1/cmr/m/n/5 0.56[] 
+ []
+
+
+Overfull \hbox (3.6866pt too wide) in paragraph at lines 164--164
+ [][][]\OT1/cmr/m/n/5 0.60[] 
+ []
+
+
+Overfull \hbox (3.6866pt too wide) in paragraph at lines 166--166
+ [][][]\OT1/cmr/m/n/5 0.54[] 
+ []
+
+
+Overfull \hbox (3.6866pt too wide) in paragraph at lines 168--168
+ [][][]\OT1/cmr/m/n/5 0.58[] 
+ []
+
+
+Overfull \hbox (3.6866pt too wide) in paragraph at lines 170--170
+ [][][]\OT1/cmr/m/n/5 0.54[] 
+ []
+
+
+Overfull \hbox (3.6866pt too wide) in paragraph at lines 172--172
+ [][][]\OT1/cmr/m/n/5 0.59[] 
+ []
+
+
+Overfull \hbox (3.6866pt too wide) in paragraph at lines 174--174
+ [][][]\OT1/cmr/m/n/5 0.53[] 
+ []
+
+
+Overfull \hbox (3.6866pt too wide) in paragraph at lines 176--176
+ [][][]\OT1/cmr/m/n/5 0.54[] 
+ []
+
+
+Overfull \hbox (3.6866pt too wide) in paragraph at lines 178--178
+ [][][]\OT1/cmr/m/n/5 0.50[] 
+ []
+
+
+Overfull \hbox (3.6866pt too wide) in paragraph at lines 180--180
+ [][][]\OT1/cmr/m/n/5 0.56[] 
+ []
+
+
+Overfull \hbox (3.6866pt too wide) in paragraph at lines 182--182
+ [][][]\OT1/cmr/m/n/5 0.49[] 
+ []
+
+
+Overfull \hbox (3.6866pt too wide) in paragraph at lines 184--184
+ [][][]\OT1/cmr/m/n/5 0.59[] 
+ []
+
+
+Overfull \hbox (3.6866pt too wide) in paragraph at lines 186--186
+ [][][]\OT1/cmr/m/n/5 0.56[] 
+ []
+
+
+Overfull \hbox (3.6866pt too wide) in paragraph at lines 188--188
+ [][][]\OT1/cmr/m/n/5 0.60[] 
+ []
+
+
+Overfull \hbox (3.6866pt too wide) in paragraph at lines 190--190
+ [][][]\OT1/cmr/m/n/5 0.54[] 
+ []
+
+
+Overfull \hbox (3.6866pt too wide) in paragraph at lines 192--192
+ [][][]\OT1/cmr/m/n/5 0.53[] 
+ []
+
+
 Overfull \hbox (3.6866pt too wide) in paragraph at lines 194--194
- [][][]\OT1/cmr/m/n/5 0.45[] 
+ [][][]\OT1/cmr/m/n/5 0.49[] 
  []
 
 
 Overfull \hbox (3.6866pt too wide) in paragraph at lines 196--196
- [][][]\OT1/cmr/m/n/5 0.51[] 
+ [][][]\OT1/cmr/m/n/5 0.54[] 
  []
 
 
 Overfull \hbox (3.6866pt too wide) in paragraph at lines 198--198
- [][][]\OT1/cmr/m/n/5 0.46[] 
+ [][][]\OT1/cmr/m/n/5 0.49[] 
  []
 
 LaTeX Font Info:    External font `cmex10' loaded for size
@@ -711,18 +711,18 @@ Overfull \hbox (15.0pt too wide) in paragraph at lines 3--243
 
 [1
 
-{/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}] (./tex_tree_0.aux) ) 
+{/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}] (./tex_tree_16.aux) ) 
 Here is how much of TeX's memory you used:
- 13340 strings out of 478353
- 273007 string characters out of 5854636
- 674424 words of memory out of 5000000
- 31277 multiletter control sequences out of 15000+600000
+ 13337 strings out of 478353
+ 272949 string characters out of 5854636
+ 674601 words of memory out of 5000000
+ 31274 multiletter control sequences out of 15000+600000
  403430 words of font info for 27 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 115i,9n,118p,411b,746s stack positions out of 5000i,500n,10000p,200000b,80000s
-</usr/
-share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr5.pfb>
-Output written on tex_tree_0.pdf (1 page, 17760 bytes).
+ 115i,9n,118p,412b,750s stack positions out of 5000i,500n,10000p,200000b,80000s
+</usr
+/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr5.pfb>
+Output written on tex_tree_16.pdf (1 page, 18880 bytes).
 PDF statistics:
  16 PDF objects out of 1000 (max. 8388607)
  10 compressed objects within 1 object stream
