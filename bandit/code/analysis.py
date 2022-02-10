@@ -21,7 +21,6 @@ def main_analysis():
         qvals     = tree.evaluate_policy(qval_tree)[(0, 0, 0)]
         root_values += [np.dot(tree._policy(qvals), qvals)]
     
-    print(root_values)
     return None
 
 if __name__ == '__main__':

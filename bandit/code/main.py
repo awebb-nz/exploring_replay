@@ -7,8 +7,8 @@ import os, shutil, pickle
 
 # prior belief at the root
 
-alpha_0, beta_0 = 7, 5
-alpha_1, beta_1 = 3, 2
+alpha_0, beta_0 = 3, 2
+alpha_1, beta_1 = 1, 2
 
 M = np.array([
     [alpha_0, beta_0],
@@ -28,7 +28,7 @@ horizon = 4
 
 # save path
 root_folder = '/home/georgy/Documents/Dayan_lab/PhD/bandits'
-save_path   = os.path.join(root_folder, 'rldm/figures/fig1/trees/1')
+save_path   = os.path.join(root_folder, 'rldm/figures/fig1/trees/2')
 
 # --- Main function for replay ---
 def main_replay(save_tree=True):
@@ -37,6 +37,8 @@ def main_replay(save_tree=True):
 
     qval_history, need_history, replay_history = tree.replay_updates(gamma, xi)
     print(len(replay_history)-1, 'replays', flush=True)
+    tree.evaluate_policy(tree.qval_tree)
+
 
     if save_tree:
         if os.path.exists(save_path):

@@ -70,7 +70,9 @@ class Tree:
         for hi in reversed(range(self.horizon-1)):
             for k, b in self.belief_tree[hi].items():
                 
-                eval_tree[hi][k] = np.zeros(2)
+                probs = self._policy(qval_tree[hi][k])
+                
+                eval_tree[hi][k] = 0
 
                 c        = k[-1]
                 for a in range(2):
@@ -95,9 +97,7 @@ class Tree:
                     b0 = b[a, 0]/np.sum(b[a, :])
                     b1 = b[a, 1]/np.sum(b[a, :])
 
-                    probs = self._policy(qval_tree[hi][k])
-
-                    eval_tree[hi][k][a] = probs[a]*(b0*(1.0 + self.gamma*v_primes[0]) + b1*(0.0 + self.gamma*v_primes[1]))
+                    eval_tree[hi][k] += probs[a]*(b0*(1.0 + self.gamma*v_primes[0]) + b1*(0.0 + self.gamma*v_primes[1]))
 
         return eval_tree[0]
 
@@ -221,18 +221,13 @@ class Tree:
         # first assign initial q values & compute the initial Need
         for hi in range(self.horizon):
             for k, b in self.belief_tree[hi].items():
-
-                # Q values at the root are the MF Q values
-                # if (hi == 0):
-                    # q_values = self.root_q_values.copy()
-                # otherwise it's the immediate model-based expected reward
-                # elif (hi == self.horizon-1):
+                
+                # if hi == 0:
+                    # self.qval_tree[hi][k] = self.root_q_values.copy()
                 # else:
                 b0 = b[0, 0]/np.sum(b[0, :])
                 b1 = b[1, 0]/np.sum(b[1, :])
                 q_values = np.array([b0, b1])
-                # else:
-                    # q_values = np.zeros(2)
                 
                 self.qval_tree[hi][k] = q_values.copy() # change temperature?
 
@@ -300,6 +295,7 @@ class Tree:
                             prev_c = k1[-2]
                             if prev_c == c and k1[0] == a:
                                 v_primes += [np.max(q1)] # values of next belief states
+                                # v_primes += [np.dot(self._policy(q1), q1)]
                                 if len(v_primes) == 2:
                                     break
 
@@ -357,5 +353,9 @@ class Tree:
             qval_history += [deepcopy(self.qval_tree)]
             need_history += [deepcopy(self.need_tree)]
             backups      += [[self.belief_tree[hi][k], backup[0], backup[1]]]
+
+            print('\n')
+            print(backup, max_val)
+            print(self.evaluate_policy(self.qval_tree))
 
         return  qval_history, need_history, backups
