@@ -39,7 +39,7 @@ save_plots = os.path.join(save_path, 'plots')
 gamma   = 0.9
 alpha   = 1.0
 alpha_r = 1.0
-horizon = 4 # minus 1
+horizon = 3 # minus 1
 xi      = 1e-2
 
 # --- Main function ---
