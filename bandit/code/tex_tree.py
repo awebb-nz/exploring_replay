@@ -210,7 +210,7 @@ def generate_tex_tree(M, replays, save_path):
 def generate_big_tex_tree(h, replays, q_history, need_history, file_path):
 
     y_max = 6
-    x_max = 7
+    x_max = 10
 
     with open(file_path, 'w') as f:
 
@@ -221,10 +221,11 @@ def generate_big_tex_tree(h, replays, q_history, need_history, file_path):
         f.write(r'\centering' + '\n')
         f.write(r'\begin{tikzpicture}' + '\n') 
         f.write(r'\tikzstyle{between} = [rectangle, draw=none]' + '\n')
-        f.write(r'\tikzstyle{qval}    = [rectangle, text centered, draw=none, minimum height=1mm, text width=3mm, inner sep=0pt, fill=none]' + '\n')
-
+        f.write(r'\tikzstyle{qval}    = [rectangle, text centered, text width=2cm]' + '\n')
+        
+        # generate nodes towards which arrows will be drawn
+        # (these are in between the resulting belief states)
         between_nodes = {hi:[] for hi in range(h)}
-
         for hi in range(1, h):
 
             if hi == 1:
@@ -238,8 +239,8 @@ def generate_big_tex_tree(h, replays, q_history, need_history, file_path):
                 f.write(r'\node[between] at (%.2f, %.2f) (%s){};'%(x_node, y_node, node_name) + '\n')
                 between_nodes[hi].append(node_name)
 
+        # now generate the individual belief state nodes
         state_nodes = {hi:[] for hi in range(h)}
-
         for hi in range(h):
             
             if hi == 1:
@@ -256,7 +257,7 @@ def generate_big_tex_tree(h, replays, q_history, need_history, file_path):
                     if k[-1] == 0:
                         alpha = v
                         break
-                f.write(r'\node[rectangle, text centered, draw=black, minimum height=1mm, text width=3mm, inner sep=0pt, fill=orange, opacity=%.2f] at (%.2f, %.2f) (%s){};'%(alpha, x_node, y_node, node_name) + '\n')
+                f.write(r'\node[rectangle, text centered, draw=black, minimum height=1mm, text width=3mm, inner sep=0pt, fill=orange, fill opacity=%.2f, draw opacity=1] at (%.2f, %.2f) (%s){};'%(alpha, x_node, y_node, node_name) + '\n')
                 state_nodes[hi].append(node_name)
             else:
                 for idx, y_node in enumerate(reversed(np.linspace(-y_max*(hi+1)/h, y_max*(hi+1)/h, num_nodes))):
@@ -265,7 +266,7 @@ def generate_big_tex_tree(h, replays, q_history, need_history, file_path):
                         if k[-1] == idx*2:
                             alpha = v
                             break
-                    f.write(r'\node[rectangle, text centered, draw=black, minimum height=1mm, text width=3mm, inner sep=0pt, fill=orange, opacity=%.2f] at (%.2f, %.2f) (%s) {};'%(alpha, x_node, y_node+0.08, node_name) + '\n')
+                    f.write(r'\node[rectangle, text centered, draw=black, minimum height=1mm, text width=3mm, inner sep=0pt, fill=orange, fill opacity=%.2f, draw opacity=1] at (%.2f, %.2f) (%s) {};'%(alpha, x_node, y_node+0.08, node_name) + '\n')
                     if hi == h-1:
                         for k, v in q_history[hi].items():
                             if idx*2 == k[-1]:
@@ -273,14 +274,14 @@ def generate_big_tex_tree(h, replays, q_history, need_history, file_path):
                                 probas = np.exp(v)/np.sum(np.exp(v))
                                 val    = np.dot(probas, qvals) 
                                 break
-                        f.write(r'\node[qval] at (%.2f, %.2f) () {\tiny \textcolor{blue}{%.2f}};'%(x_node+0.5, y_node+0.08, val) + '\n')
+                        f.write(r'\node[qval] at (%.2f, %.2f) () {\tiny \textcolor{blue}{%.2f}};'%(x_node+0.45, y_node+0.08, val) + '\n')
                     state_nodes[hi].append(node_name)
                     node_name = str(hi) + '_s_' + str(idx*2+1)
                     for k, v in need_history[hi].items():
                         if k[-1] == idx*2+1:
                             alpha = v
                             break
-                    f.write(r'\node[rectangle, text centered, draw=black, minimum height=1mm, text width=3mm, inner sep=0pt, fill=orange, opacity=%.2f] at (%.2f, %.2f) (%s) {};'%(alpha, x_node, y_node-0.08, node_name) + '\n')
+                    f.write(r'\node[rectangle, text centered, draw=black, minimum height=1mm, text width=3mm, inner sep=0pt, fill=orange, fill opacity=%.2f, draw opacity=1] at (%.2f, %.2f) (%s) {};'%(alpha, x_node, y_node-0.08, node_name) + '\n')
                     if hi == h-1:
                         for k, v in q_history[hi].items():
                             if idx*2+1 == k[-1]:
@@ -288,7 +289,7 @@ def generate_big_tex_tree(h, replays, q_history, need_history, file_path):
                                 probas = np.exp(v)/np.sum(np.exp(v))
                                 val    = np.dot(probas, qvals) 
                                 break
-                        f.write(r'\node[qval] at (%.2f, %.2f) () {\tiny \textcolor{blue}{%.2f}};'%(x_node+0.5, y_node-0.08, val) + '\n')
+                        f.write(r'\node[qval] at (%.2f, %.2f) () {\tiny \textcolor{blue}{%.2f}};'%(x_node+0.45, y_node-0.08, val) + '\n')
                     state_nodes[hi].append(node_name)
 
         for hi in range(h-1):

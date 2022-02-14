@@ -1,5 +1,6 @@
 import numpy as np
 from belief_tree import Tree
+from analysis import plot_values
 from tex_tree import generate_big_tex_tree
 import os, shutil, pickle
 
@@ -7,8 +8,8 @@ import os, shutil, pickle
 
 # prior belief at the root
 
-alpha_0, beta_0 = 3, 2
-alpha_1, beta_1 = 1, 2
+alpha_0, beta_0 = 5, 1
+alpha_1, beta_1 = 2, 4
 
 M = np.array([
     [alpha_0, beta_0],
@@ -18,10 +19,10 @@ M = np.array([
 # discount factor
 gamma = 0.9
 xi    = 0.01
-beta  = 10
+beta  = 4
 
 # MF Q values at the root
-Q = np.array([0.0, 0.0])
+Q     = np.array([0.0, 0.0])
 
 # planning horizon
 horizon = 4
@@ -67,7 +68,7 @@ def main_replay(save_tree=True):
             f.write('beta:          %.2f\n'%beta)
             f.write('MF Q values:  [%.2f, %.2f]\n'%(Q[0], Q[1]))
 
-    
+        plot_values(save_path)
 
     return None
 
