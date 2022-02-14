@@ -41,34 +41,34 @@ def main_replay(save_tree=True):
     tree.evaluate_policy(tree.qval_tree)
 
 
-    if save_tree:
-        if os.path.exists(save_path):
-            shutil.rmtree(save_path)
-        else: pass
-        os.makedirs(save_path)
+    # if save_tree:
+    #     if os.path.exists(save_path):
+    #         shutil.rmtree(save_path)
+    #     else: pass
+    #     os.makedirs(save_path)
 
-        np.save(os.path.join(save_path, 'qval_history.npy'), qval_history)
-        np.save(os.path.join(save_path, 'need_history.npy'), need_history)
-        np.save(os.path.join(save_path, 'replay_history.npy'), replay_history)
+    #     np.save(os.path.join(save_path, 'qval_history.npy'), qval_history)
+    #     np.save(os.path.join(save_path, 'need_history.npy'), need_history)
+    #     np.save(os.path.join(save_path, 'replay_history.npy'), replay_history)
 
-        for idx in range(len(replay_history)):
-            these_replays = replay_history[:idx+1]
-            this_save_path = os.path.join(save_path, 'tex_tree_%u.tex'%idx)
-            generate_big_tex_tree(horizon, these_replays, qval_history[idx], need_history[idx], this_save_path)
+    #     for idx in range(len(replay_history)):
+    #         these_replays = replay_history[:idx+1]
+    #         this_save_path = os.path.join(save_path, 'tex_tree_%u.tex'%idx)
+    #         generate_big_tex_tree(horizon, these_replays, qval_history[idx], need_history[idx], this_save_path)
 
-        with open(os.path.join(save_path, 'tree.pkl'), 'wb') as f:
-            pickle.dump(tree, f, pickle.HIGHEST_PROTOCOL)
+    #     with open(os.path.join(save_path, 'tree.pkl'), 'wb') as f:
+    #         pickle.dump(tree, f, pickle.HIGHEST_PROTOCOL)
 
-        # save params
-        with open(os.path.join(save_path, 'params.txt'), 'w') as f:
-            f.write('Horizon:       %u\n'%horizon)
-            f.write('Prior belief: (alpha_0: %u, beta_0: %u, alpha_1: %u, beta_1: %u)\n'%(alpha_0, beta_0, alpha_1, beta_1))
-            f.write('gamma:         %.2f\n'%gamma)
-            f.write('xi:            %.4f\n'%xi)
-            f.write('beta:          %.2f\n'%beta)
-            f.write('MF Q values:  [%.2f, %.2f]\n'%(Q[0], Q[1]))
+    #     # save params
+    #     with open(os.path.join(save_path, 'params.txt'), 'w') as f:
+    #         f.write('Horizon:       %u\n'%horizon)
+    #         f.write('Prior belief: (alpha_0: %u, beta_0: %u, alpha_1: %u, beta_1: %u)\n'%(alpha_0, beta_0, alpha_1, beta_1))
+    #         f.write('gamma:         %.2f\n'%gamma)
+    #         f.write('xi:            %.4f\n'%xi)
+    #         f.write('beta:          %.2f\n'%beta)
+    #         f.write('MF Q values:  [%.2f, %.2f]\n'%(Q[0], Q[1]))
 
-        plot_values(save_path)
+    plot_values(save_path)
 
     return None
 

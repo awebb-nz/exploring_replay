@@ -24,7 +24,7 @@ def plot_values(data_folder, save_fig=True):
     qvals     = qval_tree[0][(0, 0, 0)]
     v_full    = np.max(qvals)
 
-    plt.figure(figsize=(10, 5), dpi=100, constrained_layout=True)
+    plt.figure(figsize=(7, 5), dpi=100, constrained_layout=True)
     
     for i in [1, 2]:
         plt.subplot(2, 1, i)
