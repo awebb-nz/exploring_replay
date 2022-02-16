@@ -375,9 +375,9 @@ class Tree:
             need_history += [deepcopy(self.need_tree)]
             backups      += [[self.belief_tree[hi][k], backup[0], backup[1]]]
 
-            print('\n')
-            print(backup, max_val)
-            print('value:  ', np.dot(self._policy(self.qval_tree[0][(0, 0, 0)]), self.qval_tree[0][(0, 0, 0)]))
-            print('policy: ', self.evaluate_policy(self.qval_tree))
+            # print('\n')
+            # print(backup, max_val)
+            # print('value:  ', np.dot(self._policy(self.qval_tree[0][(0, 0, 0)]), self.qval_tree[0][(0, 0, 0)]))
+            # print('policy: ', self.evaluate_policy(self.qval_tree))
 
         return  qval_history, need_history, backups
