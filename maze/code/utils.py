@@ -37,7 +37,7 @@ def plot_simulation(agent, data_path, save_path):
         plot_replay_action([], ax2, num_y_states, num_x_states, goal_state, blocked_state_actions)
         ax3 = plt.subplot(224)
         plot_replay_action([], ax3, num_y_states, num_x_states, goal_state, blocked_state_actions)
-        plt.savefig(os.path.join(save_path, 'move_%s.svg')%file.split('_')[-1][:-4])
+        plt.savefig(os.path.join(save_path, 'move_%s.png')%file.split('_')[-1][:-4])
         plt.close()
 
         for idx, Q_rep in enumerate(Q_history[1:]):
@@ -54,7 +54,7 @@ def plot_simulation(agent, data_path, save_path):
             plot_maze_values(gain_history[idx+1], [], ax2, num_y_states, num_x_states, goal_state, blocked_state_actions)
             ax3 = plt.subplot(224)
             plot_need_values(need_history[idx+1], ax3, num_y_states, num_x_states, goal_state, blocked_state_actions)
-            plt.savefig(os.path.join(save_path, 'move_%s_%u.svg')%(file.split('_')[-1][:-4], idx))
+            plt.savefig(os.path.join(save_path, 'move_%s_%u.png')%(file.split('_')[-1][:-4], idx))
             plt.close()
 
     return None
@@ -95,6 +95,7 @@ def plot_maze_values(Q, move, ax, num_y_states, num_x_states, goal_state, blocke
     if np.all(Q_plot == 0):
         sns.heatmap(Q_plot, cmap=['white'], annot=False, fmt='.2f', cbar=True, ax=ax)
     else:
+        Q_plot = Q_plot/np.nanmax(Q_plot)
         sns.heatmap(Q_plot, cmap='Greys', annot=True, fmt='.2f', cbar=True, ax=ax)
     
     # arrows for actions
@@ -203,10 +204,11 @@ def plot_need_values(need, ax, num_y_states, num_x_states, goal_state, blocked_s
     num_states = num_y_states * num_x_states
 
     need_plot = need.reshape(num_y_states, num_x_states)[::-1, :]
+    need_plot = need_plot/np.nanmax(need_plot)
     if np.all(need_plot == 0):
         sns.heatmap(need_plot, cmap=['white'], annot=False, fmt='.2f', cbar=True, ax=ax)
     else:
-        sns.heatmap(need_plot, cmap='Greys', annot=True, fmt='.2f', cbar=True, ax=ax)
+        sns.heatmap(need_plot, cmap='Blues', annot=True, fmt='.2f', cbar=True, ax=ax)
     
     # arrows for actions
     patches = []
