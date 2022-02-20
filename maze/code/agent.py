@@ -361,7 +361,8 @@ class Agent(Environment):
                             prev_c     = kn[-2]
                             a          = kn[0]
                             break
-
+                
+                proba *= self.gamma**hi
                 ntree[hi][k] = proba
                         
         return ntree
@@ -435,13 +436,10 @@ class Agent(Environment):
                             new_key = tuple(list(k) + [a])
                             nqval_trees[s][hi][new_key] = Q_new
 
-                            v_new = np.nansum(self._policy(q_new_vals) * q_new_vals)
-
                             pneed = pntree[hi][k]
+                            gain  = self._compute_gain(q_old_vals, q_new_vals)
 
                             if (hi == 0):
-
-                                gain   = self._compute_gain(q_old_vals, q_new_vals)
 
                                 Ta     = np.zeros((self.num_states, self.num_actions, self.num_states))
                                 for st in range(self.num_states):
@@ -467,7 +465,8 @@ class Agent(Environment):
                                 # print(hi, k, a, q_old_vals[a], q_new_vals[a], gain, need[self.state, state])
 
                             else:
-                                evb_trees[s][hi][new_key] = pneed * (v_new - v_old)
+
+                                evb_trees[s][hi][new_key] = pneed * gain
 
                                 # print(hi, k, a, q_old_vals[a], q_new_vals[a], (v_new - v_old), pneed)
 
