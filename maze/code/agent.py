@@ -564,7 +564,7 @@ class Agent(Environment):
 
             self.state = s1
 
-            if step == 3000:
+            if step == 4000:
                 replay = True
                 self.M = np.ones(2)
 

@@ -29,7 +29,7 @@ uncertain_states_actions = [17, 0]
 
 # --- Specify simulation parameters ---
 #
-num_steps  = 4000
+num_steps  = 5000
 save_path  = '/home/georgy/Documents/Dayan_lab/PhD/bandits/maze/data/tmp'
 save_data  = os.path.join(save_path, 'moves')
 save_plots = os.path.join(save_path, 'plots')
