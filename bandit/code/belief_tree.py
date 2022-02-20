@@ -265,7 +265,8 @@ class Tree:
                             prev_c = kn[-2]
                             a      = kn[0]
                             break
-
+                
+                proba *= gamma**hi
                 self.need_tree[hi][k] = proba
 
         qval_history += [deepcopy(self.qval_tree)]
@@ -300,7 +301,8 @@ class Tree:
                                 prev_c = kn[-2]
                                 a      = kn[0]
                                 break
-
+                    
+                    proba *= gamma**hi
                     self.need_tree[hi][k] = proba
                             
                     v_primes = []
@@ -328,15 +330,15 @@ class Tree:
                         else:
                             q_new = np.array([q[0], q_upd])
                         
-                        v_new   = np.dot(self._policy(q_new), q_new) 
-                        evb     = proba*(v_new - v)
+                        # v_new   = np.dot(self._policy(q_new), q_new) 
+                        # evb     = proba*(v_new - v)
 
                         new_key = tuple(list(k) + [a])
 
-                        # probs_before = self._policy(q)
-                        # probs_after  = self._policy(q_new)
+                        probs_before = self._policy(q)
+                        probs_after  = self._policy(q_new)
 
-                        # evb = proba*np.dot(probs_after-probs_before, q_new)
+                        evb = proba*np.dot(probs_after-probs_before, q_new)
                             
                         if evb > max_evb:
                             max_evb = evb
