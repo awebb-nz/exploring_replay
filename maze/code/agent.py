@@ -565,6 +565,25 @@ class Agent(Environment):
             self.state = s1
 
             if step == 4000:
+                self.Q[16, 1] = 0
+                self.Q[16, 2] = 0
+                self.Q[16, 3] = 0
+
+                self.Q[15, 3] = 0
+
+                self.Q[17, 0] = 0
+                self.Q[17, 1] = 0
+                self.Q[17, 2] = 0
+
+                self.Q[22, 0] = 0
+                self.Q[22, 2] = 0
+                self.Q[22, 3] = 0
+
+                self.Q[21, 3] = 0
+
+                self.Q[23, 0] = 0
+                self.Q[23, 2] = 0
+
                 replay = True
                 self.M = np.ones(2)
 
