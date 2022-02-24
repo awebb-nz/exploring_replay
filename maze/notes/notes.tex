@@ -29,12 +29,16 @@
 
 \subsection*{EVB for information states}
 
-We are ultimately interested in how the value of our current information state $z_{\text{agent}} = \langle s_{\text{agent}}, b_{\text{agent}} \rangle$ changes as a result of 
-a policy update at some future information state:
+We are ultimately interested in how the value of the current information state $z_{\text{agent}} = \langle s_{\text{agent}}, b_{\text{agent}} \rangle$ changes as a result of 
+a policy update at some future information state $z_k$:
 \begin{equation}
     \label{eqn:evb}
-    \text{EVB}(z_k, a_k) = \sum_{z \in \mathcal{Z}} \underbrace{\sum_{i=0}^{\infty} \gamma^i P(z_{\text{agent}} \rightarrow z, i, \pi_{\old})}_{\text{Need}} \times \underbrace{\sum_a \big[ \pi_{\new}(z, a) - \pi_{\old}(z, a) \big] q_{\pi_{\new}}(z, a)}_{\text{Gain}}
+    \text{EVB}(z_k, a_k) = \sum_{z \in \mathcal{Z}} \underbrace{\sum_{i=0}^{\infty} \gamma^i P_{0..i}(z_{\text{agent}} \rightarrow z, i, \pi_{\old})}_{\text{Need}} \times \underbrace{\sum_a \big[ \pi_{\new}(z, a) - \pi_{\old}(z, a) \big] q_{\pi_{\new}}(z, a)}_{\text{Gain}}
 \end{equation}
+where $P_{0..i}$ denotes transition models which are updated according to the successful transitions. 
+
+\bigbreak
+
 Note that M\&D get rid of the first summation (in their case, it was over $\mathcal{S}$), since they assume that 
 a single update changes the policy only at that update location (and hence Gain is $0$ everywhere except that location). 
 In our case, this is not quite true, because there are a number of information states that can potentially benefit from a 
@@ -45,7 +49,7 @@ policy update elsewhere -- and thus ideally we want to keep that sum.
 Our current model has a number of assumptions. For the updates of distal information states, we have:
 \begin{equation}
     \label{eqn:distal}
-    \text{EVB}_{\text{dist}}(z_k=\langle s_k, b_k \rangle, a_k) = \gamma^i P(\langle s_\rho, b_{\text{agent}} \rangle \rightarrow \langle s_k, b_k \rangle, i, \pi_{\old}) \times \text{Gain}(\langle s_k, b_k \rangle, a_k)
+    \text{EVB}_{\text{dist}}(z_k=\langle s_k, b_k \rangle, a_k) = \gamma^i P_{0..i}(\langle s_\rho, b_{\text{agent}} \rangle \rightarrow \langle s_k, b_k \rangle, i, \pi_{\old}) \times \text{Gain}(\langle s_k, b_k \rangle, a_k)
 \end{equation}
 where $\langle s_\rho, b_{\text{agent}} \rangle$ is the information state at the root of the state-action tree which contains information state $z_k=\langle s_k, b_k \rangle$. The assumption is therefore 
 that the agent can 'teleport' from its current physical state $s_\text{agent}$ to the physical root state of that tree $s_\rho$ without changing its belief $b_{\text{agent}}$.
@@ -55,16 +59,16 @@ that the agent can 'teleport' from its current physical state $s_\text{agent}$ t
 As for the root updates, we have the following:
 \begin{equation}
     \label{eqn:root}
-    \text{EVB}_{\text{root}}(z_\rho=\langle s_\rho, b_\rho \rangle, a_k) = \underbrace{\sum_{i=0}^{\infty} \gamma^i P(\langle s_{\text{agent}}, b_{\text{agent}} \rangle \rightarrow \langle s_\rho, b_{\text{agent}} \rangle, i, \pi_{\old})}_{\text{certainty-equivalent Need}} \times \underbrace{\text{Gain}_{\text{sweep}}(\langle s_\rho, b_{\text{agent}} \rangle, a_k) \vphantom{\sum_{i=0}^{\infty}}}_{\text{sweeped Gain}}
+    \text{EVB}_{\text{root}}(z_\rho=\langle s_\rho, b_\rho \rangle, a_k) = \underbrace{\sum_{i=0}^{\infty} \gamma^i P_0(\langle s_{\text{agent}}, b_{\text{agent}} \rangle \rightarrow \langle s_\rho, b_{\text{agent}} \rangle, i, \pi_{\old})}_{\text{certainty-equivalent Need}} \times \underbrace{\text{Gain}_{\text{sweep}}(\langle s_\rho, b_{\text{agent}} \rangle, a_k) \vphantom{\sum_{i=0}^{\infty}}}_{\text{sweeped Gain}}
 \end{equation}
 Where we partially account for the (fixed horizon) learnt information by our sweeping procedure when estimating Gain (by using equation \ref{eqn:distal}). 
-Partially because this isn't reflected in the Need term, since we do not account for the changes in the transition model when calculating Need.
+Partially because this isn't reflected in the Need term since we do not account for the changes in the transition model when calculating Need (hence $P_0$).
 
 \bigbreak
 
-Another limitation is the lack of generalisaton across information states because we exclude the summation over $\mathcal{Z}$ in equation \ref{eqn:evb}. 
-Mattar \& Daw do it as well (in their case the sum is over $\mathcal{S}$) since they assume greedy updates which means that Gain is non-zero only for 
-the updated experience $(s_k, a_k)$.
+Another limitation is the lack of generalisaton across information states because i) we exclude the summation over $\mathcal{Z}$ in equation \ref{eqn:evb}; and 
+ii) the updates at distal information states are rooted in that tree -- hence the potential information gain cannot be communicated to other information states rooted 
+in other states. 
 
 \bigbreak
 
@@ -80,19 +84,31 @@ from the agent's current physical location $s_\text{agent}$. Then, from that roo
 Need based on the belief reached during that planning. Formally, this would look like this:
 \begin{linenomath}
 \begin{align}
-    \text{Need}(z_k=\langle s_k, b_k \rangle) = &\sum_{i=0}^{N} \gamma^i P_\text{old}(\langle s_\text{agent}, b_\text{agent} \rangle \rightarrow \langle s_k, b_\text{agent} \rangle, i, \pi_\old) & \text{get to the root, fixed belief} \nonumber \\
-    + &\sum_{j=N}^{N+H} \gamma^i P_\text{upd}(\langle s_\text{agent}, b_\text{agent} \rangle \rightarrow \langle s_k, b_k \rangle, j, \pi_\old) & \text{consequitive belief updates} \nonumber \\
-    + &\sum_{k=N+H+1}^{\infty} \gamma^i P_\text{new}(\langle s_\text{agent}, b_k \rangle \rightarrow \langle s_k, b_k \rangle, k, \pi_\old) & \text{fixed, updated belief} \nonumber
+    \text{Need}(z_k=\langle s_k, b_k \rangle) = &\sum_{i=0}^{N} \gamma^i P_{0..i}(\langle s_\text{agent}, b_\text{agent} \rangle \rightarrow \langle s_k, b_\text{agent} \rangle, i, \pi_\old) & \text{get to the root, fixed belief} \nonumber \\
+    + &\sum_{j=N}^{N+H} \gamma^j P_{N..j}(\langle s_\text{agent}, b_\text{agent} \rangle \rightarrow \langle s_k, b_k \rangle, j, \pi_\old) & \text{consequitive belief updates} \nonumber \\
+    + &\sum_{k=N+H+1}^{\infty} \gamma^k P_{k..(N+H+1)}(\langle s_\text{agent}, b_k \rangle \rightarrow \langle s_k, b_k \rangle, k, \pi_\old) & \text{fixed, updated belief} \nonumber
 \end{align}
 \end{linenomath}
-where $N$ is the expected number of steps needed to reach the root state $s_\rho$ from the agent's current location $s_\text{agent}$ and 
-$H$ is the planning horizon.
+where $N$ is the expected number of steps needed to reach the root state $s_\rho$ from the agent's current location $s_\text{agent}$ (we need this to know 
+how to discount the subsequent learning) and $H$ is the planning horizon.
+
+\bigbreak
+
+This has the advantage that we gain access to all information states and thus can account for the missing generalisaton.
+
+\bigbreak
+
+The issue is of course estimating $N$. There is this recent 'First-occupancy representation' 
+from Maneesh: \url{https://arxiv.org/abs/2109.13863} -- although it is not very useful since we 
+need to know not the expected discount until $N$ but the subsequent discount. That's why I've been thinking 
+about the ensemble SR recently -- although then it would be hard to justify the use of a particular $\gamma$.
 
 \bigbreak
 
 \begin{itemize}
-    \item Might not be worth it depending on the discount $\gamma$ and/or the distance, since the contributions of future learning fade away 
-    \item Makes me think -- maybe we can derive the approximation error due to a limited horizon analytically? E.g., some notion of 'information regret'
+    \item An interesting question is whether it's worth doing it -- this would depend on the discount $\gamma$ and/or the distance, since the contributions of future learning fade away. 
+    Perhaps not so important for our problem but can conceive of domains where it would be crucial?  
+    \item Makes me think -- maybe we can derive the approximation error due to a limited horizon? E.g., some notion of 'information regret'
 \end{itemize}
 
 \end{document}
