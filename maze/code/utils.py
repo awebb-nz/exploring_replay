@@ -104,6 +104,7 @@ def plot_maze_values(Q, move, ax, num_y_states, num_x_states, goal_state, blocke
         for ac in range(4):
             if ~np.isnan(Q[st, ac]):
                 patches += add_patches(st, ac, Q[st, ac]/np.nanmax(np.abs(Q)), num_y_states, num_x_states)
+                # patches += add_patches(st, ac, Q[st, ac], num_y_states, num_x_states)
             if [st, ac] in blocked_state_actions:
                 i, j = np.argwhere(np.arange(num_states).reshape(num_y_states, num_x_states) == st).flatten()
                 if ac == 0:

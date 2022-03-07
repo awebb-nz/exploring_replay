@@ -241,11 +241,13 @@ class Tree:
                 # else:
                     b0 = b[0, 0]/np.sum(b[0, :])
                     b1 = b[1, 0]/np.sum(b[1, :])
+                    q_values = np.array([b0, b1])
+                elif hi == 0:
+                    q_values = self.root_q_values.copy()
                 else:
                     b0 = 0.0
                     b1 = 0.0
-
-                q_values = np.array([b0, b1])
+                    q_values = np.array([b0, b1])
                 
                 self.qval_tree[hi][k] = q_values.copy() # change temperature?
 

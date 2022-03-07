@@ -8,8 +8,8 @@ import os, shutil, pickle
 
 # prior belief at the root
 
-alpha_0, beta_0 = 5, 1
-alpha_1, beta_1 = 2, 4
+alpha_0, beta_0 = 14, 10
+alpha_1, beta_1 = 4, 3
 
 M = np.array([
     [alpha_0, beta_0],
@@ -18,7 +18,7 @@ M = np.array([
 
 # discount factor
 gamma = 0.9
-xi    = 0.0001
+xi    = 0.000001
 beta  = 4
 
 # MF Q values at the root
@@ -28,8 +28,8 @@ Q     = np.array([0.0, 0.0])
 horizon = 4
 
 # save path
-root_folder = '/home/georgy/Documents/Dayan_lab/PhD/bandits'
-save_path   = os.path.join(root_folder, 'rldm/figures/fig1/trees/3')
+root_folder = '/home/georgy/Documents/Dayan_lab/Lab_meeting/09_03_22/trees'
+save_path   = os.path.join(root_folder, '2')
 
 # --- Main function for replay ---
 def main_replay(save_tree=True):
@@ -80,4 +80,4 @@ def main_full():
 
 if __name__ == '__main__':
     main_replay()
-    main_full()
+    # main_full()
