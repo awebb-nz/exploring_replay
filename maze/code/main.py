@@ -1,5 +1,7 @@
 import numpy as np
-from agent import Agent, Bamcp
+from agent_bamcp import Bamcp
+from agent_replay import Agent
+from agent_need import BamcpNeed
 from utils import plot_simulation, plot_maze_values
 import matplotlib.pyplot as plt
 import os
@@ -32,7 +34,7 @@ uncertain_states_actions = [17, 0]
 # --- Specify simulation parameters ---
 #
 num_steps  = 5000
-save_path  = '/home/georgy/Documents/Dayan_lab/PhD/bandits/maze/data/tmp'
+save_path  = '/home/georgy/Documents/Dayan_lab/PhD/bandits/maze/data/need'
 save_data  = os.path.join(save_path, 'moves')
 save_plots = os.path.join(save_path, 'plots')
 
@@ -44,15 +46,17 @@ alpha_r = 1.0
 horizon = 4 # minus 1
 xi      = 1e-3
 
+M       = np.ones(2)
+
 # --- Main function ---
 def main():
     np.random.seed(0)
     # initialise the agent
-    # agent = Agent(config, start_coords, goal_coords, blocked_state_actions, uncertain_states_actions, alpha, alpha_r, gamma, horizon, xi, policy_temp=4)
+    agent = Agent(config, start_coords, goal_coords, blocked_state_actions, uncertain_states_actions, alpha, alpha_r, gamma, horizon, xi, policy_temp=4)
     # run the simulation``
     # agent.run_simulation(num_steps=num_steps, save_path=save_data)
     # plot moves & replays
-    # plot_simulation(agent, save_data, save_plots)
+    plot_simulation(agent, save_data, save_plots)
 
     # Q = np.zeros((num_states, 4))
     # for s in np.delete(range(num_states), 5):
@@ -61,23 +65,22 @@ def main():
     #     print(s)
     #     tree    = agent.tree.copy()
     #     Q[s, :] = tree[0][0][1]
-    #     print(tree[0][0][2])
+    #     # print(tree[0][0][2])
+    #     # last_d = max(tree.keys())
+
     
-    # for d in tree.keys():
-    #     if d > 50:
-    #         break
-    #     this_depth = tree[d]
-    #     for vidx, v in enumerate(this_depth):
-    #         s        = v[0][-1]
-    #         if np.all(Q[s, :] == 0):
-    #             Q[s, :] = v[1]
+    # np.save('/home/georgy/Documents/Dayan_lab/PhD/bandits/maze/data/bamcp/beta_1_1_round.npy', Q)
+    # fig = plt.figure(figsize=(12, 6))
+    # ax = plt.subplot(111)
+    # plot_maze_values(Q, [], ax, config.shape[0], config.shape[1], 5, blocked_state_actions)
+    # plt.savefig('/home/georgy/Documents/Dayan_lab/PhD/bandits/maze/data/bamcp/beta_1_1_round.png')
     
-    Q = np.load('/home/georgy/Documents/Dayan_lab/PhD/bandits/maze/data/bamcp/beta_1_1.npy')
-    # np.save('/home/georgy/Documents/Dayan_lab/PhD/bandits/maze/data/bamcp/beta_1_1.npy', Q)
-    fig = plt.figure(figsize=(12, 6))
-    ax = plt.subplot(111)
-    plot_maze_values(Q, [], ax, config.shape[0], config.shape[1], 5, blocked_state_actions)
-    plt.savefig('/home/georgy/Documents/Dayan_lab/PhD/bandits/maze/data/bamcp/beta_1_1.png')
+    # Q = np.load('/home/georgy/Documents/Dayan_lab/PhD/bandits/maze/data/moves/Q_3000.npz')['Q_history'][0]
+    # agent = BamcpNeed(config, start_coords, goal_coords, blocked_state_actions, uncertain_states_actions, gamma, Q, M, policy_temp=4)
+    # agent.search(20)
+    # SR = agent.SR
+    # np.save('/home/georgy/Documents/Dayan_lab/PhD/bandits/maze/data/bamcp/need/need.npy', SR)
+    
     return None
 
 if __name__ == '__main__':
