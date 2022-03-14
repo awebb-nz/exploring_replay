@@ -54,7 +54,7 @@ def main():
     # initialise the agent
     agent = Agent(config, start_coords, goal_coords, blocked_state_actions, uncertain_states_actions, alpha, alpha_r, gamma, horizon, xi, policy_temp=4)
     # run the simulation``
-    # agent.run_simulation(num_steps=num_steps, save_path=save_data)
+    agent.run_simulation(num_steps=num_steps, save_path=save_data)
     # plot moves & replays
     plot_simulation(agent, save_data, save_plots)
 

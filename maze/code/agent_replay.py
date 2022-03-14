@@ -142,53 +142,71 @@ class Agent(Environment):
 
         return np.linalg.inv(np.eye(self.num_states) - self.gamma*Ts)
 
-    def _estimate_need(self, btree, qtree):
+    def _estimate_steps(self):
 
-        ntree = {hi:{} for hi in range(self.horizon)}
+        num_steps = np.full(self.num_states, np.inf)
+        num_sims  = 1000
+        trajs     = []
+        for _ in range(num_sims):
+            s    = self.state
+            d    = 0
+            traj = [s]
+            while (self.gamma**d) > 0.01:
+                
+                qvals = self.Q[s, :]
+                probs = self._policy(qvals)
+                a     = np.random.choice(range(self.num_actions), p=probs)
+                
+                if (s == self.uncertain_states_actions[0]) and (a == self.uncertain_states_actions[1]):
+                    
+                    s1u, _ = self._get_new_state(s, a, unlocked=True)
+                    s1l, _ = self._get_new_state(s, a, unlocked=False)
+
+                    s1 = np.random.choice([s1u, s1l], p=[self.M[0]/np.sum(self.M), self.M[1]/np.sum(self.M)])
+
+                else:
+                    s1, _  = self._get_new_state(s, a, unlocked=False)
+                
+                traj += [s1]
+                s     = s1
+                d    += 1
+
+            trajs += [traj]
+
+        for s in range(self.num_states):
+            # n = 0
+            for traj in trajs:
+                idcs = np.argwhere(np.array(traj) == s).flatten()
+                if len(idcs) > 0:
+                    idx = np.min(idcs)
+                    if num_steps[s] > idx:
+                        num_steps[s] = idx
+                else:
+                    pass
+            # num_steps[s] /= n
+
+        return np.round(num_steps)
+
+    def _estimate_need(self):
 
         # first estimate the number of steps to reach each state
-        num_steps, _ = dijkstra(self.env_graph, str(self.state))
+        num_steps = self._estimate_steps()
+        # num_steps, _ = dijkstra(self.env_graph, str(self.state))
 
-        for hi in reversed(range(self.horizon)):
-            if len(btree[hi]) == 0:
-                continue
-            for k, b in btree[hi].items():
+        Ta     = np.zeros((self.num_states, self.num_actions, self.num_states))
+        for st in range(self.num_states):
+            for at in range(self.num_actions):
+                s1l, _ = self._get_new_state(st, at, unlocked=False)
+
+                if (st == self.uncertain_states_actions[0]) and (at == self.uncertain_states_actions[1]):
+                    
+                    s1u, _ = self._get_new_state(st, at, unlocked=True)
                 
-                next_state = k[1] 
-                prev_c     = k[-2]
-                a          = k[0]
-                proba      = 1
+                    Ta[st, at, s1u] = self.M[0]/np.sum(self.M)
+                    Ta[st, at, s1l] = self.M[1]/np.sum(self.M)
 
-                for hin in reversed(range(hi)):
-                    for kn, bn in btree[hin].items():
-                        if (kn[-1] == prev_c):
-                            
-                            state  = kn[1]
-                            Q_vals = qtree[hin][kn].copy()
-                            q_vals = Q_vals[state, :]
-
-                            policy_proba = self._policy(q_vals)
-
-                            if (state == self.uncertain_states_actions[0]) and (a == self.uncertain_states_actions[1]):
-                                # if successful
-                                s1, _ = self._get_new_state(state, a, unlocked=True)
-
-                                if next_state == s1:
-                                    bc = bn[0]/np.sum(bn)
-                                else:
-                                    bc = bn[1]/np.sum(bn)
-                            else:
-                                bc = 1
-
-                            proba *= policy_proba[a]*bc
-
-                            next_state = kn[1]
-                            prev_c     = kn[-2]
-                            a          = kn[0]
-                            break
-                
-                proba *= self.gamma**hi
-                ntree[hi][k] = proba
+                else:
+                    Ta[st, at, s1l] = 1
 
         return None
 
@@ -288,9 +306,31 @@ class Agent(Environment):
 
         return qtree
 
-    def _build_pneed_tree(self, btree, qtree):
+    def _build_pneed_tree(self, btree, qtree, num_steps):
 
-        ntree = {hi:{} for hi in range(self.horizon)}
+        ntree     = {hi:{} for hi in range(self.horizon)}
+
+        Ta     = np.zeros((self.num_states, self.num_actions, self.num_states))
+        for st in range(self.num_states):
+            for at in range(self.num_actions):
+                s1l, _ = self._get_new_state(st, at, unlocked=False)
+
+                if (st == self.uncertain_states_actions[0]) and (at == self.uncertain_states_actions[1]):
+                    
+                    s1u, _ = self._get_new_state(st, at, unlocked=True)
+                
+                    Ta[st, at, s1u] = self.M[0]/np.sum(self.M)
+                    Ta[st, at, s1l] = self.M[1]/np.sum(self.M)
+
+                else:
+                    Ta[st, at, s1l] = 1
+
+        T = np.zeros((self.num_states, self.num_states))
+        for s in range(self.num_states):
+            qvals = self.Q[s, :]
+            probs = self._policy(qvals)
+            for a in range(self.num_actions):
+                T[s, :] += probs[a] * Ta[s, a, :]
 
         for hi in reversed(range(self.horizon)):
             if len(btree[hi]) == 0:
@@ -330,7 +370,34 @@ class Agent(Environment):
                             a          = kn[0]
                             break
                 
-                proba *= self.gamma**hi
+                # num steps to reach the root state
+                this_num_steps = int(num_steps[k[1]])
+
+                # probability of reaching the root state for the first time
+                proba_root = np.linalg.matrix_power(T, this_num_steps)[self.state, list(btree[0].keys())[0][1]]
+
+                # multiply by the probability of reaching this particular belief from the root
+                proba *= proba_root * (self.gamma**(hi+this_num_steps))
+                
+                # now compute the transition matrix at this belief
+                Ta[st, at, s1u] = b[0]/np.sum(b)
+                Ta[st, at, s1l] = b[1]/np.sum(b)
+                new_T = np.zeros((self.num_states, self.num_states))
+                for s in range(self.num_states):
+                    qvals = self.Q[s, :]
+                    probs = self._policy(qvals)
+                    for a in range(self.num_actions):
+                        new_T[s, :] += probs[a] * Ta[s, a, :]
+
+                # need given by this transition matrix
+                tmp    = (np.linalg.inv(np.eye(self.num_states) - self.gamma*new_T))
+
+                # subtract terms from before the belief is reached
+                for d in range(this_num_steps):
+                    tmp -= (self.gamma**d)*np.linalg.matrix_power(new_T, d)
+
+                proba += tmp[self.state, k[1]]
+
                 ntree[hi][k] = proba
                         
         return ntree
@@ -341,8 +408,6 @@ class Agent(Environment):
         evb_trees   = [{hi:{} for hi in range(self.horizon)} for _ in range(self.num_states)]
         need_save   = np.zeros((self.num_states))
         gain_save   = np.full((self.num_states, self.num_actions), np.nan)
-
-        SRs         = {}
 
         for s in range(self.num_states):
             btree      = btrees[s]
@@ -405,48 +470,15 @@ class Agent(Environment):
                             new_key = tuple(list(k) + [a])
                             nqval_trees[s][hi][new_key] = Q_new
 
-                            # pneed = pntree[hi][k]
+                            pneed = pntree[hi][k]
                             gain  = self._compute_gain(q_old_vals, q_new_vals)
 
-                            # self._estimate_need(btree, qtree)
+                            evb_trees[s][hi][new_key] = pneed * gain
 
-                            if tuple(b) in SRs.keys():
-                                need = SRs[tuple(b)]
-                            else:
-
-                                Ta     = np.zeros((self.num_states, self.num_actions, self.num_states))
-                                for st in range(self.num_states):
-                                    for at in range(self.num_actions):
-                                        s1l, _ = self._get_new_state(st, at, unlocked=False)
-
-                                        if (st == self.uncertain_states_actions[0]) and (at == self.uncertain_states_actions[1]):
-                                            
-                                            s1u, _ = self._get_new_state(st, at, unlocked=True)
-                                        
-                                            Ta[st, at, s1u] = b[0]/np.sum(b)
-                                            Ta[st, at, s1l] = b[1]/np.sum(b)
-
-                                        else:
-                                            Ta[st, at, s1l] = 1
-
-                                need   = self._compute_need(Ta, Q_old)
-
-                                SRs[tuple(b)] = need
-
-                            evb_trees[s][hi][new_key] = gain * need[self.state, state]
-
-                            gain_save[state, a] = gain
-                            need_save[state]    = need[self.state, state]
-
-                            #     # print(hi, k, a, q_old_vals[a], q_new_vals[a], gain, need[self.state, state])
-
-                            # else:
-
-                            #     evb_trees[s][hi][new_key] = pneed * gain
-
+                            if hi == 0:
+                                gain_save[state, a] = gain
+                                need_save[state]    = pneed
                             #     # print(hi, k, a, q_old_vals[a], q_new_vals[a], (v_new - v_old), pneed)
-
-                            
 
         return nqval_trees, evb_trees, gain_save, need_save
 
@@ -458,14 +490,15 @@ class Agent(Environment):
 
         belief_trees = []
         qval_trees   = []
-        pneed_trees   = []
+        pneed_trees  = []
 
+        num_steps     = self._estimate_steps()
         for s in range(self.num_states):
             belief_tree   = self._build_belief_tree(s)
             belief_trees += [belief_tree]
             qval_tree     = self._build_qval_tree(belief_tree)
             qval_trees   += [qval_tree]
-            pneed_tree    = self._build_pneed_tree(belief_tree, qval_tree)
+            pneed_tree    = self._build_pneed_tree(belief_tree, qval_tree, num_steps)
             pneed_trees  += [pneed_tree] 
         
         while True:
@@ -492,7 +525,7 @@ class Agent(Environment):
                     print('Replay', idx, qval_trees[s][hi][k[:-1]][s, k[-1]], new_qval_trees[s][hi][k][s, k[-1]], max_evb)
 
                 qval_trees[s][hi][k[:-1]] = Q_new
-                pneed_trees[s] = self._build_pneed_tree(belief_trees[s], qval_trees[s])
+                pneed_trees[s] = self._build_pneed_tree(belief_trees[s], qval_trees[s], num_steps)
 
                 if hi == 0:
 
@@ -503,11 +536,12 @@ class Agent(Environment):
 
                     qval_trees    = []
                     pneed_trees   = []
+                    num_steps = self._estimate_steps()
                     for s in range(self.num_states):
                         belief_tree  = belief_trees[s]
                         qval_tree    = self._build_qval_tree(belief_tree)
                         qval_trees  += [qval_tree]
-                        pneed_tree   = self._build_pneed_tree(belief_tree, qval_tree)
+                        pneed_tree   = self._build_pneed_tree(belief_tree, qval_tree, num_steps)
                         pneed_trees += [pneed_tree] 
 
         for s in range(self.num_states):
@@ -566,7 +600,7 @@ class Agent(Environment):
             if replay:
 
                 counter += 1
-                if counter == 25:
+                if counter == 10:
                     return None
 
                 Q_history, gain_history, need_history = self._replay()
