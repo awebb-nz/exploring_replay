@@ -127,12 +127,24 @@ class Agent(Environment):
 
     def _compute_gain(self, q_before, q_after):
 
+        '''
+        ---
+        Compute gain associated with each replay update
+        ---
+        '''
+
         probs_before = self._policy(q_before)
         probs_after  = self._policy(q_after)
 
         return np.nansum((probs_after-probs_before)*q_after)
 
     def _compute_need(self, T, Q):
+        
+        '''
+        ---
+        Compute need associated with each state
+        ---
+        '''
 
         Ts = np.zeros((self.num_states, self.num_states))
         for s in range(self.num_states):
@@ -142,16 +154,25 @@ class Agent(Environment):
 
         return np.linalg.inv(np.eye(self.num_states) - self.gamma*Ts)
 
-    def _estimate_steps(self):
 
-        num_steps = np.full(self.num_states, np.inf)
+    def _simulate_trajs(self):
+
+        '''
+        ---
+        Simulate forward histrories from the agent's current belief
+        Important for computing Need of distal beliefs
+        ---
+        '''
+
+        his       = {s:{} for s in range(self.num_states)}
         num_sims  = 1000
-        trajs     = []
-        for _ in range(num_sims):
-            s    = self.state
-            d    = 0
-            traj = [s]
-            while (self.gamma**d) > 0.01:
+
+        for sim in range(num_sims):
+            s     = self.state
+            b     = self.M.copy()
+            d     = 1
+            proba = 1
+            while ((self.gamma**d) > 0.01):
                 
                 qvals = self.Q[s, :]
                 probs = self._policy(qvals)
@@ -162,53 +183,54 @@ class Agent(Environment):
                     s1u, _ = self._get_new_state(s, a, unlocked=True)
                     s1l, _ = self._get_new_state(s, a, unlocked=False)
 
-                    s1 = np.random.choice([s1u, s1l], p=[self.M[0]/np.sum(self.M), self.M[1]/np.sum(self.M)])
+                    # sample next state
+                    s1 = np.random.choice([s1u, s1l], p=[b[0]/np.sum(b), b[1]/np.sum(b)])
+                    
+                    bn = b/b.sum()
+                    if s1 == s1u:
+                        proba *= bn[0]*probs[a]
+                    else:
+                        proba *= bn[1]*probs[a]
+
+                    # update belief based on the observed transition
+                    b  = self._belief_update(b, s, s1)
 
                 else:
                     s1, _  = self._get_new_state(s, a, unlocked=False)
+                    proba *= 1*probs[a]
                 
-                traj += [s1]
-                s     = s1
-                d    += 1
+                if (int(b[0]), int(b[1])) not in his[s1].keys():
+                    his[s1][(int(b[0]), int(b[1]))] = [np.zeros(num_sims), np.zeros(num_sims)]
 
-            trajs += [traj]
+                curr_val = his[s1][(int(b[0]), int(b[1]))][0][sim]
+                if (curr_val == 0) or (curr_val > d):
+                    his[s1][(int(b[0]), int(b[1]))][0][sim] = d
+                    his[s1][(int(b[0]), int(b[1]))][1][sim] = proba
+                
+                s  = s1
+                d += 1
+
+        # now convert these counts into estimated 
+        # probability and distance
+
+        out_tree = {s:{} for s in range(self.num_states)}
 
         for s in range(self.num_states):
-            # n = 0
-            for traj in trajs:
-                idcs = np.argwhere(np.array(traj) == s).flatten()
-                if len(idcs) > 0:
-                    idx = np.min(idcs)
-                    if num_steps[s] > idx:
-                        num_steps[s] = idx
-                else:
-                    pass
-            # num_steps[s] /= n
-
-        return np.round(num_steps)
-
-    def _estimate_need(self):
-
-        # first estimate the number of steps to reach each state
-        num_steps = self._estimate_steps()
-        # num_steps, _ = dijkstra(self.env_graph, str(self.state))
-
-        Ta     = np.zeros((self.num_states, self.num_actions, self.num_states))
-        for st in range(self.num_states):
-            for at in range(self.num_actions):
-                s1l, _ = self._get_new_state(st, at, unlocked=False)
-
-                if (st == self.uncertain_states_actions[0]) and (at == self.uncertain_states_actions[1]):
-                    
-                    s1u, _ = self._get_new_state(st, at, unlocked=True)
+            d  = his[s]
+            for b, counts in d.items():
                 
-                    Ta[st, at, s1u] = self.M[0]/np.sum(self.M)
-                    Ta[st, at, s1l] = self.M[1]/np.sum(self.M)
+                bn       = counts[0]
+                bp       = counts[1]
 
-                else:
-                    Ta[st, at, s1l] = 1
+                maskedn   = bn[bn > 0]
+                maskedp   = bp[bn > 0]
 
-        return None
+                av_steps = int(np.ceil(maskedn.mean()))
+                P        = np.sum(maskedp) / num_sims
+
+                out_tree[s][int(b[0]), int(b[1])] = [av_steps, P]
+
+        return out_tree
 
     def _belief_update(self, M, s, s1):
 
@@ -303,12 +325,9 @@ class Agent(Environment):
                 # else:
                     # qtree[hi][k] = self.Q_nans.copy()
 
-
         return qtree
 
-    def _build_pneed_tree(self, btree, qtree, num_steps):
-
-        ntree     = {hi:{} for hi in range(self.horizon)}
+    def _get_state_state(self, b):
 
         Ta     = np.zeros((self.num_states, self.num_actions, self.num_states))
         for st in range(self.num_states):
@@ -319,8 +338,8 @@ class Agent(Environment):
                     
                     s1u, _ = self._get_new_state(st, at, unlocked=True)
                 
-                    Ta[st, at, s1u] = self.M[0]/np.sum(self.M)
-                    Ta[st, at, s1l] = self.M[1]/np.sum(self.M)
+                    Ta[st, at, s1u] = b[0]/np.sum(b)
+                    Ta[st, at, s1l] = b[1]/np.sum(b)
 
                 else:
                     Ta[st, at, s1l] = 1
@@ -332,74 +351,61 @@ class Agent(Environment):
             for a in range(self.num_actions):
                 T[s, :] += probs[a] * Ta[s, a, :]
 
+        return T
+
+    def _build_pneed_tree(self, btree, ttree):
+
+        # here is the picture:
+        #
+        #                -
+        #               / 
+        #              X
+        #             / \
+        #            /   -
+        # A - - - - R
+        #            \   -
+        #             \ /
+        #              -
+        #               \
+        #                -
+        #
+        # A is the agent's current state
+        # R is the root state of the tree
+        # X is the belief at which an update is executed
+        #
+        # we want to compute Need based on i) the agent 
+        # first reaching the information state X; ii) 
+        # considering future branches of the tree; and 
+        # iii) what happens in the future beyond the 
+        # horizon (resorting to certainty-equivalence)
+
+        ntree  = {hi:{} for hi in range(self.horizon)}
+        
         for hi in reversed(range(self.horizon)):
             if len(btree[hi]) == 0:
                 continue
+
             for k, b in btree[hi].items():
-                
-                next_state = k[1] 
-                prev_c     = k[-2]
-                a          = k[0]
-                proba      = 1
 
-                for hin in reversed(range(hi)):
-                    for kn, bn in btree[hin].items():
-                        if (kn[-1] == prev_c):
-                            
-                            state  = kn[1]
-                            Q_vals = qtree[hin][kn].copy()
-                            q_vals = Q_vals[state, :]
+                state = k[1] 
 
-                            policy_proba = self._policy(q_vals)
+                if (int(b[0]), int(b[1])) not in ttree[state].keys():
+                    ntree[hi][k] = 0
+                else:
+                    these_vals = ttree[state][(int(b[0]), int(b[1]))]
+                    proba      = these_vals[1]
+                    N          = these_vals[0]
 
-                            if (state == self.uncertain_states_actions[0]) and (a == self.uncertain_states_actions[1]):
-                                # if successful
-                                s1, _ = self._get_new_state(state, a, unlocked=True)
+                    T  = self._get_state_state(b)
+                    SR = np.linalg.inv(np.eye(self.num_states) - self.gamma*T)
 
-                                if next_state == s1:
-                                    bc = bn[0]/np.sum(bn)
-                                else:
-                                    bc = bn[1]/np.sum(bn)
-                            else:
-                                bc = 1
+                    for i in range(N):
+                        SR -= (self.gamma**i)*np.linalg.matrix_power(T, i)
 
-                            proba *= policy_proba[a]*bc
+                    SR += (self.gamma**N)*proba
+                    ntree[hi][k] = SR[self.state, state]
+                    # print(SR[self.state, state])
 
-                            next_state = kn[1]
-                            prev_c     = kn[-2]
-                            a          = kn[0]
-                            break
-                
-                # num steps to reach the root state
-                this_num_steps = int(num_steps[k[1]])
-
-                # probability of reaching the root state for the first time
-                proba_root = np.linalg.matrix_power(T, this_num_steps)[self.state, list(btree[0].keys())[0][1]]
-
-                # multiply by the probability of reaching this particular belief from the root
-                proba *= proba_root * (self.gamma**(hi+this_num_steps))
-                
-                # now compute the transition matrix at this belief
-                Ta[st, at, s1u] = b[0]/np.sum(b)
-                Ta[st, at, s1l] = b[1]/np.sum(b)
-                new_T = np.zeros((self.num_states, self.num_states))
-                for s in range(self.num_states):
-                    qvals = self.Q[s, :]
-                    probs = self._policy(qvals)
-                    for a in range(self.num_actions):
-                        new_T[s, :] += probs[a] * Ta[s, a, :]
-
-                # need given by this transition matrix
-                tmp    = (np.linalg.inv(np.eye(self.num_states) - self.gamma*new_T))
-
-                # subtract terms from before the belief is reached
-                for d in range(this_num_steps):
-                    tmp -= (self.gamma**d)*np.linalg.matrix_power(new_T, d)
-
-                proba += tmp[self.state, k[1]]
-
-                ntree[hi][k] = proba
-                        
         return ntree
 
     def _get_updates(self, btrees, pntrees, qtrees):
@@ -408,6 +414,8 @@ class Agent(Environment):
         evb_trees   = [{hi:{} for hi in range(self.horizon)} for _ in range(self.num_states)]
         need_save   = np.zeros((self.num_states))
         gain_save   = np.full((self.num_states, self.num_actions), np.nan)
+
+        self._simulate_trajs()
 
         for s in range(self.num_states):
             btree      = btrees[s]
@@ -470,15 +478,16 @@ class Agent(Environment):
                             new_key = tuple(list(k) + [a])
                             nqval_trees[s][hi][new_key] = Q_new
 
-                            pneed = pntree[hi][k]
-                            gain  = self._compute_gain(q_old_vals, q_new_vals)
+                            need = pntree[hi][k]
+                            gain = self._compute_gain(q_old_vals, q_new_vals)
+                            
+                            evb  = need * gain
 
-                            evb_trees[s][hi][new_key] = pneed * gain
+                            evb_trees[s][hi][new_key] = evb
 
                             if hi == 0:
                                 gain_save[state, a] = gain
-                                need_save[state]    = pneed
-                            #     # print(hi, k, a, q_old_vals[a], q_new_vals[a], (v_new - v_old), pneed)
+                                need_save[state]    = need
 
         return nqval_trees, evb_trees, gain_save, need_save
 
@@ -492,13 +501,15 @@ class Agent(Environment):
         qval_trees   = []
         pneed_trees  = []
 
-        num_steps     = self._estimate_steps()
+        traj_tree    = self._simulate_trajs()
+
         for s in range(self.num_states):
             belief_tree   = self._build_belief_tree(s)
             belief_trees += [belief_tree]
             qval_tree     = self._build_qval_tree(belief_tree)
             qval_trees   += [qval_tree]
-            pneed_tree    = self._build_pneed_tree(belief_tree, qval_tree, num_steps)
+
+            pneed_tree    = self._build_pneed_tree(belief_tree, traj_tree)
             pneed_trees  += [pneed_tree] 
         
         while True:
@@ -522,26 +533,29 @@ class Agent(Environment):
                 s, hi, k = idx[0], idx[1], idx[2]
 
                 if hi == 0:
-                    print('Replay', idx, qval_trees[s][hi][k[:-1]][s, k[-1]], new_qval_trees[s][hi][k][s, k[-1]], max_evb)
+                    print('Replay', idx, 'Q old: ', np.round(qval_trees[s][hi][k[:-1]][s, k[-1]], 3), 'Q new: ', np.round(new_qval_trees[s][hi][k][s, k[-1]], 3), 'EVB: ', np.round(max_evb, 3))
 
                 qval_trees[s][hi][k[:-1]] = Q_new
-                pneed_trees[s] = self._build_pneed_tree(belief_trees[s], qval_trees[s], num_steps)
+                traj_tree      = self._simulate_trajs()
+                pneed_trees[s] = self._build_pneed_tree(belief_trees[s], traj_tree)
 
                 if hi == 0:
 
-                    self.Q = Q_new
+                    self.Q        = Q_new
                     Q_history    += [self.Q.copy()]
                     gain_history += [gain]
                     need_history += [need]
 
                     qval_trees    = []
                     pneed_trees   = []
-                    num_steps = self._estimate_steps()
+
+                    traj_tree     = self._simulate_trajs()
+
                     for s in range(self.num_states):
                         belief_tree  = belief_trees[s]
                         qval_tree    = self._build_qval_tree(belief_tree)
                         qval_trees  += [qval_tree]
-                        pneed_tree   = self._build_pneed_tree(belief_tree, qval_tree, num_steps)
+                        pneed_tree   = self._build_pneed_tree(belief_tree, traj_tree)
                         pneed_trees += [pneed_tree] 
 
         for s in range(self.num_states):
@@ -600,7 +614,7 @@ class Agent(Environment):
             if replay:
 
                 counter += 1
-                if counter == 10:
+                if counter == 12:
                     return None
 
                 Q_history, gain_history, need_history = self._replay()

@@ -96,7 +96,6 @@ class Bamcp(Environment):
 
     def search(self, s):
         
-        # self.c    = 1/(1-self.gamma)
         self.c    = 1
         self.M    = np.array([1, 1])
         self.eps  = 1e-7

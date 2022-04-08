@@ -8,6 +8,8 @@ class Environment:
         ----
         config                -- matrix which specifies the env
         blocked_state_actions -- list with state-action pairs [s, a] which are blocked
+        start_coords          -- start state coords
+        goal_coords           -- goal state coords
         ----
         '''
 
