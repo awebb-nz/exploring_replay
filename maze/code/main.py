@@ -39,22 +39,22 @@ save_data  = os.path.join(save_path, 'moves')
 save_plots = os.path.join(save_path, 'plots')
 
 # --- Specify agent parameters ---
-#
 gamma   = 0.9
 alpha   = 1.0
 alpha_r = 1.0
 horizon = 4 # minus 1
 xi      = 1e-3
 
+# prior belief about the barrier
 M       = np.ones(2)
 
-# --- Main function ---
+# --- Main function ---5
 def main():
     np.random.seed(0)
     # initialise the agent
     agent = Agent(config, start_coords, goal_coords, blocked_state_actions, uncertain_states_actions, alpha, alpha_r, gamma, horizon, xi, policy_temp=4)
     # run the simulation
-    agent.run_simulation(num_steps=num_steps, save_path=save_data)
+    # agent.run_simulation(num_steps=num_steps, save_path=save_data)
     # plot moves & replays
     plot_simulation(agent, save_data, save_plots)
 
