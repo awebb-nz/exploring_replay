@@ -4,7 +4,7 @@ import os, shutil
 
 class Agent(Environment):
 
-    def __init__(self, config, start_coords, goal_coords, blocked_state_actions, uncertain_states_actions, alpha, alpha_r, gamma, horizon, xi, policy_temp=None, policy_type='softmax'):
+    def __init__(self, config, start_coords, goal_coords, blocked_state_actions, uncertain_states_actions, alpha, alpha_r, gamma, horizon, xi, num_sims, policy_temp=None, policy_type='softmax'):
         
         '''
         ----
@@ -18,6 +18,7 @@ class Agent(Environment):
         gamma                    -- discount factor
         horizon                  -- planning / replay horizon
         xi                       -- replay EVB threshold
+        num_sims                 -- number of simulations for need estimation 
         policy_temp              -- inverse temperature
         policy_type              -- softmax / greedy
         ----
@@ -37,6 +38,7 @@ class Agent(Environment):
         self.gamma       = gamma
         self.horizon     = horizon
         self.xi          = xi
+        self.num_sims    = num_sims
 
         self.state       = self.start_state
 
@@ -167,23 +169,21 @@ class Agent(Environment):
         ---
         '''
 
-        his       = {s:{} for s in range(self.num_states)}
-        num_sims  = 1000
+        his = {s:{} for s in range(self.num_states)}
 
-        for sim in range(num_sims):
+        for sim in range(self.num_sims):
             s     = self.state
             b     = self.M.copy()
             d     = 1
-            proba = 1
 
             # current state
             if (int(b[0]), int(b[1])) not in his[s].keys():
-                his[s][(int(b[0]), int(b[1]))] = [np.full(num_sims, np.nan), np.full(num_sims, np.nan)]
+                his[s][(int(b[0]), int(b[1]))] = [np.full(self.num_sims, np.nan), np.full(self.num_sims, np.nan)]
             
-            # can be reached in 0 steps
-            his[s][(int(b[0]), int(b[1]))][0][sim] = 0
-            # with probability 1
-            his[s][(int(b[0]), int(b[1]))][1][sim] = 1
+            # need
+            his[s][(int(b[0]), int(b[1]))][0][sim] = 1
+            # number of steps
+            his[s][(int(b[0]), int(b[1]))][1][sim] = 0
 
             while ((self.gamma**d) > 1e-4):
 
@@ -203,52 +203,25 @@ class Agent(Environment):
 
                     # sample next state
                     s1 = np.random.choice([s1u, s1l], p=[b[0]/np.sum(b), b[1]/np.sum(b)])
-                    
-                    bn = b/b.sum()
-                    if s1 == s1u:
-                        proba *= bn[0]*probs[a]
-                    else:
-                        proba *= bn[1]*probs[a]
 
                     # update belief based on the observed transition
                     b = self._belief_update(b, s, s1)
 
                 else:
                     s1, _  = self._get_new_state(s, a, unlocked=False)
-                    proba *= 1*probs[a]
                 
                 if (int(b[0]), int(b[1])) not in his[s1].keys():
-                    his[s1][(int(b[0]), int(b[1]))] = [np.full(num_sims, np.nan), np.full(num_sims, np.nan)]
+                    his[s1][(int(b[0]), int(b[1]))] = [np.full(self.num_sims, np.nan), np.full(self.num_sims, np.nan)]
 
                 curr_val = his[s1][(int(b[0]), int(b[1]))][0][sim]
-                if (np.isnan(curr_val)) or (curr_val > d):
-                    his[s1][(int(b[0]), int(b[1]))][0][sim] = d
-                    his[s1][(int(b[0]), int(b[1]))][1][sim] = proba
+                if np.isnan(curr_val):
+                    his[s1][(int(b[0]), int(b[1]))][0][sim] = self.gamma**d
+                    his[s1][(int(b[0]), int(b[1]))][1][sim] = d
                 
                 s  = s1
                 d += 1
 
-        # now convert these counts into estimated 
-        # probability and distance
-
-        out_tree = {s:{} for s in range(self.num_states)}
-
-        for s in range(self.num_states):
-            d  = his[s]
-            for b, counts in d.items():
-                
-                bn       = counts[0]
-                bp       = counts[1]
-
-                maskedn   = bn[~np.isnan(bn)]
-                maskedp   = bp[~np.isnan(bn)]
-
-                av_steps = int(np.ceil(maskedn.mean()))
-                P        = np.sum(maskedp) / len(maskedp)
-
-                out_tree[s][int(b[0]), int(b[1])] = [av_steps, P]
-
-        return out_tree
+        return his
 
     def _belief_update(self, M, s, s1):
 
@@ -394,6 +367,11 @@ class Agent(Environment):
 
     def _get_state_state(self, b, Q):
 
+        '''
+        ---
+        Marginalise T[s, a, s'] over actions with the current policy 
+        ---
+        '''
         Ta     = np.zeros((self.num_states, self.num_actions, self.num_states))
         for st in range(self.num_states):
             for at in range(self.num_actions):
@@ -450,34 +428,43 @@ class Agent(Environment):
         # monte-carlo returns in the method called 
         # simulate_trajs()
 
-        ntree  = {hi:{} for hi in range(self.horizon)}
-        
+        ntree = np.zeros(self.num_states)
+
         for hi in reversed(range(self.horizon)):
             if len(btree[hi]) == 0:
                 continue
 
-            for k, vals in btree[hi].items():
+            for _, vals in btree[hi].items():
                 
                 b     = vals[0][0]
                 state = vals[0][1]
                 Q     = vals[1]
+                T     = self._get_state_state(b, Q)
+                SR_k  = np.linalg.inv(np.eye(self.num_states) - self.gamma*T)
 
-                if (int(b[0]), int(b[1])) not in ttree[state].keys():
-                    ntree[hi][k] = 0
-                else:
-                    these_vals = ttree[state][(int(b[0]), int(b[1]))]
-                    proba      = these_vals[1]
-                    N          = these_vals[0]
+                for k1, vals1 in ttree[state].items():
+                    
+                    if not np.array_equal(b, np.array(k1, dtype=type(b[0].item()))):
+                        continue
 
-                    T  = self._get_state_state(b, Q)
-                    SR = np.linalg.inv(np.eye(self.num_states) - self.gamma*T)
+                    bn      = vals1[0]
+                    bp      = vals1[1]
 
-                    for i in range(N+1):
-                        SR -= (self.gamma**i)*np.linalg.matrix_power(T, i)
+                    maskedn = bn[~np.isnan(bn)]
+                    maskedp = bp[~np.isnan(bn)]
+                    
+                    av_SR   = 0
+                    
+                    for idx in range(len(maskedn)):
+                        
+                        SR = SR_k.copy()
+                        
+                        for i in range(int(maskedp[idx])+1):
+                            SR -= (self.gamma**i)*np.linalg.matrix_power(T, i)
 
-                    SR += (self.gamma**N)*proba
-
-                    ntree[hi][k] = SR[self.state, state]
+                        av_SR += maskedn[idx] + SR[self.start_state, state]
+                    
+                    ntree[state] += av_SR/self.num_sims
 
         return ntree
 
@@ -553,7 +540,7 @@ class Agent(Environment):
                     # \sum_{<s', b'>} \sum_i \gamma^i P(<s, b> -> <s', b'>, i, \pi_{old})
                     # The equation for Gain is:
                     # \sum_{<s', b'>} \sum_a [\pi_{new}(a | <s', b'>) - \pi_{new}(a | <s', b'>)]q_{\pi_{new}}(<s', b'>, a)
-                    need = pntree[hi][k]
+                    need = pntree[state]
                     gain = self._compute_gain(q_old_vals, q_new_vals)
                     evb  = need * gain
 
@@ -620,19 +607,31 @@ class Agent(Environment):
 
                 if hi == 0:
 
-                    self.Q[s, a]   = Q_new[s, a]
-                    Q_history     += [self.Q.copy()]
+                    Q_new = np.zeros((self.num_states, self.num_actions))
+                    for k, v in belief_tree[0].items():
+                        s = v[0][1]
+                        Q = v[1]
+                        Q_new[s, :] = Q[s, :]
+
+                    Q_history     += [Q_new]
                     gain_history  += [gain]
                     need_history  += [need]
 
-                    belief_tree    = self._build_belief_tree()
-                    traj_tree      = self._simulate_trajs(belief_tree)
+                #     belief_tree    = self._build_belief_tree()
+                #     traj_tree      = self._simulate_trajs(belief_tree)
 
-                    pneed_tree     = self._build_pneed_tree(belief_tree, traj_tree)
+                #     pneed_tree     = self._build_pneed_tree(belief_tree, traj_tree)
+        
+        Q_new = np.zeros((self.num_states, self.num_actions))
+        for k, v in belief_tree[0].items():
+            s = v[0][1]
+            Q = v[1]
+            Q_new[s, :] = Q[s, :]
+        self.Q = Q_new.copy()
 
         return Q_history, gain_history, need_history
 
-    def run_simulation(self, num_steps=100, save_path=None):
+    def run_simulation(self, num_steps=100, start_replay=100, reset_prior=True, save_path=None):
 
         if save_path:
             if os.path.isdir(save_path):
@@ -659,28 +658,14 @@ class Agent(Environment):
 
             self.state = s1
 
-            if step == 3000:
+            if step == start_replay:
 
                 replay = True
-                self.M = np.ones(2)
 
-                self.Q[16, 3] = 0
-                self.Q[16, 2] = 0
-                self.Q[16, 1] = 0
-                self.Q[17, 0] = 0
-                self.Q[17, 1] = 0
-                self.Q[17, 2] = 0
-                self.Q[22, 0] = 0
-                self.Q[22, 2] = 0
-                self.Q[22, 3] = 0
-                self.Q[23, 0] = 0
-                self.Q[23, 2] = 0
+                if reset_prior:
+                    self.M = np.ones(2)
 
             if replay:
-
-                counter += 1
-                if counter == 50:
-                    return None
 
                 Q_history, gain_history, need_history = self._replay()
 

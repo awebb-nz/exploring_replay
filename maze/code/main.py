@@ -2,9 +2,10 @@ import numpy as np
 from agent_bamcp import Bamcp
 from agent_replay import Agent
 from agent_need import BamcpNeed
-from utils import plot_simulation, plot_maze_values
+from utils import plot_simulation
 import matplotlib.pyplot as plt
 import os
+import pickle
 
 # --- Specify the environment --- #
 #                                 #
@@ -33,17 +34,19 @@ uncertain_states_actions = [17, 0]
 
 # --- Specify simulation parameters ---
 #
-num_steps  = 5000
+num_steps  = 120
 save_path  = '/home/georgy/Documents/Dayan_lab/PhD/bandits/maze/data/need'
 save_data  = os.path.join(save_path, 'moves')
 save_plots = os.path.join(save_path, 'plots')
 
 # --- Specify agent parameters ---
-gamma   = 0.9
-alpha   = 1.0
-alpha_r = 1.0
-horizon = 4 # minus 1
-xi      = 1e-3
+gamma     = 0.85
+alpha     = 1.0
+alpha_r   = 1.0
+beta      = 5
+horizon   = 4 # minus 1
+xi        = 1e-3
+num_sdims = 1000
 
 # prior belief about the barrier
 M       = np.ones(2)
@@ -52,9 +55,12 @@ M       = np.ones(2)
 def main():
     np.random.seed(0)
     # initialise the agent
-    agent = Agent(config, start_coords, goal_coords, blocked_state_actions, uncertain_states_actions, alpha, alpha_r, gamma, horizon, xi, policy_temp=4)
+    agent = Agent(config, start_coords, goal_coords, blocked_state_actions, uncertain_states_actions, alpha, alpha_r, gamma, horizon, xi, policy_temp=beta)
     # run the simulation
-    # agent.run_simulation(num_steps=num_steps, save_path=save_data)
+    agent.run_simulation(num_steps=num_steps, start_replay=40, reset_prior=True, save_path=save_data)
+    # save the agent
+    with open(os.path.join(save_path, 'agent.pkl'), 'wb') as ag:
+        pickle.dump(agent, ag, pickle.HIGHEST_PROTOCOL)
     # plot moves & replays
     plot_simulation(agent, save_data, save_plots)
 
