@@ -34,7 +34,6 @@ uncertain_states_actions = [17, 0]
 
 # --- Specify simulation parameters ---
 #
-num_steps  = 120
 save_path  = '/home/georgy/Documents/Dayan_lab/PhD/bandits/maze/data/need'
 save_data  = os.path.join(save_path, 'moves')
 save_plots = os.path.join(save_path, 'plots')
@@ -45,8 +44,10 @@ alpha     = 1.0
 alpha_r   = 1.0
 beta      = 5
 horizon   = 4 # minus 1
-xi        = 1e-3
-num_sdims = 1000
+xi        = 1e-5
+num_sims  = 1000
+num_steps = 5080
+
 
 # prior belief about the barrier
 M       = np.ones(2)
@@ -55,12 +56,12 @@ M       = np.ones(2)
 def main():
     np.random.seed(0)
     # initialise the agent
-    agent = Agent(config, start_coords, goal_coords, blocked_state_actions, uncertain_states_actions, alpha, alpha_r, gamma, horizon, xi, policy_temp=beta)
+    agent = Agent(config, start_coords, goal_coords, blocked_state_actions, uncertain_states_actions, alpha, alpha_r, gamma, horizon, xi, num_sims, policy_temp=beta)
     # run the simulation
-    agent.run_simulation(num_steps=num_steps, start_replay=40, reset_prior=True, save_path=save_data)
+    agent.run_simulation(num_steps=num_steps, start_replay=4990, reset_prior=True, save_path=save_data)
     # save the agent
-    with open(os.path.join(save_path, 'agent.pkl'), 'wb') as ag:
-        pickle.dump(agent, ag, pickle.HIGHEST_PROTOCOL)
+    # with open(os.path.join(save_path, 'agent.pkl'), 'wb') as ag:
+        # pickle.dump(agent, ag, pickle.HIGHEST_PROTOCOL)
     # plot moves & replays
     plot_simulation(agent, save_data, save_plots)
 

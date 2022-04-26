@@ -62,7 +62,10 @@ class Agent(Environment):
         self.Q_nans = self.Q.copy()
 
         # beta prior for the uncertain transition
-        self.M = np.ones(2)
+        self.M  = np.ones(2)
+
+        # beta prior for reward magnitude
+        self.Mr = np.ones((self.num_states, 2))
 
         return None
         
@@ -223,11 +226,29 @@ class Agent(Environment):
 
         return his
 
+    def _beliefr_update(self, Mr, s1, r):
+
+        '''
+        ---
+        Bayesian belief updates for reward beta prior
+        ---
+        '''
+
+        Mr_out = Mr.copy()
+        
+        if r == 1:
+            Mr_out[s1, 0] += 1
+        else:
+            Mr_out[s1, 1] += 1
+
+        return Mr
+
+
     def _belief_update(self, M, s, s1):
 
         '''
         ----
-        Bayesian belief updates for beta prior
+        Bayesian belief updates for transition beta prior
 
         s           -- previous state 
         a           -- chosen action
@@ -370,6 +391,9 @@ class Agent(Environment):
         '''
         ---
         Marginalise T[s, a, s'] over actions with the current policy 
+
+        b -- current belief about transition structure
+        Q -- MF Q values associated with this belief
         ---
         '''
         Ta     = np.zeros((self.num_states, self.num_actions, self.num_states))
@@ -633,6 +657,17 @@ class Agent(Environment):
 
     def run_simulation(self, num_steps=100, start_replay=100, reset_prior=True, save_path=None):
 
+        '''
+        ---
+        Main loop for the simulation
+
+        num_steps    -- number of simulation steps
+        start_replay -- after which step to start replay
+        reset_pior   -- whether to reset transition prior before first replay bout
+        save_path    -- path for saving data after replay starts
+        ---
+        '''
+
         if save_path:
             if os.path.isdir(save_path):
                 shutil.rmtree(save_path)
@@ -647,15 +682,23 @@ class Agent(Environment):
             print('Counter %u'%counter)
 
             s      = self.state
+
+            # choose action and receive feedback
             probs  = self._policy(self.Q[s, :])
             a      = np.random.choice(range(self.num_actions), p=probs)
             s1, r  = self._get_new_state(s, a)
 
+            # update MF Q values
             self._qval_update(s, a, r, s1)
 
+            # update transition probability belief
             if (s == self.uncertain_states_actions[0]) and (a==self.uncertain_states_actions[1]):
                 self.M = self._belief_update(self.M, s, s1)
 
+            # update reward probability belief
+            self.Mr = self._beliefr_update(self.Mr, s1, r)
+
+            # transition to new state
             self.state = s1
 
             if step == start_replay:
