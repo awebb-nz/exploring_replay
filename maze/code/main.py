@@ -40,17 +40,17 @@ save_plots = os.path.join(save_path, 'plots')
 
 # --- Specify agent parameters ---
 gamma     = 0.85
-alpha     = 1.0
-alpha_r   = 1.0
+alpha     = 1
+alpha_r   = 1
 beta      = 5
 horizon   = 4 # minus 1
 xi        = 1e-5
 num_sims  = 1000
-num_steps = 5080
+num_steps = 5200
 
 
 # prior belief about the barrier
-M       = np.ones(2)
+M = np.ones(2)
 
 # --- Main function ---5
 def main():
@@ -58,10 +58,10 @@ def main():
     # initialise the agent
     agent = Agent(config, start_coords, goal_coords, blocked_state_actions, uncertain_states_actions, alpha, alpha_r, gamma, horizon, xi, num_sims, policy_temp=beta)
     # run the simulation
-    agent.run_simulation(num_steps=num_steps, start_replay=4990, reset_prior=True, save_path=save_data)
+    # agent.run_simulation(num_steps=num_steps, start_replay=4990, reset_prior=True, save_path=save_data)
     # save the agent
     # with open(os.path.join(save_path, 'agent.pkl'), 'wb') as ag:
-        # pickle.dump(agent, ag, pickle.HIGHEST_PROTOCOL)
+    #     pickle.dump(agent, ag, pickle.HIGHEST_PROTOCOL)
     # plot moves & replays
     plot_simulation(agent, save_data, save_plots)
 

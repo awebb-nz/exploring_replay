@@ -65,7 +65,7 @@ class Agent(Environment):
         self.M  = np.ones(2)
 
         # beta prior for reward magnitude
-        self.Mr = np.ones((self.num_states, 2))
+        self.Mr = np.ones(2)
 
         return None
         
@@ -226,24 +226,6 @@ class Agent(Environment):
 
         return his
 
-    def _beliefr_update(self, Mr, s1, r):
-
-        '''
-        ---
-        Bayesian belief updates for reward beta prior
-        ---
-        '''
-
-        Mr_out = Mr.copy()
-        
-        if r == 1:
-            Mr_out[s1, 0] += 1
-        else:
-            Mr_out[s1, 1] += 1
-
-        return Mr
-
-
     def _belief_update(self, M, s, s1):
 
         '''
@@ -280,10 +262,10 @@ class Agent(Environment):
         ----
         ''' 
 
-        if s != s1:
-            self.Q[s, a] += self.alpha*(r + self.gamma*np.nanmax(self.Q[s1, :]) - self.Q[s, a])
-        else:
-            self.Q[s, a] += self.alpha*(0 - self.Q[s, a])
+        # if s != s1:
+        self.Q[s, a] += self.alpha*(r + self.gamma*np.nanmax(self.Q[s1, :]) - self.Q[s, a])
+        # else:
+            # self.Q[s, a] += self.alpha*(0 - self.Q[s, a])
 
         return None
 
@@ -346,9 +328,11 @@ class Agent(Environment):
                         if (s == self.uncertain_states_actions[0]) and (a==self.uncertain_states_actions[1]):
                             
                             # if it's the uncertain state+action then this generates two distinct beliefs
+                            # first is when the agent transitions through
                             s1u, _ = self._get_new_state(s, a, unlocked=True)
                             b1u    = self._belief_update(b, s, s1u)
 
+                            # second is when it doesn't
                             s1l    = s
                             b1l    = self._belief_update(b, s, s)
 
@@ -568,6 +552,8 @@ class Agent(Environment):
                     gain = self._compute_gain(q_old_vals, q_new_vals)
                     evb  = need * gain
 
+                    if self.save_path is not None:
+                        self.file.write('\nHorizon %u, [<%u, [%u, %u]>, %u], q_old: %.2f, q_new: %.2f, gain: %.4f, need: %.4f, evb: %.5f'%(hi, state, b[0], b[1], a, q_old_vals[a], q_new_vals[a], gain, need, evb))
                     evb_tree[hi][new_key] = evb
 
                     if hi == 0:
@@ -621,8 +607,8 @@ class Agent(Environment):
                 Q_new = nbelief_tree[hi][k][1].copy()
 
                 # if hi == 0:
-                print('Replay', [s, a, hi], b, 'Q old: ', np.round(Q_old[s, a], 2), 'Q new: ', np.round(Q_new[s, a], 2), 'EVB: ', np.round(max_evb, 5))
-
+                if self.save_path is not None:
+                    self.file.write('\n\nReplay [<%u, [%u, %u]>, %u] horizon %u, belief , q_old: %.2f, q_new: %.2f, evb: %.5f\n'%(s, b[0], b[1], a, hi, Q_old[s, a], Q_new[s, a], max_evb))
                 new_stuff             = belief_tree[hi][k[0]]
                 new_stuff[1]          = Q_new.copy()
                 belief_tree[hi][k[0]] = new_stuff
@@ -669,9 +655,16 @@ class Agent(Environment):
         '''
 
         if save_path:
-            if os.path.isdir(save_path):
-                shutil.rmtree(save_path)
-            os.makedirs(save_path)
+            self.save_path = save_path
+
+            if os.path.isdir(self.save_path):
+                shutil.rmtree(self.save_path)
+            os.makedirs(self.save_path)
+
+            self.file = open(os.path.join(self.save_path, 'info.txt'), 'w')
+            self.file.write('--- Simulation details ---\n')
+        else:
+            self.save_path = None
 
         replay  = False
         counter = 0
@@ -688,15 +681,16 @@ class Agent(Environment):
             a      = np.random.choice(range(self.num_actions), p=probs)
             s1, r  = self._get_new_state(s, a)
 
+            q_old  = self.Q[s, a]
             # update MF Q values
             self._qval_update(s, a, r, s1)
+
+            if (self.save_path is not None) and replay:
+                self.file.write('\n\nMove %u/%u, [<%u, [%u, %u]> %u], q_old: %.2f, q_new: %.2f\n'%(step+1, num_steps, s, self.M[0], self.M[1], a, q_old, self.Q[s, a]))
 
             # update transition probability belief
             if (s == self.uncertain_states_actions[0]) and (a==self.uncertain_states_actions[1]):
                 self.M = self._belief_update(self.M, s, s1)
-
-            # update reward probability belief
-            self.Mr = self._beliefr_update(self.Mr, s1, r)
 
             # transition to new state
             self.state = s1
@@ -717,5 +711,8 @@ class Agent(Environment):
 
             if s1 == self.goal_state:
                 self.state = self.start_state
+
+        if self.save_path is not None:
+            self.file.close()
 
         return None
