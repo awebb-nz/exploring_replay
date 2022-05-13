@@ -4,7 +4,7 @@ import os, shutil
 
 class Agent(Environment):
 
-    def __init__(self, config, start_coords, goal_coords, blocked_state_actions, uncertain_states_actions, alpha, alpha_r, gamma, horizon, xi, num_sims, policy_temp=None, policy_type='softmax'):
+    def __init__(self, alpha, alpha_r, gamma, horizon, xi, num_sims, policy_temp=None, policy_type='softmax', **p):
         
         '''
         ----
@@ -24,12 +24,7 @@ class Agent(Environment):
         ----
         '''
         
-        super().__init__(config, blocked_state_actions, start_coords, goal_coords)
-
-        self.start_state = self._convert_coords_to_state(start_coords)
-        self.goal_state  = self._convert_coords_to_state(goal_coords)
-
-        self.uncertain_states_actions = uncertain_states_actions
+        super().__init__(**p)
 
         self.policy_temp = policy_temp
         self.policy_type = policy_type
@@ -43,32 +38,37 @@ class Agent(Environment):
         self.state       = self.start_state
 
         # initialise MF Q values
+        self._init_q_values()
+
+        # beta prior for the uncertain transition
+        self.M  = np.ones(2)
+
+        return None
+        
+    def _init_q_values(self):
+
         self.Q = np.zeros((self.num_states, self.num_actions))
 
         # set edge Q values to np.nan
-        for s in np.delete(range(self.num_states), self.goal_state):
+        for s in np.delete(range(self.num_states), [self.goal_state] + self.nan_states):
             for a in range(self.num_actions):
                 check = True
-                if (s == self.uncertain_states_actions[0]):
-                    if (a == self.uncertain_states_actions[1]):
-                        s1, _ = self._get_new_state(s, a, unlocked=True)
-                        check = False
-                        continue
+                if [s, a] in self.uncertain_states_actions:
+                    check = False
+                    continue
                 if check:
                     s1, _ = self._get_new_state(s, a, unlocked=False)
                     if s1 == s:
                         self.Q[s, a] = np.nan
 
+        if len(self.nan_states) > 0:
+            for s in self.nan_states:
+                self.Q[s, :] = np.nan
+
         self.Q_nans = self.Q.copy()
 
-        # beta prior for the uncertain transition
-        self.M  = np.ones(2)
-
-        # beta prior for reward magnitude
-        self.Mr = np.ones(2)
-
         return None
-        
+    
     def _policy(self, q_vals):
 
         '''
@@ -78,6 +78,8 @@ class Agent(Environment):
         q_vals -- q values at the current state
         ----
         '''
+        if np.all(np.isnan(q_vals)):
+            return np.full(self.num_actions, 1/self.num_actions)
 
         nan_idcs = np.argwhere(np.isnan(q_vals)).flatten()
         if len(nan_idcs) > 0:
@@ -199,7 +201,7 @@ class Agent(Environment):
                 probs = self._policy(qvals)
                 a     = np.random.choice(range(self.num_actions), p=probs)
                 
-                if (s == self.uncertain_states_actions[0]) and (a == self.uncertain_states_actions[1]):
+                if [s, a] in self.uncertain_states_actions:
                     
                     s1u, _ = self._get_new_state(s, a, unlocked=True)
                     s1l, _ = self._get_new_state(s, a, unlocked=False)
@@ -262,10 +264,10 @@ class Agent(Environment):
         ----
         ''' 
 
-        # if s != s1:
-        self.Q[s, a] += self.alpha*(r + self.gamma*np.nanmax(self.Q[s1, :]) - self.Q[s, a])
-        # else:
-            # self.Q[s, a] += self.alpha*(0 - self.Q[s, a])
+        if s != s1:
+            self.Q[s, a] += self.alpha*(r + self.gamma*np.nanmax(self.Q[s1, :]) - self.Q[s, a])
+        else:
+            self.Q[s, a] += self.alpha*(0 - self.Q[s, a])
 
         return None
 
@@ -301,7 +303,7 @@ class Agent(Environment):
 
         # create a merged tree -- one single tree for all information states
         idx = 0
-        for s in np.delete(range(self.num_states), self.goal_state):
+        for s in np.delete(range(self.num_states), [self.goal_state] + self.nan_states):
             btree[0][idx] = [[self.M.copy(), s], self.Q.copy(), []]
             idx          += 1
 
@@ -325,7 +327,7 @@ class Agent(Environment):
                 for a in range(self.num_actions):
                     if ~np.isnan(self.Q[s, a]):
 
-                        if (s == self.uncertain_states_actions[0]) and (a==self.uncertain_states_actions[1]):
+                        if [s, a] in self.uncertain_states_actions:
                             
                             # if it's the uncertain state+action then this generates two distinct beliefs
                             # first is when the agent transitions through
@@ -381,19 +383,19 @@ class Agent(Environment):
         ---
         '''
         Ta     = np.zeros((self.num_states, self.num_actions, self.num_states))
-        for st in range(self.num_states):
-            for at in range(self.num_actions):
-                s1l, _ = self._get_new_state(st, at, unlocked=False)
+        for s in range(self.num_states):
+            for a in range(self.num_actions):
+                s1l, _ = self._get_new_state(s, a, unlocked=False)
 
-                if (st == self.uncertain_states_actions[0]) and (at == self.uncertain_states_actions[1]):
+                if [s, a] in self.uncertain_states_actions:
                     
-                    s1u, _ = self._get_new_state(st, at, unlocked=True)
+                    s1u, _ = self._get_new_state(s, a, unlocked=True)
                 
-                    Ta[st, at, s1u] = b[0]/np.sum(b)
-                    Ta[st, at, s1l] = b[1]/np.sum(b)
+                    Ta[s, a, s1u] = b[0]/np.sum(b)
+                    Ta[s, a, s1l] = b[1]/np.sum(b)
 
                 else:
-                    Ta[st, at, s1l] = 1
+                    Ta[s, a, s1l] = 1
 
         T = np.zeros((self.num_states, self.num_states))
         for s in range(self.num_states):
@@ -667,12 +669,10 @@ class Agent(Environment):
             self.save_path = None
 
         replay  = False
-        counter = 0
 
         for step in range(num_steps):
             
             print('Step %u/%u'%(step+1, num_steps))
-            print('Counter %u'%counter)
 
             s      = self.state
 
@@ -689,8 +689,12 @@ class Agent(Environment):
                 self.file.write('\n\nMove %u/%u, [<%u, [%u, %u]> %u], q_old: %.2f, q_new: %.2f\n'%(step+1, num_steps, s, self.M[0], self.M[1], a, q_old, self.Q[s, a]))
 
             # update transition probability belief
-            if (s == self.uncertain_states_actions[0]) and (a==self.uncertain_states_actions[1]):
-                self.M = self._belief_update(self.M, s, s1)
+            if [s, a] in self.uncertain_states_actions:
+                # self.M = self._belief_update(self.M, s, s1)
+                if s == s1:
+                    self.M[0] = 0
+                else:
+                    self.M[1] = 0
 
             # transition to new state
             self.state = s1
