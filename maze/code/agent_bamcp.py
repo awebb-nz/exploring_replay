@@ -1,36 +1,27 @@
 from environment import Environment
 import numpy as np
+import os
 
 class Bamcp(Environment):
 
-    def __init__(self, config, start_coords, goal_coords, blocked_state_actions, uncertain_states_actions, gamma):
+    def __init__(self, **p):
         
         '''
         ----
-        config                   -- matrix which specifies the env
-        start_coords             -- start state coordinates
-        goal_coords              -- goal state coordinates 
-        blocked_state_actions    -- list with state-action pairs [s, a] which are blocked
-        uncertain_states_actions -- list with states and actions about which the agent becomes uncertain 
-        alpha                    -- on-line value learning rate
-        alpha_r                  -- replay learning rate
-        gamma                    -- discount factor
+        Initialise the agent class
         ----
         '''
         
-        super().__init__(config, blocked_state_actions, start_coords, goal_coords)
+        self.__dict__.update(**p)
 
-        self.start_state = self._convert_coords_to_state(start_coords)
-        self.goal_state  = self._convert_coords_to_state(goal_coords)
-
-        self.uncertain_states_actions = uncertain_states_actions
-
-        self.gamma       = gamma
-
-        self.state       = self.start_state
-
+        # initialise the environment
+        super().__init__(self.config, self.blocked_state_actions, self.start_coords, self.goal_coords)
+        self.start_state = self._convert_coords_to_state(self.start_coords)
+        self.goal_state  = self._convert_coords_to_state(self.goal_coords)
+        
         # initialise MF Q values
-        self.Q_nans = np.zeros((self.num_states, self.num_actions))
+        self.num_states  = self.config.shape[0]*self.config.shape[1]
+        self.Q_nans      = np.zeros((self.num_states, self.num_actions))
 
         # set edge Q values to np.nan
         for s in np.delete(range(self.num_states), self.goal_state):
@@ -46,10 +37,32 @@ class Bamcp(Environment):
                     if s1 == s:
                         self.Q_nans[s, a] = np.nan
 
-        # beta prior for the uncertain transition
-        self.M = np.ones(2)
+        self.Q_ro = self.Q_nans.copy()
 
         return None
+
+    def _belief_update(self, M, s, s1):
+
+        '''
+        ----
+        Bayesian belief updates for transition beta prior
+
+        s           -- previous state 
+        a           -- chosen action
+        s1          -- resulting new state
+        ----
+        ''' 
+
+        M_out = M.copy()
+
+        # unsuccessful 
+        if s == s1:
+            M_out[1] += 1
+        # successful
+        else:
+            M_out[0] += 1
+
+        return M_out
 
     def ucb_poliy(self, q_vals, c, n):
 
@@ -61,7 +74,10 @@ class Bamcp(Environment):
             q_vals_allowed = q_vals
 
         for idx, q in enumerate(q_vals_allowed):
-            q_vals_allowed[idx] = q + c*np.sqrt(np.log(np.nansum(n))/n[idx])
+            if n[idx] == 0:
+                q_vals_allowed[idx] = np.inf
+            else:
+                q_vals_allowed[idx] = q + c*np.sqrt(np.log(np.nansum(n))/n[idx])
 
         probs = np.zeros(len(q_vals_allowed))
         probs[np.nanargmax(q_vals_allowed)] = 1
@@ -96,19 +112,20 @@ class Bamcp(Environment):
 
     def search(self, s):
         
-        self.c    = 1
-        self.M    = np.array([1, 1])
-        self.eps  = 1e-7
         self.Q    = self.Q_nans.copy()
-        self.N    = self.Q_nans.copy() + 1
+        self.N    = self.Q_nans.copy()
         # {depth: [[history, q, N(s, a)]]
         self.tree = {0:[]}
 
-        for i in range(2000):
+        for i in range(self.num_sims):
             # if i%1000 == 0:
                 # print(i)
             m = np.random.beta(self.M[0], self.M[1])
             _ = self.simulate([s], m, 0)
+
+        q_vals = self.tree[0][0][1]#
+        print(s, q_vals)
+        return np.nanargmax(q_vals)
 
     def simulate(self, h, m, d):
         
@@ -136,11 +153,11 @@ class Bamcp(Environment):
                 break
 
         if not check:
-            probs = self.rollout_policy(self.Q[s, :].copy())
-            if np.random.uniform() > 0.5:
-                a = np.argwhere(self.Q[s, :] == np.nanmax(self.Q[s, :])).flatten()[0]
+            probs = self.rollout_policy(self.Q_ro[s, :].copy())
+            if np.random.uniform() > 0.3:
+                a = np.argwhere(self.Q_ro[s, :] == np.nanmax(self.Q_ro[s, :])).flatten()[0]
             else:
-                a = np.random.choice(range(self.num_actions), p=probs)
+                a = np.random.choice(range(self.num_actions), p=probs) # can take all actions?
 
             if (s == self.uncertain_states_actions[0]) and (a==self.uncertain_states_actions[1]):
                 s1u, _  = self._get_new_state(s, a, unlocked=True)
@@ -183,8 +200,8 @@ class Bamcp(Environment):
         h1 = h + [a, s1]
         R  = r + self.gamma * self.simulate(h1, m, d+1)
 
-        q[a] += (R-q[a])/n[a]
         n[a] += 1
+        q[a] += (R-q[a])/n[a]
         self.tree[d][vidx] = [h, q.copy(), n]
 
         return R
@@ -203,11 +220,11 @@ class Bamcp(Environment):
         #     # print('yes', h)
         #     return 0
 
-        probs = self.rollout_policy(self.Q[s, :].copy())
-        if np.random.uniform() > 0.5:
-            a = np.argwhere(self.Q[s, :] == np.nanmax(self.Q[s, :])).flatten()[0]
+        probs = self.rollout_policy(self.Q_ro[s, :].copy())
+        if np.random.uniform() > 0.3:
+            a = np.argwhere(self.Q_ro[s, :] == np.nanmax(self.Q_ro[s, :])).flatten()[0]
         else:
-            a = np.random.choice(range(self.num_actions), p=probs)
+            a = np.random.choice(range(self.num_actions), p=probs) # can take all actions?
 
         if (s == self.uncertain_states_actions[0]) and (a==self.uncertain_states_actions[1]):
             s1u, _  = self._get_new_state(s, a, unlocked=True)
@@ -222,3 +239,32 @@ class Bamcp(Environment):
 
         h1 = h + [a, s1]
         return r + self.gamma * self.rollout(h1, m, d+1)
+
+    def run_simulation(self, save_path=None):
+
+        if save_path is not None:
+            f = open(os.path.join(save_path, 'info.txt'), 'w')
+
+        self.state = self.start_state
+
+        for ep in range(self.num_steps):
+
+            a     = self.search(self.state)
+            s1, r = self._get_new_state(self.state, a, unlocked=False)
+            
+            # update transition probability belief
+            if (self.state == self.uncertain_states_actions[0]) and (a==self.uncertain_states_actions[1]):
+                self.M = self._belief_update(self.M, self.state, s1)
+
+            self.Q_ro[self.state, a] += self.alpha*(r + self.gamma*np.nanmax(self.Q_ro[s1, :]) - self.Q_ro[self.state, a])
+
+            if save_path is not None:
+                f.write('\nMove %u/%u, [%u, %u, %u, %u]'%(ep+1, self.num_steps, self.state, a, r, s1))
+
+            self.state = s1
+
+            if self.state == self.goal_state:
+                self.state = self.start_state
+
+        f.close()
+        return None

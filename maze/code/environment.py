@@ -2,7 +2,7 @@ import numpy as np
 
 class Environment:
 
-    def __init__(self, config, blocked_state_actions: list, start_coords, goal_coords):
+    def __init__(self, **p):
 
         '''
         ----
@@ -13,16 +13,14 @@ class Environment:
         ----
         '''
 
-        self.config                = config
-        self.blocked_state_actions = blocked_state_actions
-        self.num_x_states          = config.shape[1]
-        self.num_y_states          = config.shape[0]
+        self.__dict__.update(**p)
 
-        self.num_states            = self.num_x_states*self.num_y_states
-        self.num_actions           = 4
+        self.config      = np.zeros((self.num_y_states, self.num_x_states))
+        self.config[self.goal_coords[0], self.goal_coords[1]] = self.rew_value
+        self.num_states  = self.num_x_states*self.num_y_states
 
-        self.start_coords          = start_coords
-        self.goal_coords           = goal_coords
+        self.start_state = self._convert_coords_to_state(self.start_coords)
+        self.goal_state  = self._convert_coords_to_state(self.goal_coords)
 
         return None
 
@@ -70,10 +68,15 @@ class Environment:
             else:
                 x1_coord, y1_coord = x_coord + 1, y_coord
 
+            s1 = self._convert_coords_to_state([y1_coord, x1_coord])
+
+            if s1 in self.nan_states:
+                r  = self.config[y_coord, x_coord]
+                return s, r
+
             # check the barriers
             if (unlocked == True) or ([s, a] not in self.blocked_state_actions):
                 r  = self.config[y1_coord, x1_coord]
-                s1 = self._convert_coords_to_state([y1_coord, x1_coord])
                 return s1, r
             else:
                 r = self.config[y_coord, x_coord]

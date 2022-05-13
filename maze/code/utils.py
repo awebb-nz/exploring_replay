@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib.patches import RegularPolygon
+from matplotlib.patches import RegularPolygon, Rectangle
 from matplotlib.collections import PatchCollection
 import seaborn as sns
 import os, glob, shutil
@@ -58,6 +58,40 @@ def plot_simulation(agent, data_path, save_path):
 
     return None
 
+def plot_environment(ax, env):
+                
+    # state grid
+    for st_x in range(env.num_x_states):
+        ax.axvline(st_x, c='k', linewidth=0.6)
+    for st_y in range(env.num_y_states):
+        ax.axhline(st_y, c='k', linewidth=0.6)
+    
+    for k in env.blocked_state_actions:
+        s, a = k
+        i, j = env._convert_state_to_coords(s)
+        if a == 0:
+            ax.hlines((env.num_y_states-i), j, j+1, linewidth=6, color='b')
+        elif a == 3:
+            ax.vlines(j+1, (env.num_y_states-i)-1, (env.num_y_states-i), linewidth=6, color='b')
+
+    if len(env.nan_states) > 0:
+        patches = []
+        for s in env.nan_states:
+            sy, sx   = env._convert_state_to_coords(s)
+            patches += [Rectangle((sx, env.num_y_states-sy-1), 1, 1, edgecolor='k', facecolor='k', linewidth=1)]
+
+        collection = PatchCollection(patches, match_original=True)
+        ax.add_collection(collection)
+
+    # goal symbol
+    goal_y, goal_x   = env._convert_state_to_coords(env.goal_state)
+    ax.scatter(goal_x+0.5, env.num_y_states - goal_y -0.5, s=600, c='orange', marker=r'$\clubsuit$', alpha=0.7)
+
+    ax.set_xlim(0, env.num_x_states)
+    ax.set_ylim(0, env.num_y_states)
+
+    return None
+
 def add_patches(s, a, q, num_y_states, num_x_states):
     
     num_states = num_y_states * num_x_states
@@ -88,7 +122,10 @@ def add_patches(s, a, q, num_y_states, num_x_states):
 
 def plot_maze(ax, Q, agent, move=None):
     
+    nan_idcs = np.argwhere(np.all(np.isnan(Q), axis=1)).flatten()
+    Q[nan_idcs, :] = 0
     Q_plot = np.nanmax(Q, axis=1).reshape(agent.num_y_states, agent.num_x_states)[::-1, :]
+
     if np.all(Q_plot == 0):
         sns.heatmap(Q_plot, cmap=['white'], annot=False, fmt='.2f', cbar=True, ax=ax)
     else:
@@ -96,7 +133,7 @@ def plot_maze(ax, Q, agent, move=None):
     
     # arrows for actions
     patches = []
-    for st in np.delete(range(agent.num_states), agent.goal_state):
+    for st in np.delete(range(agent.num_states), [agent.goal_state] + agent.nan_states):
         for ac in range(4):
             if ~np.isnan(Q[st, ac]):
                 patches += add_patches(st, ac, Q[st, ac]/np.nanmax(np.abs(Q)), agent.num_y_states, agent.num_x_states)
@@ -108,14 +145,19 @@ def plot_maze(ax, Q, agent, move=None):
                 elif ac == 3:
                     ax.vlines(j+1, (agent.num_y_states-i)-1, (agent.num_y_states-i), linewidth=6, color='b')
 
+    if len(agent.nan_states) > 0:
+        for s in agent.nan_states:
+            sy, sx   = agent._convert_state_to_coords(s)
+            patches += [Rectangle((sx, agent.num_y_states-sy-1), 1, 1, edgecolor='k', facecolor='k', linewidth=1)]
+
     collection = PatchCollection(patches, match_original=True)
     ax.add_collection(collection)
                 
     # state grid
     for st_x in range(agent.num_x_states):
-        for st_y in range(agent.num_y_states):
-            ax.axhline(st_y, c='k', linewidth=0.6)
-            ax.axvline(st_x, c='k', linewidth=0.6)
+        ax.axvline(st_x, c='k', linewidth=0.6)
+    for st_y in range(agent.num_y_states):
+        ax.axhline(st_y, c='k', linewidth=0.6)
 
     # goal symbol
     goal_y, goal_x   = np.argwhere(np.arange(agent.num_states).reshape(agent.num_y_states, agent.num_x_states) == agent.goal_state).flatten()
@@ -144,7 +186,7 @@ def plot_replay(ax, agent, move=None):
     
     # arrows for actions
     patches = []
-    for st in np.delete(range(agent.num_states), agent.goal_state):
+    for st in np.delete(range(agent.num_states), [agent.goal_state] + agent.nan_states):
         for ac in range(4):
             if len(move) > 0:
                 if (st == move[0]) and (ac == move[1]):
@@ -158,14 +200,19 @@ def plot_replay(ax, agent, move=None):
                 elif ac == 3:
                     ax.vlines(j+1, (agent.num_y_states-i)-1, (agent.num_y_states-i), linewidth=6, color='b')
 
+    if len(agent.nan_states) > 0:
+        for s in agent.nan_states:
+            sy, sx   = agent._convert_state_to_coords(s)
+            patches += [Rectangle((sx, agent.num_y_states-sy-1), 1, 1, edgecolor='k', facecolor='k', linewidth=1)]
+
     collection = PatchCollection(patches, match_original=True)
     ax.add_collection(collection)
                 
     # state grid
     for st_x in range(agent.num_x_states):
-        for st_y in range(agent.num_y_states):
-            ax.axhline(st_y, c='k', linewidth=0.6)
-            ax.axvline(st_x, c='k', linewidth=0.6)
+        ax.axvline(st_x, c='k', linewidth=0.6)
+    for st_y in range(agent.num_y_states):
+        ax.axhline(st_y, c='k', linewidth=0.6)
 
     goal_y, goal_x   = np.argwhere(np.arange(agent.num_states).reshape(agent.num_y_states, agent.num_x_states) == agent.goal_state).flatten()
 
@@ -200,7 +247,7 @@ def plot_need(ax, need, agent):
     
     # arrows for actions
     patches = []
-    for st in np.delete(range(agent.num_states), agent.goal_state):
+    for st in np.delete(range(agent.num_states), [agent.goal_state] + agent.nan_states):
         for ac in range(4):
             if [st, ac] in agent.blocked_state_actions:
                 i, j = np.argwhere(np.arange(agent.num_states).reshape(agent.num_y_states, agent.num_x_states) == st).flatten()
@@ -209,14 +256,19 @@ def plot_need(ax, need, agent):
                 elif ac == 3:
                     ax.vlines(j+1, (agent.num_y_states-i)-1, (agent.num_y_states-i), linewidth=6, color='b')
 
+    if len(agent.nan_states) > 0:
+        for s in agent.nan_states:
+            sy, sx   = agent._convert_state_to_coords(s)
+            patches += [Rectangle((sx, agent.num_y_states-sy-1), 1, 1, edgecolor='k', facecolor='k', linewidth=1)]
+
     collection = PatchCollection(patches, match_original=True)
     ax.add_collection(collection)
                 
     # state grid
     for st_x in range(agent.num_x_states):
-        for st_y in range(agent.num_y_states):
-            ax.axhline(st_y, c='k', linewidth=0.6)
-            ax.axvline(st_x, c='k', linewidth=0.6)
+        ax.axvline(st_x, c='k', linewidth=0.6)
+    for st_y in range(agent.num_y_states):
+        ax.axhline(st_y, c='k', linewidth=0.6)
 
     # goal symbol
     goal_y, goal_x   = np.argwhere(np.arange(agent.num_states).reshape(agent.num_y_states, agent.num_x_states) == agent.goal_state).flatten()
