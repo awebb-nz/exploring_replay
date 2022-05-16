@@ -3,10 +3,19 @@ import numpy as np
 from matplotlib.patches import RegularPolygon, Rectangle
 from matplotlib.collections import PatchCollection
 import seaborn as sns
-import os, glob, shutil
+import os, glob, shutil, ast
 sns.set_style('white')
 
-def plot_simulation(agent, data_path, save_path):
+def load_env(env_file_path):
+    with open(env_file_path, 'r') as f:
+        env_config = {}
+        for line in f:
+            k, v = line.strip().split('=')
+            env_config[k.strip()] = ast.literal_eval(v.strip())
+    
+    return env_config 
+
+def plot_simulation(agent, data_path, save_path, start_move=None):
     
     if os.path.isdir(save_path):
         shutil.rmtree(save_path)
@@ -15,17 +24,28 @@ def plot_simulation(agent, data_path, save_path):
     files = glob.glob(os.path.join(data_path, '*.npz'))
     files.sort(key=lambda s: int(s.split('_')[-1][:-4]))
 
+    if start_move is not None:
+        files = files[start_move:]
+
     for file in files:
         data         = np.load(file, allow_pickle=True)
         Q_history    = data['Q_history']
-        gain_history = data['gain_history']
-        need_history = data['need_history']
-        move         = data['move']
+
+        if 'gain_history' in data.files:
+            gain_history = data['gain_history']
+            need_history = data['need_history']
+            move         = data['move']
+            replay       = True
+        else:
+            replay       = False
 
         fig = plt.figure(figsize=(27, 16), constrained_layout=True)
         # plot Q values
         ax  = plt.subplot(221)
-        plot_maze(ax, Q_history[0], agent, move)
+        if replay:
+            plot_maze(ax, Q_history[0], agent, move)
+        else:
+            plot_maze(ax, Q_history, agent, move)
         # plot Replay
         ax1 = plt.subplot(223)
         # plot_replay(ax1, agent, move=None)
@@ -38,23 +58,24 @@ def plot_simulation(agent, data_path, save_path):
         plt.savefig(os.path.join(save_path, 'move_%s.png')%file.split('_')[-1][:-4])
         plt.close()
 
-        for idx, Q_rep in enumerate(Q_history[1:]):
-            if idx == 0:
-                sr, ar = np.argwhere(np.nan_to_num(Q_rep, nan=0) != np.nan_to_num(Q_history[0], nan=0)).flatten()
-            else:
-                sr, ar = np.argwhere(np.nan_to_num(Q_history[idx], nan=0) != np.nan_to_num(Q_rep, nan=0)).flatten()
+        if replay:
+            for idx, Q_rep in enumerate(Q_history[1:]):
+                if idx == 0:
+                    sr, ar = np.argwhere(np.nan_to_num(Q_rep, nan=0) != np.nan_to_num(Q_history[0], nan=0)).flatten()
+                else:
+                    sr, ar = np.argwhere(np.nan_to_num(Q_history[idx], nan=0) != np.nan_to_num(Q_rep, nan=0)).flatten()
 
-            fig = plt.figure(figsize=(27, 16), constrained_layout=True)
-            ax  = plt.subplot(221)
-            plot_maze(ax, Q_rep, agent, move)
-            ax1 = plt.subplot(223)
-            plot_replay(ax1, agent, [sr, ar])
-            ax2 = plt.subplot(222)
-            plot_maze(ax2, gain_history[idx+1], agent)
-            ax3 = plt.subplot(224)
-            plot_need(ax3, need_history[idx+1], agent)
-            plt.savefig(os.path.join(save_path, 'move_%s_%u.png')%(file.split('_')[-1][:-4], idx))
-            plt.close()
+                fig = plt.figure(figsize=(27, 16), constrained_layout=True)
+                ax  = plt.subplot(221)
+                plot_maze(ax, Q_rep, agent, move)
+                ax1 = plt.subplot(223)
+                plot_replay(ax1, agent, [sr, ar])
+                ax2 = plt.subplot(222)
+                plot_maze(ax2, gain_history[idx+1], agent)
+                ax3 = plt.subplot(224)
+                plot_need(ax3, need_history[idx+1], agent)
+                plt.savefig(os.path.join(save_path, 'move_%s_%u.png')%(file.split('_')[-1][:-4], idx))
+                plt.close()
 
     return None
 

@@ -670,9 +670,9 @@ class Agent(Environment):
 
         replay  = False
 
-        for step in range(num_steps):
+        for move in range(num_steps):
             
-            print('Step %u/%u'%(step+1, num_steps))
+            print('Step %u/%u'%(move, num_steps))
 
             s      = self.state
 
@@ -686,7 +686,7 @@ class Agent(Environment):
             self._qval_update(s, a, r, s1)
 
             if (self.save_path is not None) and replay:
-                self.file.write('\n\nMove %u/%u, [<%u, [%u, %u]> %u], q_old: %.2f, q_new: %.2f\n'%(step+1, num_steps, s, self.M[0], self.M[1], a, q_old, self.Q[s, a]))
+                self.file.write('\n\nMove %u/%u, [<%u, [%u, %u]> %u], q_old: %.2f, q_new: %.2f\n'%(move, num_steps, s, self.M[0], self.M[1], a, q_old, self.Q[s, a]))
 
             # update transition probability belief
             if [s, a] in self.uncertain_states_actions:
@@ -699,19 +699,19 @@ class Agent(Environment):
             # transition to new state
             self.state = s1
 
-            if step == start_replay:
-
+            if move == start_replay:
                 replay = True
-
                 if reset_prior:
                     self.M = np.ones(2)
 
             if replay:
-
                 Q_history, gain_history, need_history = self._replay()
 
-                if save_path:
-                    np.savez(os.path.join(save_path, 'Q_%u.npz'%step), Q_history=Q_history, gain_history=gain_history, need_history=need_history, move=[s, a, r, s1])
+            if save_path:
+                if replay:
+                    np.savez(os.path.join(save_path, 'Q_%u.npz'%move), Q_history=Q_history, gain_history=gain_history, need_history=need_history, move=[s, a, r, s1])
+                else:
+                    np.savez(os.path.join(save_path, 'Q_%u.npz'%move), Q_history=self.Q, move=[s, a, r, s1])
 
             if s1 == self.goal_state:
                 self.state = self.start_state
