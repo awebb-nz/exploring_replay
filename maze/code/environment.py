@@ -96,3 +96,48 @@ class Environment:
         states = np.arange(self.num_states).reshape(self.num_y_states, self.num_x_states)
 
         return states[y_coord, x_coord]
+
+    def _init_q_values(self):
+
+        self.Q = np.zeros((self.num_states, self.num_actions))
+
+        # set edge Q values to np.nan
+        for s in np.delete(range(self.num_states), [self.goal_state] + self.nan_states):
+            for a in range(self.num_actions):
+                check = True
+                if [s, a] in self.uncertain_states_actions:
+                    check = False
+                    continue
+                if check:
+                    s1, _ = self._get_new_state(s, a, unlocked=False)
+                    if (s1 == s):
+                        self.Q[s, a] = np.nan
+
+        if len(self.nan_states) > 0:
+            for s in self.nan_states:
+                self.Q[s, :] = np.nan
+
+        if self.env_name == 'tolman1':
+            self.Q[8, 1] = np.nan
+        elif self.env_name == 'tolman2':
+            self.Q[20, 1] = np.nan
+
+        self.Q_nans = self.Q.copy()
+
+        return None
+
+    def _solve_mb(self, eps):
+
+        Q_MB  = self.Q_nans.copy()
+        delta = 1
+        while delta > eps:
+            Q_MB_new = Q_MB.copy()
+            for s in np.delete(range(self.num_states), self.goal_state):
+                for a in range(self.num_actions):
+                    if ~np.isnan(Q_MB[s, a]):
+                        s1, r = self._get_new_state(s, a, unlocked=False)
+                        Q_MB_new[s, a] += r + self.gamma*np.nanmax(Q_MB[s1, :]) - Q_MB_new[s, a]
+            diff  = Q_MB_new - Q_MB
+            delta = np.nanmax(diff[:])
+
+        return Q_MB_new

@@ -1,6 +1,0 @@
-Horizon:       4
-Prior belief: (alpha_0: 4, beta_0: 2, alpha_1: 2, beta_1: 2)
-gamma:         0.90
-xi:            0.0050
-beta:          4.00
-MF Q values:  [0.00, 0.00]

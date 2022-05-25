@@ -15,7 +15,7 @@ def load_env(env_file_path):
     
     return env_config 
 
-def plot_simulation(agent, data_path, save_path, start_move=None):
+def plot_simulation(agent, data_path, save_path, start_plotting=None):
     
     if os.path.isdir(save_path):
         shutil.rmtree(save_path)
@@ -24,8 +24,8 @@ def plot_simulation(agent, data_path, save_path, start_move=None):
     files = glob.glob(os.path.join(data_path, '*.npz'))
     files.sort(key=lambda s: int(s.split('_')[-1][:-4]))
 
-    if start_move is not None:
-        files = files[start_move:]
+    if start_plotting is not None:
+        files = files[start_plotting:]
 
     for file in files:
         data         = np.load(file, allow_pickle=True)
@@ -34,10 +34,11 @@ def plot_simulation(agent, data_path, save_path, start_move=None):
         if 'gain_history' in data.files:
             gain_history = data['gain_history']
             need_history = data['need_history']
-            move         = data['move']
             replay       = True
         else:
             replay       = False
+
+        move = data['move']
 
         fig = plt.figure(figsize=(27, 16), constrained_layout=True)
         # plot Q values
@@ -79,7 +80,7 @@ def plot_simulation(agent, data_path, save_path, start_move=None):
 
     return None
 
-def plot_environment(ax, env):
+def plot_env(ax, env):
                 
     # state grid
     for st_x in range(env.num_x_states):
