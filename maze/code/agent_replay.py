@@ -435,7 +435,7 @@ class Agent(Environment):
         T = np.zeros((self.num_states, self.num_states))
         for s in range(self.num_states):
             qvals = Q[s, :]
-            probs = self._policy(qvals, temp=self.need_beta)
+            probs = self._policy(qvals, temp=self.online_beta)
             for a in range(self.num_actions):
                 T[s, :] += probs[a] * Ta[s, a, :]
 
