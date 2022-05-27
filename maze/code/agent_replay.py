@@ -67,6 +67,8 @@ class Agent(Environment):
             self.Q[8, 1] = np.nan
         elif self.env_name == 'tolman2':
             self.Q[20, 1] = np.nan
+        elif self.env_name == 'u':
+            self.Q[1, 2] = np.nan
 
         self.Q_nans = self.Q.copy()
 
