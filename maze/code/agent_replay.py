@@ -67,6 +67,8 @@ class Agent(Environment):
             self.Q[8, 1] = np.nan
         elif self.env_name == 'tolman2':
             self.Q[20, 1] = np.nan
+        elif self.env_name == 'u':
+            self.Q[1, 2] = np.nan
 
         self.Q_nans = self.Q.copy()
 
@@ -435,7 +437,7 @@ class Agent(Environment):
         T = np.zeros((self.num_states, self.num_states))
         for s in range(self.num_states):
             qvals = Q[s, :]
-            probs = self._policy(qvals, temp=self.need_beta)
+            probs = self._policy(qvals, temp=self.online_beta)
             for a in range(self.num_actions):
                 T[s, :] += probs[a] * Ta[s, a, :]
 
