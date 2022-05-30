@@ -144,6 +144,12 @@ def add_patches(s, a, q, num_y_states, num_x_states):
 
 def plot_maze(ax, Q, agent, move=None):
     
+    # state grid
+    for st_x in range(agent.num_x_states):
+        ax.axvline(st_x, c='k', linewidth=0.6)
+    for st_y in range(agent.num_y_states):
+        ax.axhline(st_y, c='k', linewidth=0.6)
+
     nan_idcs = np.argwhere(np.all(np.isnan(Q), axis=1)).flatten()
     Q[nan_idcs, :] = 0
     Q_plot = np.nanmax(Q, axis=1).reshape(agent.num_y_states, agent.num_x_states)[::-1, :]
@@ -158,7 +164,10 @@ def plot_maze(ax, Q, agent, move=None):
     for st in np.delete(range(agent.num_states), [agent.goal_state] + agent.nan_states):
         for ac in range(4):
             if ~np.isnan(Q[st, ac]):
-                patches += add_patches(st, ac, Q[st, ac]/np.nanmax(np.abs(Q)), agent.num_y_states, agent.num_x_states)
+                if Q[st, ac] == 0:
+                    patches += add_patches(st, ac, 0, agent.num_y_states, agent.num_x_states)
+                else:
+                    patches += add_patches(st, ac, Q[st, ac]/np.nanmax(np.abs(Q)), agent.num_y_states, agent.num_x_states)
                 # patches += add_patches(st, ac, Q[st, ac], agent.num_y_states, agent.num_x_states)
             if [st, ac] in agent.blocked_state_actions:
                 i, j = np.argwhere(np.arange(agent.num_states).reshape(agent.num_y_states, agent.num_x_states) == st).flatten()
@@ -174,12 +183,6 @@ def plot_maze(ax, Q, agent, move=None):
 
     collection = PatchCollection(patches, match_original=True)
     ax.add_collection(collection)
-                
-    # state grid
-    for st_x in range(agent.num_x_states):
-        ax.axvline(st_x, c='k', linewidth=0.6)
-    for st_y in range(agent.num_y_states):
-        ax.axhline(st_y, c='k', linewidth=0.6)
 
     # goal symbol
     goal_y, goal_x   = np.argwhere(np.arange(agent.num_states).reshape(agent.num_y_states, agent.num_x_states) == agent.goal_state).flatten()
