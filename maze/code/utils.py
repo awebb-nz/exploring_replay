@@ -165,9 +165,9 @@ def plot_maze(ax, Q, agent, move=None):
     Q_plot = Q_plot.reshape(agent.num_y_states, agent.num_x_states)[::-1, :]
 
     if np.all(Q_plot == 0):
-        sns.heatmap(Q_plot, cmap=['white'], annot=False, fmt='.2f', cbar=True, ax=ax)
+        sns.heatmap(Q_plot, cmap=['white'], annot=False, fmt='.2f', cbar=True, vmin=0, vmax=1, ax=ax)
     else:
-        sns.heatmap(Q_plot, cmap='Greys', annot=True, fmt='.2f', cbar=True, ax=ax)
+        sns.heatmap(Q_plot, cmap='Greys', annot=True, fmt='.2f', cbar=True, vmin=0, vmax=1, ax=ax)
     
     # arrows for actions
     patches = []
@@ -177,7 +177,7 @@ def plot_maze(ax, Q, agent, move=None):
                 if Q[st, ac] == 0:
                     patches += add_patches(st, ac, 0, agent.num_y_states, agent.num_x_states)
                 else:
-                    patches += add_patches(st, ac, Q[st, ac]/np.nanmax(np.abs(Q)), agent.num_y_states, agent.num_x_states)
+                    patches += add_patches(st, ac, Q[st, ac], agent.num_y_states, agent.num_x_states)
                 # patches += add_patches(st, ac, Q[st, ac], agent.num_y_states, agent.num_x_states)
             if [st, ac] in agent.blocked_state_actions:
                 i, j = np.argwhere(np.arange(agent.num_states).reshape(agent.num_y_states, agent.num_x_states) == st).flatten()
