@@ -152,7 +152,17 @@ def plot_maze(ax, Q, agent, move=None):
 
     nan_idcs = np.argwhere(np.all(np.isnan(Q), axis=1)).flatten()
     Q[nan_idcs, :] = 0
-    Q_plot = np.nanmax(Q, axis=1).reshape(agent.num_y_states, agent.num_x_states)[::-1, :]
+
+    Q_plot = np.zeros(agent.num_states)
+    for s in range(agent.num_states):
+        max_val = 0
+        for a in range(agent.num_actions):
+            if ~np.isnan(Q[s, a]):
+                if np.absolute(Q[s, a]) > np.absolute(max_val):
+                    Q_plot[s] = Q[s, a]
+                    max_val   = Q[s, a]
+    # Q_plot   = np.nanmax(Q, axis=1).reshape(agent.num_y_states, agent.num_x_states)[::-1, :]
+    Q_plot = Q_plot.reshape(agent.num_y_states, agent.num_x_states)[::-1, :]
 
     if np.all(Q_plot == 0):
         sns.heatmap(Q_plot, cmap=['white'], annot=False, fmt='.2f', cbar=True, ax=ax)
