@@ -165,9 +165,9 @@ def plot_maze(ax, Q, agent, move=None):
     Q_plot = Q_plot.reshape(agent.num_y_states, agent.num_x_states)[::-1, :]
 
     if np.all(Q_plot == 0):
-        sns.heatmap(Q_plot, cmap=['white'], annot=False, fmt='.2f', cbar=True, vmin=0, vmax=1, ax=ax)
+        sns.heatmap(np.absolute(Q_plot), cmap=['white'], annot=False, fmt='.2f', cbar=True, vmin=0, vmax=1, ax=ax)
     else:
-        sns.heatmap(Q_plot, cmap='Greys', annot=True, fmt='.2f', cbar=True, vmin=0, vmax=1, ax=ax)
+        sns.heatmap(np.absolute(Q_plot), cmap='Greys', annot=True, fmt='.2f', cbar=True, vmin=0, vmax=1, ax=ax)
     
     # arrows for actions
     patches = []
