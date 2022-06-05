@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.24 (TeX Live 2022/Arch Linux) (preloaded format=pdflatex 2022.5.13)  5 JUN 2022 11:13
+This is pdfTeX, Version 3.141592653-2.6-1.40.24 (TeX Live 2022/Arch Linux) (preloaded format=pdflatex 2022.5.13)  5 JUN 2022 13:33
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -394,16 +394,16 @@ Overfull \hbox (15.0pt too wide) in paragraph at lines 3--243
 
 {/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}] (./tex_tree_7.aux) ) 
 Here is how much of TeX's memory you used:
- 13354 strings out of 478238
- 273479 string characters out of 5850456
- 668056 words of memory out of 5000000
- 31402 multiletter control sequences out of 15000+600000
+ 13353 strings out of 478238
+ 273460 string characters out of 5850456
+ 668016 words of memory out of 5000000
+ 31401 multiletter control sequences out of 15000+600000
  469259 words of font info for 28 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  115i,9n,118p,411b,750s stack positions out of 5000i,500n,10000p,200000b,80000s
 </usr/
 share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr5.pfb>
-Output written on tex_tree_7.pdf (1 page, 18757 bytes).
+Output written on tex_tree_7.pdf (1 page, 18762 bytes).
 PDF statistics:
  16 PDF objects out of 1000 (max. 8388607)
  10 compressed objects within 1 object stream
