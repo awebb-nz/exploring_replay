@@ -1,6 +1,10 @@
 from environment import Environment
 import numpy as np
-import os, shutil
+import os, shutil, ast
+
+def arreq_in_list(myarr, list_arrays):
+    return next((True for elem in list_arrays if np.array_equal(elem, myarr)), False)
+
 
 class Agent(Environment):
 
@@ -42,7 +46,7 @@ class Agent(Environment):
         self._init_q_values()
 
         # initialise prior
-        self.M = np.ones(len(self.barriers))
+        self.M = np.ones((len(self.barriers), 2))
 
         return None
         
@@ -72,10 +76,10 @@ class Agent(Environment):
             self.Q[20, 1] = np.nan
         elif self.env_name == 'tolman3':
             self.Q[8,  3] = np.nan
-        elif self.env_name == 'tolman123':
-            self.Q[8,  1] = np.nan
-            self.Q[20, 1] = np.nan
-            self.Q[8,  3] = np.nan
+        # elif self.env_name == 'tolman123':
+        #     self.Q[8,  1] = np.nan
+        #     self.Q[20, 1] = np.nan
+        #     self.Q[8,  3] = np.nan
         elif self.env_name == 'u':
             self.Q[1,  2] = np.nan
 
@@ -226,13 +230,13 @@ class Agent(Environment):
             d     = 1
 
             # current state
-            if b not in his[s].keys():
-                his[s][b] = [np.full(self.num_sims, np.nan), np.full(self.num_sims, np.nan)]
+            if str(b.tolist()).strip() not in his[s].keys():
+                his[s][str(b.tolist()).strip()] = [np.full(self.num_sims, np.nan), np.full(self.num_sims, np.nan)]
             
             # need
-            his[s][b][0][sim] = 1
+            his[s][str(b.tolist()).strip()][0][sim] = 1
             # number of steps
-            his[s][b][1][sim] = 0
+            his[s][str(b.tolist()).strip()][1][sim] = 0
 
             while ((self.gamma**d) > 1e-4):
 
@@ -253,33 +257,30 @@ class Agent(Environment):
                     s1l, _ = self._get_new_state(s, a, unlocked=False)
 
                     # sample next state
-                    if b[idx] >= 1:
-                        bp = b[idx]/b.sum()
-                    else:
-                        bp = b[idx]
+                    bp = b[idx, 0]/np.sum(b[idx, :])
                         
                     s1 = np.random.choice([s1u, s1l], p=[bp, 1-bp])
 
                     # update belief based on the observed transition
-                    b = self._belief_step_update(b, s, s1)
+                    b = self._belief_step_update(b, idx, s, s1)
 
                 else:
                     s1, _  = self._get_new_state(s, a, unlocked=False)
                 
-                if b not in his[s1].keys():
-                    his[s1][b] = [np.full(self.num_sims, np.nan), np.full(self.num_sims, np.nan)]
+                if str(b.tolist()).strip() not in his[s1].keys():
+                    his[s1][str(b.tolist()).strip()] = [np.full(self.num_sims, np.nan), np.full(self.num_sims, np.nan)]
 
-                curr_val = his[s1][b][0][sim]
+                curr_val = his[s1][str(b.tolist()).strip()][0][sim]
                 if np.isnan(curr_val):
-                    his[s1][b][0][sim] = self.gamma**d
-                    his[s1][b][1][sim] = d
+                    his[s1][str(b.tolist()).strip()][0][sim] = self.gamma**d
+                    his[s1][str(b.tolist()).strip()][1][sim] = d
                 
                 s  = s1
                 d += 1
 
         return his
 
-    def _belief_step_update(self, M, s, s1):
+    def _belief_step_update(self, M, idx, s, s1):
 
         '''
         ----
@@ -291,14 +292,14 @@ class Agent(Environment):
         ----
         ''' 
 
-        M_out = M
+        M_out = M.copy()
 
         # unsuccessful 
         if s == s1:
-            M_out = 0
+            M_out[idx, 1] += 1
         # successful
         else:
-            M_out = 1
+            M_out[idx, 0] += 1
 
         return M_out
 
@@ -350,7 +351,7 @@ class Agent(Environment):
         for hi in range(self.horizon):
             this_tree = btree[hi]
             for k, vals in this_tree.items():
-                if (vals[0][0] == b) and (vals[0][1] == s):
+                if np.array_equal(vals[0][0], b) and (vals[0][1] == s):
                     return hi, k, True
 
         return None, None, False
@@ -368,7 +369,7 @@ class Agent(Environment):
 
         # create a merged tree -- one single tree for all information states
         idx = 0
-        for s in np.delete(range(self.num_states), [self.goal_state] + self.nan_states):
+        for s in np.delete(range(self.num_states), self.nan_states):
             btree[0][idx] = [[self.M, s], self.Q.copy(), []]
             idx          += 1
 
@@ -380,7 +381,7 @@ class Agent(Environment):
             for k, vals in btree[hi-1].items():
                 
                 # retrieve previous belief information
-                b        = vals[0][0]
+                b        = vals[0][0].copy()
                 s        = vals[0][1]
                 q        = vals[1]
                 prev_idx = k
@@ -394,14 +395,15 @@ class Agent(Environment):
 
                         if [s, a] in self.uncertain_states_actions:
                             
+                            bidx   = self.uncertain_states_actions.index([s, a])
                             # if it's the uncertain state+action then this generates two distinct beliefs
                             # first is when the agent transitions through
                             s1u, _ = self._get_new_state(s, a, unlocked=True)
-                            b1u    = self._belief_step_update(b, s, s1u)
+                            b1u    = self._belief_step_update(b, bidx, s, s1u)
 
                             # second is when it doesn't
                             s1l    = s
-                            b1l    = self._belief_step_update(b, s, s)
+                            b1l    = self._belief_step_update(b, bidx, s, s)
 
                             # check if this belief already exists
                             hip, idxp, check = self._check_belief_exists(btree, [b1u, s1u])
@@ -454,10 +456,12 @@ class Agent(Environment):
 
                 if [s, a] in self.uncertain_states_actions:
                     
+                    bidx   = self.uncertain_states_actions.index([s, a])
+
                     s1u, _ = self._get_new_state(s, a, unlocked=True)
                 
-                    Ta[s, a, s1u] = b
-                    Ta[s, a, s1l] = 1-b
+                    Ta[s, a, s1u] = b[bidx, 0]/np.sum(b[bidx, :])
+                    Ta[s, a, s1l] = 1 - b[bidx, 0]/np.sum(b[bidx, :])
 
                 else:
                     Ta[s, a, s1l] = 1
@@ -519,7 +523,7 @@ class Agent(Environment):
 
                 for k1, vals1 in ttree[state].items():
                     
-                    if b != k1:
+                    if not np.array_equal(b, np.array(ast.literal_eval(k1))):
                         continue
 
                     bn      = vals1[0]
@@ -601,8 +605,9 @@ class Agent(Environment):
                     if len(tds) != 2: 
                         q_new_vals[a] = tds[0]
                     else:    
-                        b0 = b
-                        b1 = 1-b
+                        idx = self.uncertain_states_actions.index([state, a])
+                        b0  = b[idx, 0]/np.sum(b[idx, :])
+                        b1  = 1 - b[idx, 0]/np.sum(b[idx, :])
                         q_new_vals[a] = b0*tds[0] + b1*tds[1]
                     
                     Q_new[state, :]     = q_new_vals
@@ -672,7 +677,7 @@ class Agent(Environment):
                 Q_new = nbelief_tree[hi][k][1].copy()
 
                 # if hi == 0:
-                print('Replay [<%u, %u>, %u] horizon %u, q_old: %.2f, q_new: %.2f, evb: %.5f'%(s, b, a, hi, Q_old[s, a], Q_new[s, a], max_evb), flush=True)
+                print('Replay [<%u, %u>] horizon %u, q_old: %.2f, q_new: %.2f, evb: %.5f'%(s, a, hi, Q_old[s, a], Q_new[s, a], max_evb), flush=True)
 
                 new_stuff             = belief_tree[hi][k[0]]
                 new_stuff[1]          = Q_new.copy()
@@ -728,7 +733,6 @@ class Agent(Environment):
         else:
             self.save_path = None
 
-        barrier = 1
         replay  = True
         tried   = False
         success = None
@@ -741,8 +745,13 @@ class Agent(Environment):
             probs  = self._policy(self.Q[s, :], temp=self.online_beta)
             a      = np.random.choice(range(self.num_actions), p=probs)
 
-            if barrier:
-                s1, r  = self._get_new_state(s, a, unlocked=False)
+            if [s, a] in self.uncertain_states_actions:
+                idx    = self.uncertain_states_actions.index([s, a])
+
+                if self.barriers[idx]:
+                    s1, r  = self._get_new_state(s, a, unlocked=False)
+                else:
+                    s1, r  = self._get_new_state(s, a, unlocked=True)
             else:
                 s1, r  = self._get_new_state(s, a, unlocked=True)
 
@@ -754,12 +763,7 @@ class Agent(Environment):
 
             # update transition probability belief
             if [s, a] in self.uncertain_states_actions:
-                self.M = self._belief_step_update(self.M, s, s1)
-                tried = True
-                if s == s1:
-                    success = False
-                else:
-                    success = True 
+                self.M = self._belief_step_update(self.M, idx, s, s1)
 
             # transition to new state
             self.state = s1
@@ -769,16 +773,11 @@ class Agent(Environment):
 
             if save_path:
                 if replay:
-                    np.savez(os.path.join(save_path, 'Q_%u.npz'%move), barrier=barrier, Q_history=Q_history, M=self.M, gain_history=gain_history, need_history=need_history, move=[s, a, r, s1])
+                    np.savez(os.path.join(save_path, 'Q_%u.npz'%move), barrier=self.barriers, Q_history=Q_history, M=self.M, gain_history=gain_history, need_history=need_history, move=[s, a, r, s1])
                 else:
-                    np.savez(os.path.join(save_path, 'Q_%u.npz'%move), barrier=barrier, Q_history=self.Q, M=self.M, move=[s, a, r, s1])
+                    np.savez(os.path.join(save_path, 'Q_%u.npz'%move), barrier=self.barriers, Q_history=self.Q, M=self.M, move=[s, a, r, s1])
 
             if s1 == self.goal_state:
                 self.state = self.start_state
-                self.M     = self._belief_trial_update(self.M, tried, success)
-
-                barrier    = np.random.choice([1, 0], p=[self.phi, 1-self.phi])
-                tried      = False
-                success    = None
 
         return None

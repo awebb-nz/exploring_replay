@@ -61,7 +61,11 @@ def main():
 
     # plot_simulation(agent, save_data_path, save_plot_path)
     
-    agent._solve_mb(1e-5, barriers=[1, 1, 0])
+    Q_MB        = agent._solve_mb(1e-5, barriers=[0, 1, 0])
+    agent.state = 38          # start state
+    agent.M     = np.array([[10, 1], [10, 1], [10, 1]])
+    agent.Q     = Q_MB.copy() # set MF Q values
+    Q_history, gain_history, need_history = agent._replay()
 
     return None
 
