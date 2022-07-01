@@ -1,10 +1,7 @@
 from environment import Environment
 import numpy as np
+from copy import deepcopy
 import os, shutil, ast
-
-def arreq_in_list(myarr, list_arrays):
-    return next((True for elem in list_arrays if np.array_equal(elem, myarr)), False)
-
 
 class Agent(Environment):
 
@@ -396,12 +393,13 @@ class Agent(Environment):
                         if [s, a] in self.uncertain_states_actions:
                             
                             bidx   = self.uncertain_states_actions.index([s, a])
-                            # if it's the uncertain state+action then this generates two distinct beliefs
-                            # first is when the agent transitions through
+                            # if it's the uncertain state+action then this generates 
+                            # two distinct beliefs
+                            # first when the agent transitions through
                             s1u, _ = self._get_new_state(s, a, unlocked=True)
                             b1u    = self._belief_step_update(b, bidx, s, s1u)
 
-                            # second is when it doesn't
+                            # second when it doesn't
                             s1l    = s
                             b1l    = self._belief_step_update(b, bidx, s, s)
 
@@ -547,90 +545,120 @@ class Agent(Environment):
 
         return ntree
 
+    def _imagine_update(self, btree, vals):
+
+        b     = vals[0][0]
+        state = vals[0][1]
+        Q_old = vals[1]
+
+        q_old_vals = Q_old[state, :].copy()
+
+        for val in vals[2]:
+
+            tds = []
+
+            if len(val) == 2:
+
+                a, hil, idxl = val[0][0], val[0][1], val[0][2]
+                _, hiu, idxu = val[1][0], val[1][1], val[1][2]
+
+                s1l          = btree[hil][idxl][0][1]
+                q_prime_u    = btree[hil][idxl][1][s1l, :].copy()
+                s1u          = btree[hiu][idxu][0][1]
+                q_prime_l    = btree[hil][idxl][1][s1u, :].copy()
+
+                y, x = self._convert_state_to_coords(s1u)
+                rew  = self.config[y, x]
+
+                tds += [q_old_vals[a] + self.alpha_r*(rew + self.gamma*np.nanmax(q_prime_u) - q_old_vals[a])]
+                tds += [q_old_vals[a] + self.alpha_r*(0 - q_old_vals[a])]
+
+            else:
+                a, hi1, idx1 = val[0], val[1], val[2]
+                s1           = btree[hi1][idx1][0][1]
+                q_prime      = btree[hi1][idx1][1][s1, :].copy()
+
+                y, x = self._convert_state_to_coords(s1)
+                rew  = self.config[y, x]
+                tds += [q_old_vals[a] + self.alpha_r*(rew + self.gamma*np.nanmax(q_prime) - q_old_vals[a])]
+
+            # get the new (updated) q value
+            Q_new      = Q_old.copy()
+            q_new_vals = q_old_vals.copy()
+
+            if len(tds) != 2: 
+                q_new_vals[a] = tds[0]
+            else:    
+                idx = self.uncertain_states_actions.index([state, a])
+                b0  = b[idx, 0]/np.sum(b[idx, :])
+                b1  = 1 - b[idx, 0]/np.sum(b[idx, :])
+                q_new_vals[a] = b0*tds[0] + b1*tds[1]
+
+        Q_new[state, :]   = q_new_vals
+
+        return state, b, a, Q_new
+
     def _get_updates(self, btree, pntree):
 
-        nbtree    = {hi:{} for hi in range(self.horizon)}
-        evb_tree  = {hi:{} for hi in range(self.horizon)}
-        need_save = np.zeros((self.num_states))
-        gain_save = np.full((self.num_states, self.num_actions), np.nan)
+        updates     = []
+        evbs        = []
 
+        max_seq_len = 2
+
+        # first generate single-step updates
         for hi in reversed(range(self.horizon-1)):
             if len(btree[hi+1]) == 0:
                 continue
 
-            for k, vals in btree[hi].items():
-
-                b     = vals[0][0]
+            for idx, vals in btree[hi].items():
+                
                 state = vals[0][1]
-                Q_old = vals[1]
-
+                # do not consider if goal state
                 if state == self.goal_state:
                     continue
 
-                q_old_vals = Q_old[state, :].copy()
+                state, b, a, Q_new = self._imagine_update(btree, vals)
 
-                for _, val in enumerate(vals[2]):
+                updates += [[hi, idx, [[state, b, a]], Q_new]]
 
-                    tds = []
+                # generalisation -- ?? We need to compute the potential benefit of a single update at <s', b'> at all other beliefs;
+                # that is, <s', b*> for all b* in B. The equation for Need is:
+                # \sum_{<s', b'>} \sum_i \gamma^i P(<s, b> -> <s', b'>, i, \pi_{old})
+                # The equation for Gain is:
+                # \sum_{<s', b'>} \sum_a [\pi_{new}(a | <s', b'>) - \pi_{new}(a | <s', b'>)]q_{\pi_{new}}(<s', b'>, a)
+                Q_old = vals[1]
 
-                    if len(val) == 2:
+                need  = pntree[state]
+                gain  = self._compute_gain(Q_old[state, :].copy(), Q_new[state, :].copy())
+                evb   = need * gain
 
-                        a, hil, idxl = val[0][0], val[0][1], val[0][2]
-                        _, hiu, idxu = val[1][0], val[1][1], val[1][2]
+                evbs += [[evb]]
 
-                        s1l          = btree[hil][idxl][0][1]
-                        q_prime_u    = btree[hil][idxl][1][s1l, :].copy()
-                        s1u          = btree[hiu][idxu][0][1]
-                        q_prime_l    = btree[hil][idxl][1][s1u, :].copy()
+                # here we can elongate this experience
+                if hi == 0:
+                    pool = [updates[-1]]
+                    tmp  = []
+                    for seq in pool: # take an existing sequence
+                        for l in range(max_seq_len-1): # elongate it a # of times
+                            # here need to find an exp to elongate with
+                            # search through the btree to find all exps 
+                            # that lead to the one of interest
 
-                        y, x = self._convert_state_to_coords(s1u)
-                        rew  = self.config[y, x]
+                            for k, vals in btree[0].items():
 
-                        tds += [q_old_vals[a] + self.alpha_r*(rew + self.gamma*np.nanmax(q_prime_u) - q_old_vals[a])]
-                        tds += [q_old_vals[a] + self.alpha_r*(0 - q_old_vals[a])]
+                                if (k == idx): # found a prev exp
+                                    
+                                    nbtree = deepcopy(btree)
+                                    nbtree[hi][idx][1] = Q_new
 
-                    else:
-                        a, hi1, idx1 = val[0], val[1], val[2]
-                        s1           = btree[hi1][idx1][0][1]
-                        q_prime      = btree[hi1][idx1][1][s1, :].copy()
+                                    state, b, a, Q_new = self._imagine_update(nbtree, vals)
 
-                        y, x = self._convert_state_to_coords(s1)
-                        rew  = self.config[y, x]
-                        tds += [q_old_vals[a] + self.alpha_r*(rew + self.gamma*np.nanmax(q_prime) - q_old_vals[a])]
+                                    this_seq = seq
+                                    this_seq[2] += [[state, b, a]]
 
-                    # get the new (updated) q value
-                    Q_new      = Q_old.copy()
-                    q_new_vals = q_old_vals.copy()
+                    pool = tmp
 
-                    if len(tds) != 2: 
-                        q_new_vals[a] = tds[0]
-                    else:    
-                        idx = self.uncertain_states_actions.index([state, a])
-                        b0  = b[idx, 0]/np.sum(b[idx, :])
-                        b1  = 1 - b[idx, 0]/np.sum(b[idx, :])
-                        q_new_vals[a] = b0*tds[0] + b1*tds[1]
-                    
-                    Q_new[state, :]     = q_new_vals
-
-                    new_key             = tuple([k, a])
-                    nbtree[hi][new_key] = [[b, state], Q_new]
-
-                    # generalisation -- ?? We need to compute the potential effect of a single update at <s', b'> on all other beliefs;
-                    # that is, <s', b*> for all b* in B. The equation for Need is:
-                    # \sum_{<s', b'>} \sum_i \gamma^i P(<s, b> -> <s', b'>, i, \pi_{old})
-                    # The equation for Gain is:
-                    # \sum_{<s', b'>} \sum_a [\pi_{new}(a | <s', b'>) - \pi_{new}(a | <s', b'>)]q_{\pi_{new}}(<s', b'>, a)
-                    need = pntree[state]
-                    gain = self._compute_gain(q_old_vals, q_new_vals)
-                    evb  = need * gain
-
-                    evb_tree[hi][new_key] = evb
-
-                    if hi == 0:
-                        gain_save[state, a] = gain
-                        need_save[state]    = need
-
-        return nbtree, evb_tree, gain_save, need_save
+        return updates, evbs
 
     def _get_highest_evb(self, evb_tree):
         
@@ -663,7 +691,7 @@ class Agent(Environment):
         pneed_tree     = self._build_pneed_tree(belief_tree, traj_tree)
         
         while True:
-            nbelief_tree, evb_tree, gain, need = self._get_updates(belief_tree, pneed_tree)
+            updates, evbs = self._get_updates(belief_tree, pneed_tree)
 
             hi, k, max_evb = self._get_highest_evb(evb_tree)
             if max_evb < self.xi:
