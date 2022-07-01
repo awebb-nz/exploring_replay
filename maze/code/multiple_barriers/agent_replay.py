@@ -633,16 +633,21 @@ class Agent(Environment):
                 gain  = self._compute_gain(Q_old[state, :].copy(), Q_new[state, :].copy())
                 evb   = need * gain
 
-                evbs += [[evb]]
+                evbs += [evb]
 
                 # here we can elongate this experience
                 if hi == 0:
-                    pool = [updates[-1]]
 
-                    for _ in range(max_seq_len):
-
-                        tmp = []
+                    for l in range(max_seq_len):
                         
+                        if l == 0:
+                            pool = [updates[-1]]
+                        else:
+                            pool = tmp
+
+                        tmp  = []
+                        
+
                         for seq in pool: # take an existing sequence
                             idx = seq[1]
                             # here need to find an exp to elongate with
@@ -666,16 +671,14 @@ class Agent(Environment):
                                         state, b, a, Q_new = self._imagine_update(nbtree, vals)
 
                                         if a == next_idx[0]:
-                                            this_seq     = seq
+                                            this_seq     = seq.copy()
                                             this_seq[1]  = idx
                                             this_seq[2] += [[state, a]]
                                             this_seq[3]  = Q_new.copy()
-
-                                            tmp += [this_seq]
+                                            tmp         += [this_seq.copy()]
                                             
                         if len(tmp) > 0:
                             seq_updates += tmp
-                        pool = tmp
 
         print('w8 here')
 
