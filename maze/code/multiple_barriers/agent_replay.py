@@ -1,6 +1,6 @@
 from environment import Environment
 import numpy as np
-from copy import deepcopy
+from copy import deepcopy, copy
 import os, shutil, ast
 
 class Agent(Environment):
@@ -603,8 +603,9 @@ class Agent(Environment):
         updates     = []
         evbs        = []
         seq_updates = []
+        seq_evbs    = []
 
-        max_seq_len = 2
+        max_seq_len = 4
 
         # first generate single-step updates
         for hi in reversed(range(self.horizon-1)):
@@ -620,7 +621,7 @@ class Agent(Environment):
 
                 state, b, a, Q_new = self._imagine_update(btree, vals)
 
-                updates += [[hi, idx, [[state, b, a]], Q_new]]
+                updates += [[hi, idx, [state, b, a], Q_new]]
 
                 # generalisation -- ?? We need to compute the potential benefit of a single update at <s', b'> at all other beliefs;
                 # that is, <s', b*> for all b* in B. The equation for Need is:
@@ -641,15 +642,15 @@ class Agent(Environment):
                     for l in range(max_seq_len):
                         
                         if l == 0:
-                            pool = [updates[-1]]
+                            pool = [[updates[-1][0], updates[-1][1], np.array([updates[-1][2][0], updates[-1][2][2]], dtype=int).reshape(1, 2), updates[-1][3]]]
                         else:
-                            pool = tmp
+                            pool = deepcopy(tmp)
 
                         tmp  = []
                         
-
                         for seq in pool: # take an existing sequence
-                            idx = seq[1]
+                            Q_new = seq[3]
+                            idx   = seq[1]
                             # here need to find an exp to elongate with
                             # search through the btree to find all exps 
                             # that lead to the one of interest
@@ -665,17 +666,20 @@ class Agent(Environment):
 
                                     if (next_idx[1] == 0) and (next_idx[2] == idx): # found a prev exp
                                         
+                                        # i can just do the update here since
+                                        # only 1st horizon gets updates
                                         nbtree = deepcopy(btree)
-                                        nbtree[hi][idx][1] = Q_new
+                                        nbtree[hi][idx][1] = Q_new.copy()
 
                                         state, b, a, Q_new = self._imagine_update(nbtree, vals)
 
                                         if a == next_idx[0]:
-                                            this_seq     = seq.copy()
-                                            this_seq[1]  = idx
-                                            this_seq[2] += [[state, a]]
-                                            this_seq[3]  = Q_new.copy()
-                                            tmp         += [this_seq.copy()]
+                                            this_seq     = deepcopy(seq)
+                                            this_seq[1]  = next_idx[1]
+                                            if state not in this_seq[2][:, 0]:
+                                                this_seq[2]  = np.concatenate((this_seq[2], np.array([state, a]).reshape(1, 2))).reshape(-1, 2)
+                                                this_seq[3]  = deepcopy(Q_new)
+                                                tmp         += [deepcopy(this_seq)]
                                             
                         if len(tmp) > 0:
                             seq_updates += tmp
