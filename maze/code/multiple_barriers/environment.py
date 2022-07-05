@@ -97,8 +97,8 @@ class Environment:
 
         return states[y_coord, x_coord]
 
-    def _init_env(self):
+    def _init_barriers(self, bars: list):
 
-        self.barriers = [1, 0, 0]
+        self.barriers = bars
 
         return None

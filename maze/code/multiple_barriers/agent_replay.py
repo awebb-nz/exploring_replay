@@ -33,7 +33,7 @@ class Agent(Environment):
         env_config = configs[1]
         
         super().__init__(**env_config)
-        self._init_env()
+        self._init_barriers(bars=[0, 0, 0])
         
         self.__dict__.update(**ag_config)
 
@@ -44,6 +44,9 @@ class Agent(Environment):
 
         # initialise prior
         self.M = np.ones((len(self.barriers), 2))
+        self.M[0, 0] = 10
+        self.M[1, 0] = 10
+        self.M[2, 0] = 10
 
         return None
         
@@ -597,7 +600,7 @@ class Agent(Environment):
         updates     = []
         seq_updates = []
 
-        max_seq_len = 4
+        max_seq_len = 6
 
         # first generate single-step updates
         for hi in reversed(range(self.horizon-1)):
@@ -629,7 +632,7 @@ class Agent(Environment):
                     gain  = self._compute_gain(Q_old[state, :].copy(), Q_new[state, :].copy())
                     evb   = need * gain
 
-                    updates += [[np.array([hi]), np.array([idx]), np.array([state, a]).reshape(-1, 2), Q_new, np.array([gain]).reshape(-1, 1), np.array([need]).reshape(-1, 1), np.array([evb]).reshape(-1, 1)]]
+                    updates += [[np.array([hi]), np.array([idx]), np.array([state, a]).reshape(-1, 2), Q_new.copy(), np.array([gain]).reshape(-1, 1), np.array([need]).reshape(-1, 1), np.array([evb]).reshape(-1, 1)]]
 
                     # here we can elongate this experience
                     if hi == 0:
@@ -644,7 +647,10 @@ class Agent(Environment):
                             tmp  = []
                             
                             for seq in pool: # take an existing sequence
-                                Q_old = seq[3]
+                                
+                                # if seq[-3][-1] <= 0:
+                                #     continue
+
                                 idx   = seq[1][-1]
                                 # here need to find an exp to elongate with
                                 # search through the btree to find all exps 
@@ -652,7 +658,8 @@ class Agent(Environment):
 
                                 for k, vals in btree[0].items():
                                     
-                                    state     = vals[0][1]
+                                    s     = vals[0][1]
+
                                     next_idcs = vals[2]
 
                                     if len(next_idcs) == 0:
@@ -664,22 +671,28 @@ class Agent(Environment):
                                             
                                             # i can just do the update here since
                                             # only 1st horizon gets updates
+                                            Q_old  = seq[3].copy()
                                             nbtree = deepcopy(btree)
+
                                             nbtree[hi][idx][1] = Q_old.copy()
 
-                                            Q_new, a = self._imagine_update(Q_old, state, b, next_idx, nbtree)
+                                            Q_new, a = self._imagine_update(Q_old, s, b, next_idx, nbtree)
 
                                             if a == next_idx[0]:
                                                 this_seq     = deepcopy(seq)
-                                                this_seq[0]  = np.append(this_seq[0], next_idx[1])
-                                                this_seq[1]  = np.append(this_seq[1], next_idx[2])
-                                                if state not in this_seq[2][:, 0]:
-                                                    this_seq[2]  = np.vstack((this_seq[2], np.array([state, a])))
+                                                
+                                                if s not in this_seq[2][:, 0]:
+                                                    this_seq[0]  = np.append(this_seq[0], 0)
+                                                    this_seq[1]  = np.append(this_seq[1], k)
+                                                    this_seq[2]  = np.vstack((this_seq[2], np.array([s, a])))
                                                     this_seq[3]  = deepcopy(Q_new)
 
-                                                    need  = pntree[state]
-                                                    gain  = self._compute_gain(Q_old[state, :].copy(), Q_new[state, :].copy())
-                                                    
+                                                    need  = pntree[s]
+                                                    gain  = self._compute_gain(Q_old[s, :].copy(), Q_new[s, :].copy())
+
+                                                    # if gain <= 0 or need == 0:
+                                                    #     continue
+
                                                     this_seq[4]  = np.append(this_seq[4], gain)
                                                     this_seq[5]  = np.append(this_seq[5], need)
                                                     this_seq[6]  = np.dot(this_seq[4], this_seq[5])
@@ -731,28 +744,37 @@ class Agent(Environment):
                 s  = updates[idx][2][:, 0]
                 a  = updates[idx][2][:, 1]
                 
-                Q_new = updates[idx][3]
+                Q_new = updates[idx][3].copy()
 
                 gain  = updates[idx][4]
                 need  = updates[idx][5]
 
                 if seq_len == 1:
                     Q_old = belief_tree[hi[0]][k[0]][1]
-                    belief_tree[hi[0]][k[0]][1] = Q_new.copy()
-                    print('Replay [<%u, %u>] horizon %u, q_old: %.2f, q_new: %.2f, evb: %.5f'%(s, a, hi, Q_old[s, a], Q_new[s, a], max_evb), flush=True)
+                    print('Replay 1/1 [<%u, %u>] horizon %u, q_old: %.2f, q_new: %.2f, evb: %.5f'%(s, a, hi, Q_old[s, a], Q_new[s, a], max_evb), flush=True)
+                    Q_old[s, a] = Q_new[s, a]
+                    belief_tree[hi[0]][k[0]][1] = Q_old.copy()
                 else:
                     for sidx, si in enumerate(s):
                         Q_old = belief_tree[hi[sidx]][k[sidx]][1]
-                        belief_tree[hi[sidx]][k[sidx]][1] = Q_new.copy()
-                        print('Replay seq [<%u, %u>] horizon %u, q_old: %.2f, q_new: %.2f, evb: %.5f'%(si, a[sidx], hi[sidx], Q_old[si, a[sidx]], Q_new[si, a[sidx]], max_evb), flush=True)
+                        print('Replay %u/%u [<%u, %u>] horizon %u, q_old: %.2f, q_new: %.2f, gain: %.2f, evb: %.5f'%(sidx+1, len(s), si, a[sidx], hi[sidx], Q_old[si, a[sidx]], Q_new[si, a[sidx]], gain[sidx], max_evb), flush=True)
+                        Q_old[si, a[sidx]] = Q_new[si, a[sidx]]
+                        belief_tree[hi[sidx]][k[sidx]][1] = Q_old.copy()
                 
-                        if hi[sidx] == 0:
-                            Q_history     += [Q_new]
-                            gain_history  += [gain[sidx]]
-                            need_history  += [need[sidx]]
+                Q_history     += [Q_new]
+                gain_history  += [np.sum(gain)]
+                need_history  += [np.sum(need)]
 
-                traj_tree             = self._simulate_trajs(belief_tree)
-                pneed_tree            = self._build_pneed_tree(belief_tree, traj_tree)
+                Q_new = np.zeros((self.num_states, self.num_actions))
+                for k, v in belief_tree[0].items():
+                    s = v[0][1]
+                    Q = v[1]
+                    Q_new[s, :] = Q[s, :]
+                self.Q = Q_new.copy()
+
+                belief_tree    = self._build_belief_tree()
+                traj_tree      = self._simulate_trajs(belief_tree)
+                pneed_tree     = self._build_pneed_tree(belief_tree, traj_tree)
 
         Q_new = np.zeros((self.num_states, self.num_actions))
         for k, v in belief_tree[0].items():

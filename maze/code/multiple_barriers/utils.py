@@ -68,23 +68,25 @@ def plot_simulation(agent, data_path, save_path, start_plotting=None):
 
                 if len(idcs) == 0:
                     continue
+                
+                st = idcs[0]
+                ac = idcs[1]
+                # stas = [idcs[i] for i in range(0, len(idcs), 2)]
+                # acts = [idcs[i] for i in range(1, len(idcs), 2)]
 
-                stas = [idcs[i] for i in range(0, 2, len(idcs))]
-                acts = [idcs[i] for i in range(1, 2, len(idcs))]
+                # for seq_idx, (st, ac) in enumerate(zip(stas, acts)):
 
-                for seq_idx, (st, ac) in enumerate(zip(stas, acts)):
-
-                    fig = plt.figure(figsize=(27, 16), constrained_layout=True)
-                    ax  = plt.subplot(221)
-                    plot_maze(ax, Q_rep, agent, move)
-                    ax1 = plt.subplot(223)
-                    plot_replay(ax1, agent, [st, ac])
-                    # ax2 = plt.subplot(222)
-                    # plot_maze(ax2, gain_history[idx+1], agent)
-                    # ax3 = plt.subplot(224)
-                    # plot_need(ax3, need_history[idx+1], agent)
-                    plt.savefig(os.path.join(save_path, 'move_%s_%u_%u.png')%(file.split('_')[-1][:-4], idx, seq_idx))
-                    plt.close()
+                fig = plt.figure(figsize=(27, 16), constrained_layout=True)
+                ax  = plt.subplot(221)
+                plot_maze(ax, Q_rep, agent, move)
+                ax1 = plt.subplot(223)
+                plot_replay(ax1, agent, [st, ac])
+                # ax2 = plt.subplot(222)
+                # plot_maze(ax2, gain_history[idx+1], agent)
+                # ax3 = plt.subplot(224)
+                # plot_need(ax3, need_history[idx+1], agent)
+                plt.savefig(os.path.join(save_path, 'move_%s_%u.png')%(file.split('_')[-1][:-4], idx))
+                plt.close()
 
     return None
 
