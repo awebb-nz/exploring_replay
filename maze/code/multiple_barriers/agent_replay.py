@@ -48,6 +48,8 @@ class Agent(Environment):
         self.M[1, 0] = 10
         self.M[2, 0] = 10
 
+        self.belief_tree = self._build_belief_tree()
+
         return None
         
     def _init_q_values(self):
@@ -198,13 +200,13 @@ class Agent(Environment):
 
         return np.linalg.inv(np.eye(self.num_states) - self.gamma*Ts)
 
-    def _find_belief(self, btree, z):
+    def _find_belief(self, z):
 
         b = z[0]
         s = z[1]
 
         for hi in range(self.horizon):
-            for _, vals in btree[hi].items():
+            for _, vals in self.belief_tree[hi].items():
                     
                 if (s == vals[0][1]) and np.array_equal(b, vals[0][0]):
                     q = vals[1]
@@ -213,7 +215,7 @@ class Agent(Environment):
 
         return False, None
 
-    def _simulate_trajs(self, btree):
+    def _simulate_trajs(self):
 
         '''
         ---
@@ -240,7 +242,7 @@ class Agent(Environment):
 
             while ((self.gamma**d) > 1e-4):
 
-                check, q = self._find_belief(btree, [b, s])
+                check, q = self._find_belief([b, s])
 
                 if not check:
                     break
@@ -262,7 +264,7 @@ class Agent(Environment):
                     s1 = np.random.choice([s1u, s1l], p=[bp, 1-bp])
 
                     # update belief based on the observed transition
-                    b = self._belief_step_update(b, idx, s, s1)
+                    b = self._belief_plan_update(b, idx, s, s1)
 
                 else:
                     s1, _  = self._get_new_state(s, a, unlocked=False)
@@ -300,6 +302,21 @@ class Agent(Environment):
         # successful
         else:
             M_out[idx, 0] += 1
+
+        return M_out
+
+    def _belief_plan_update(self, M, idx, s, s1):
+
+        M_out = M.copy()
+
+        # unsuccessful 
+        if s == s1:
+            M_out[idx, 1] = 1
+            M_out[idx, 0] = 0
+        # successful
+        else:
+            M_out[idx, 0] = 1
+            M_out[idx, 1] = 0
 
         return M_out
 
@@ -369,7 +386,7 @@ class Agent(Environment):
 
         # create a merged tree -- one single tree for all information states
         idx = 0
-        btree[0][idx] = [[self.M, self.state], self.Q.copy(), []]
+        btree[0][idx] = [[self.M.copy(), self.state], self.Q.copy(), []]
 
         for hi in range(1, self.horizon):
             
@@ -381,7 +398,7 @@ class Agent(Environment):
                 # retrieve previous belief information
                 b        = vals[0][0].copy()
                 s        = vals[0][1]
-                q        = vals[1]
+                q        = vals[1].copy()
                 prev_idx = k
 
                 # terminate at the goal state
@@ -398,19 +415,19 @@ class Agent(Environment):
                             # two distinct beliefs
                             # first when the agent transitions through
                             s1u, _ = self._get_new_state(s, a, unlocked=True)
-                            b1u    = self._belief_step_update(b, bidx, s, s1u)
+                            b1u    = self._belief_plan_update(b, bidx, s, s1u)
 
                             # second when it doesn't
                             s1l    = s
-                            b1l    = self._belief_step_update(b, bidx, s, s)
+                            b1l    = self._belief_plan_update(b, bidx, s, s)
 
                             # check if this belief already exists
                             hip, idxp, check = self._check_belief_exists(btree, [b1u, s1u])
                             # if it doesn't exist then add it to the belief tree
                             # and add its key to the previous belief that gave rise to it
                             if not check:
-                                btree[hi][idx]            = [[b1u, s1u], q.copy(), []]
-                                btree[hi][idx+1]          = [[b1l, s1l], q.copy(), []]
+                                btree[hi][idx]            = [[b1u.copy(), s1u], q.copy(), []]
+                                btree[hi][idx+1]          = [[b1l.copy(), s1l], q.copy(), []]
                                 btree[hi-1][prev_idx][2] += [[[a, hi, idx], [a, hi, idx+1]]]
                                 idx                      += 2
 
@@ -428,7 +445,7 @@ class Agent(Environment):
                             # if it doesn't exist then add it to the belief tree
                             # and add its key to the previous belief that gave rise to it
                             if not check:
-                                btree[hi][idx]            = [[b1u, s1u], q.copy(), []]
+                                btree[hi][idx]            = [[b1u.copy(), s1u], q.copy(), []]
                                 btree[hi-1][prev_idx][2] += [[a, hi, idx]]
                                 idx                      += 1
                             # if the new belief already exists then we just need to add 
@@ -474,13 +491,12 @@ class Agent(Environment):
 
         return T
 
-    def _build_pneed_tree(self, btree, ttree):
+    def _build_pneed_tree(self, ttree):
 
         '''
         ---
         Compute Need for each information state
 
-        btree -- tree with information states
         ttree -- tree with the estimated probabilities 
         ---
         '''
@@ -509,10 +525,10 @@ class Agent(Environment):
         ntree = np.zeros(self.num_states)
 
         for hi in reversed(range(self.horizon)):
-            if len(btree[hi]) == 0:
+            if len(self.belief_tree[hi]) == 0:
                 continue
 
-            for _, vals in btree[hi].items():
+            for _, vals in self.belief_tree[hi].items():
                 
                 b     = vals[0][0]
                 state = vals[0][1]
@@ -593,16 +609,16 @@ class Agent(Environment):
 
         return Q_new, a
 
-    def _get_updates(self, btree, pntree):
+    def _get_updates(self, pntree):
 
         updates     = []
 
         # first generate single-step updates
         for hi in reversed(range(self.horizon-1)):
-            if len(btree[hi+1]) == 0:
+            if len(self.belief_tree[hi+1]) == 0:
                 continue
 
-            for idx, vals in btree[hi].items():
+            for idx, vals in self.belief_tree[hi].items():
                 
                 state = vals[0][1]
 
@@ -615,7 +631,7 @@ class Agent(Environment):
 
                 for val in vals[2]:
 
-                    Q_new, a = self._imagine_update(Q_old, state, b, val, btree)
+                    Q_new, a = self._imagine_update(Q_old, state, b, val, self.belief_tree)
 
                     # generalisation -- ?? We need to compute the potential benefit of a single update at <s', b'> at all other beliefs;
                     # that is, <s', b*> for all b* in B. The equation for Need is:
@@ -648,61 +664,65 @@ class Agent(Environment):
                                 # if seq[-3][-1] <= 0:
                                 #     continue
 
-                                idx   = seq[1][-1]
+                                lhi   = seq[0][-1]
+                                lidx   = seq[1][-1]
                                 # here need to find an exp to elongate with
-                                # search through the btree to find all exps 
+                                # search through the self.belief_tree to find all exps 
                                 # that lead to the one of interest
 
-                                for k, vals in btree[0].items():
-                                    
-                                    s     = vals[0][1]
+                                for hor in range(self.horizon):
 
-                                    next_idcs = vals[2]
-
-                                    if len(next_idcs) == 0:
-                                        continue
-
-                                    for next_idx in next_idcs:
+                                    for k, vals in self.belief_tree[hor].items():
                                         
-                                        if len(next_idx) == 2:
+                                        s         = vals[0][1]
+                                        b         = vals[0][0].copy()
+
+                                        next_idcs = vals[2]
+
+                                        if len(next_idcs) == 0:
+                                            continue
+
+                                        for next_idx in next_idcs:
                                             
-                                            cond = ((next_idx[0][1] == 0) and (next_idx[0][2] == idx)) or ((next_idx[0][1] == 0) and (next_idx[0][2] == idx))
-                                        
-                                        else:
-
-                                            cond = (next_idx[1] == 0) and (next_idx[2] == idx)
-                                        
-                                        if cond: # found a prev exp
-                                            
-                                            # i can just do the update here since
-                                            # only 1st horizon gets updates
-                                            Q_old  = seq[3].copy()
-                                            nbtree = deepcopy(btree)
-
-                                            nbtree[hi][idx][1] = Q_old.copy()
-
-                                            Q_new, a = self._imagine_update(Q_old, s, b, next_idx, nbtree)
-
-                                            if a == next_idx[0]:
-                                                this_seq     = deepcopy(seq)
+                                            if len(next_idx) == 2:
                                                 
-                                                if s not in this_seq[2][:, 0]:
-                                                    this_seq[0]  = np.append(this_seq[0], 0)
-                                                    this_seq[1]  = np.append(this_seq[1], k)
-                                                    this_seq[2]  = np.vstack((this_seq[2], np.array([s, a])))
-                                                    this_seq[3]  = deepcopy(Q_new)
+                                                cond = ((next_idx[0][1] == lhi) and (next_idx[0][2] == lidx)) or ((next_idx[0][1] == lhi) and (next_idx[0][2] == lidx))
+                                            
+                                            else:
 
-                                                    need  = pntree[s]
-                                                    gain  = self._compute_gain(Q_old[s, :].copy(), Q_new[s, :].copy())
+                                                cond = (next_idx[1] == lhi) and (next_idx[2] == lidx)
+                                            
+                                            if cond: # found a prev exp
+                                                
+                                                # i can just do the update here since
+                                                # only 1st horizon gets updates
+                                                nbtree = deepcopy(self.belief_tree)
+                                                nbtree[lhi][lidx][1] = seq[3].copy()
 
-                                                    # if gain <= 0 or need == 0:
-                                                    #     continue
+                                                Q_old  = nbtree[hor][k][1].copy()
 
-                                                    this_seq[4]  = np.append(this_seq[4], gain)
-                                                    this_seq[5]  = np.append(this_seq[5], need)
-                                                    this_seq[6]  = np.dot(this_seq[4], this_seq[5])
+                                                Q_new, a = self._imagine_update(Q_old, s, b, next_idx, nbtree)
 
-                                                    tmp         += [deepcopy(this_seq)]
+                                                if a == next_idx[0]:
+                                                    this_seq     = deepcopy(seq)
+                                                    
+                                                    if s not in this_seq[2][:, 0]:
+                                                        this_seq[0]  = np.append(this_seq[0], hor)
+                                                        this_seq[1]  = np.append(this_seq[1], k)
+                                                        this_seq[2]  = np.vstack((this_seq[2], np.array([s, a])))
+                                                        this_seq[3]  = deepcopy(Q_new)
+
+                                                        need  = pntree[s]
+                                                        gain  = self._compute_gain(Q_old[s, :].copy(), Q_new[s, :].copy())
+
+                                                        # if gain <= 0 or need == 0:
+                                                        #     continue
+
+                                                        this_seq[4]  = np.append(this_seq[4], gain)
+                                                        this_seq[5]  = np.append(this_seq[5], need)
+                                                        this_seq[6]  = np.append(this_seq[6], np.dot(this_seq[4], this_seq[5]))
+
+                                                        tmp         += [deepcopy(this_seq)]
                                                 
                             if len(tmp) > 0:
                                 seq_updates += tmp
@@ -716,12 +736,12 @@ class Agent(Environment):
         max_evb = 0
         loc     = None
         for idx, upd in enumerate(updates):
-            evb = upd[-1]
+            evb = upd[-1][-1]
             if evb > max_evb:
                 max_evb = evb
                 loc     = idx 
 
-        return max_evb, loc
+        return loc
 
     def _replay(self):
         
@@ -729,22 +749,22 @@ class Agent(Environment):
         gain_history   = [None]
         need_history   = [None]
 
-        belief_tree    = self._build_belief_tree()
-        traj_tree      = self._simulate_trajs(belief_tree)
-
-        pneed_tree     = self._build_pneed_tree(belief_tree, traj_tree)
+        traj_tree      = self._simulate_trajs()
+        pneed_tree     = self._build_pneed_tree(traj_tree)
         
         num = 1
         while True:
-            updates = self._get_updates(belief_tree, pneed_tree)
+            updates = self._get_updates(pneed_tree)
 
-            max_evb, idx = self._get_highest_evb(updates)
-            if max_evb < self.xi:
+            idx = self._get_highest_evb(updates)
+            evb = updates[idx][-1]
+
+            if evb[-1] < self.xi:
                 break
             else:
-                hi = updates[idx][0]
-                k  = updates[idx][1]
-
+                hi  = updates[idx][0]
+                k   = updates[idx][1]
+                
                 s  = updates[idx][2][:, 0]
                 a  = updates[idx][2][:, 1]
                 
@@ -754,25 +774,27 @@ class Agent(Environment):
                 need  = updates[idx][5]
 
                 for sidx, si in enumerate(s):
-                    Q_old = belief_tree[hi[sidx]][k[sidx]][1].copy()
-                    print('%u - Replay %u/%u [<%u, %u>] horizon %u, q_old: %.2f, q_new: %.2f, gain: %.2f, evb: %.5f'%(num, sidx+1, len(s), si, a[sidx], hi[sidx], Q_old[si, a[sidx]], Q_new[si, a[sidx]], gain[sidx], max_evb), flush=True)
+                    Q_old = self.belief_tree[hi[sidx]][k[sidx]][1].copy()
+                    b     = self.belief_tree[hi[sidx]][k[sidx]][0][0]
+                    print('%u - Replay %u/%u [<%u, (%.2f, %.2f, %.2f)>, %u] horizon %u, q_old: %.2f, q_new: %.2f, gain: %.2f, evb: %.5f'%(num, sidx+1, len(s), si, b[0, 0]/b[0, :].sum(), b[1, 0]/b[1, :].sum(), b[2, 0]/b[2, :].sum(), a[sidx], hi[sidx], Q_old[si, a[sidx]], Q_new[si, a[sidx]], gain[sidx], evb[sidx]), flush=True)
                     Q_old[si, a[sidx]] = Q_new[si, a[sidx]]
-                    belief_tree[hi[sidx]][k[sidx]][1] = Q_old.copy()
+                    self.belief_tree[hi[sidx]][k[sidx]][1] = Q_old.copy()
             
-                    if hi[sidx] == 0:
-                        Q_history     += [Q_new]
-                        gain_history  += [np.sum(gain)]
-                        need_history  += [np.sum(need)]
+                    if np.array_equal(b, self.M):
+                        Q_add              = Q_history[-1].copy()
+                        Q_add[si, a[sidx]] = Q_new[si, a[sidx]]
+                        Q_history         += [Q_add]
+                        gain_history      += [np.sum(gain)]
+                        need_history      += [np.sum(need)]
 
-                # belief_tree    = self._build_belief_tree()
-                traj_tree      = self._simulate_trajs(belief_tree)
-                pneed_tree     = self._build_pneed_tree(belief_tree, traj_tree)
+                traj_tree      = self._simulate_trajs()
+                pneed_tree     = self._build_pneed_tree(traj_tree)
 
                 num += 1
 
-        Q_new = np.zeros((self.num_states, self.num_actions))
+        Q_new = self.Q.copy()
         for hi in range(self.horizon):
-            for k, v in belief_tree[hi].items():
+            for k, v in self.belief_tree[hi].items():
                 b = v[0][0]
                 if np.array_equal(b, self.M):
                     s = v[0][1]
@@ -821,18 +843,37 @@ class Agent(Environment):
                     s1, r  = self._get_new_state(s, a, unlocked=False)
                 else:
                     s1, r  = self._get_new_state(s, a, unlocked=True)
+                
+                # update belief
+                self.M = self._belief_plan_update(self.M, idx, s, s1)
+
+                # fetch Q values of the new belief
+                for hi in range(self.horizon):
+                    for k, vals in self.belief_tree[hi].items():
+                        b = vals[0][0]
+                        if np.array_equal(self.M, b):
+                            state  = vals[0][1]
+                            Q_vals = self.belief_tree[hi][k][1]
+                            self.Q[state, :] = Q_vals[state, :].copy()
+
+                # update belief tree
+                self.belief_tree = self._build_belief_tree()
+
             else:
                 s1, r  = self._get_new_state(s, a, unlocked=True)
 
             q_old  = self.Q[s, a]
+
             # update MF Q values
             self._qval_update(s, a, r, s1)
 
-            print('Move %u/%u, [<%u, [%.2f, %.2f, %.2f]>, %u], q_old: %.2f, q_new: %.2f\n'%(move, num_steps, s, self.M[0, 0]/self.M[0, :].sum(), self.M[1, 0]/self.M[1, :].sum(), self.M[2, 0]/self.M[2, :].sum(), a, q_old, self.Q[s, a]), flush=True)
+            # update belief_tree
+            if q_old != self.Q[s, a]:
+                for hi in range(self.horizon):
+                    for k in self.belief_tree[hi].keys():
+                        self.belief_tree[hi][k][1] = self.Q.copy()
 
-            # update transition probability belief
-            if [s, a] in self.uncertain_states_actions:
-                self.M = self._belief_step_update(self.M, idx, s, s1)
+            print('Move %u/%u, [<%u, [%.2f, %.2f, %.2f]>, %u], q_old: %.2f, q_new: %.2f\n'%(move, num_steps, s, self.M[0, 0]/self.M[0, :].sum(), self.M[1, 0]/self.M[1, :].sum(), self.M[2, 0]/self.M[2, :].sum(), a, q_old, self.Q[s, a]), flush=True)
 
             # transition to new state
             self.state = s1

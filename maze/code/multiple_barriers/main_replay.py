@@ -18,7 +18,7 @@ env_config     = load_env(env_file_path)
 
 # --- Specify simulation parameters ---
 save_path      = os.path.join('/home/georgy/Documents/Dayan_lab/PhD/bandits/maze/data/replay/local/', env)
-num_steps      = 10
+num_steps      = 15
 
 seed           = 0
 
@@ -31,10 +31,10 @@ ag_config = {
     'need_beta'      : 5,         # need inverse temperature
     'policy_type'    : 'softmax', # policy type [softmax / greedy]
     'gamma'          : 0.9,       # discount factor
-    'horizon'        : 12,        # planning horizon (minus 1)
+    'horizon'        : 8,         # planning horizon (minus 1)
     'xi'             : 1e-2,      # EVB replay threshold
     'num_sims'       : 2000,      # number of MC simulations for need
-    'sequences'      : False,
+    'sequences'      : True,
     'max_seq_len'    : 2,        
     'env_name'       : env        # gridworld name
 }
