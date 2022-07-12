@@ -26,16 +26,16 @@ seed           = 0
 ag_config = {
     'alpha'          : 1,         # online learning rate
     'alpha_r'        : 1,         # offline learning rate
-    'online_beta'    : 5,         # online inverse temperature
+    'online_beta'    : 1,         # online inverse temperature
     'gain_beta'      : 30,        # gain inverse temperature
-    'need_beta'      : 5,         # need inverse temperature
+    'need_beta'      : 1,         # need inverse temperature
     'policy_type'    : 'softmax', # policy type [softmax / greedy]
     'gamma'          : 0.9,       # discount factor
     'horizon'        : 10,        # planning horizon (minus 1)
-    'xi'             : 0.01,      # EVB replay threshold
+    'xi'             : 0.1,      # EVB replay threshold
     'num_sims'       : 2000,      # number of MC simulations for need
     'sequences'      : True,
-    'max_seq_len'    : 4,        
+    'max_seq_len'    : 7,        
     'env_name'       : env        # gridworld name
 }
 
@@ -62,9 +62,9 @@ def main():
 
     # plot_simulation(agent, save_data_path, save_plot_path)
     
-    Q_MB        = agent._solve_mb(1e-5, barriers=[1, 0, 0])
+    Q_MB        = agent._solve_mb(1e-5, barriers=[1, 1, 0])
     agent.state = 38          # start state
-    agent.M     = np.array([[1, 0], [1, 0], [1, 0]])
+    agent.M     = np.array([[1, 0], [0, 1], [1, 0]])
     agent.Q     = Q_MB.copy() # set MF Q values
     Q_history, gain_history, need_history = agent._replay()
 
@@ -74,7 +74,7 @@ def main():
     agent.Q        = Q_after.copy()
 
     agent.state = 14
-    agent.M     = np.array([[0, 1], [1, 0], [1, 0]])
+    agent.M     = np.array([[0, 1], [0, 1], [1, 0]])
     Q_history, gain_history, need_history = agent._replay()
 
     return None

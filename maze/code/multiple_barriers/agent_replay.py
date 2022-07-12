@@ -44,9 +44,6 @@ class Agent(Environment):
 
         # initialise prior
         self.M = np.ones((len(self.barriers), 2))
-        self.M[0, 0] = 10
-        self.M[1, 0] = 10
-        self.M[2, 0] = 10
 
         return None
         
@@ -57,11 +54,8 @@ class Agent(Environment):
         # set edge Q values to np.nan
         for s in np.delete(range(self.num_states), [self.goal_state] + self.nan_states):
             for a in range(self.num_actions):
-                check = True
-                if [s, a] in self.uncertain_states_actions:
-                    check = False
-                    continue
-                if check:
+                bidx = self._check_uncertain([s, a])
+                if bidx is None:
                     s1, _ = self._get_new_state(s, a, unlocked=False)
                     if (s1 == s):
                         self.Q[s, a] = np.nan
@@ -101,9 +95,9 @@ class Agent(Environment):
             for s in np.delete(range(self.num_states), self.goal_state):
                 for a in range(self.num_actions):
                     if ~np.isnan(Q_MB[s, a]):
-                        if [s, a] in self.uncertain_states_actions:
-                            idx   = self.uncertain_states_actions.index([s, a])
-                            if self.barriers[idx]:
+                        bidx = self._check_uncertain([s, a])
+                        if bidx is not None:
+                            if self.barriers[bidx]:
                                 s1, r = self._get_new_state(s, a, unlocked=False)
                             else:
                                 s1, r = self._get_new_state(s, a, unlocked=True)
@@ -250,20 +244,19 @@ class Agent(Environment):
                 probs = self._policy(qvals, temp=self.need_beta)
                 a     = np.random.choice(range(self.num_actions), p=probs)
                 
-                if [s, a] in self.uncertain_states_actions:
+                bidx = self._check_uncertain([s, a])
+                if bidx is not None:
 
-                    idx = self.uncertain_states_actions.index([s, a])
-                    
                     s1u, _ = self._get_new_state(s, a, unlocked=True)
                     s1l, _ = self._get_new_state(s, a, unlocked=False)
 
                     # sample next state
-                    bp = b[idx, 0]/np.sum(b[idx, :])
-                        
+                    bp = b[bidx, 0]/np.sum(b[bidx, :])
+                    
                     s1 = np.random.choice([s1u, s1l], p=[bp, 1-bp])
 
                     # update belief based on the observed transition
-                    b = self._belief_plan_update(b, idx, s, s1)
+                    b = self._belief_plan_update(b, bidx, s, s1)
                     bkey = str(b.tolist()).strip()
 
                 else:
@@ -334,6 +327,14 @@ class Agent(Environment):
 
         return M_out
 
+    def _check_uncertain(self, sa: list):
+
+        for bidx, l in enumerate(self.uncertain_states_actions):
+            if sa in l:
+                return bidx
+        
+        return None
+
     def _qval_update(self, s, a, r, s1):
 
         '''
@@ -393,13 +394,15 @@ class Agent(Environment):
             # unique index for each belief
             idx = 0
 
-            for k, vals in btree[hi-1].items():
+            if len(btree[hi-1]) == 0:
+                break
+
+            for prev_idx, vals in btree[hi-1].items():
                 
                 # retrieve previous belief information
                 b        = vals[0][0].copy()
                 s        = vals[0][1]
                 q        = vals[1].copy()
-                prev_idx = k
 
                 # terminate at the goal state
                 if s == self.goal_state:
@@ -407,10 +410,10 @@ class Agent(Environment):
                 
                 for a in range(self.num_actions):
                     if ~np.isnan(self.Q[s, a]):
+                        
+                        bidx = self._check_uncertain([s, a])
+                        if bidx is not None:
 
-                        if [s, a] in self.uncertain_states_actions:
-                            
-                            bidx   = self.uncertain_states_actions.index([s, a])
                             # if it's the uncertain state+action then this generates 
                             # two distinct beliefs
                             # first when the agent transitions through
@@ -422,10 +425,11 @@ class Agent(Environment):
                             b1l    = self._belief_plan_update(b, bidx, s, s)
 
                             # check if this belief already exists
-                            hip, idxp, check = self._check_belief_exists(btree, [b1u, s1u])
+                            hiu, idxu, checku = self._check_belief_exists(btree, [b1u, s1u])
+                            hil, idxl, checkl = self._check_belief_exists(btree, [b1l, s1l])
                             # if it doesn't exist then add it to the belief tree
                             # and add its key to the previous belief that gave rise to it
-                            if not check:
+                            if not checku and not checkl:
                                 if (b[bidx, 0] != 0) and (b[bidx, 1] != 0):
                                     btree[hi][idx]            = [[b1u.copy(), s1u], q.copy(), []]
                                     btree[hi][idx+1]          = [[b1l.copy(), s1l], q.copy(), []]
@@ -440,7 +444,16 @@ class Agent(Environment):
                                         btree[hi][idx]            = [[b1l.copy(), s1l], q.copy(), []]
                                         btree[hi-1][prev_idx][2] += [[a, hi, idx]]
                                         idx                      += 1
-                                    
+                            elif not checku:
+                                if b[bidx, 0] != 0:
+                                    btree[hi][idx]            = [[b1u.copy(), s1u], q.copy(), []]
+                                    btree[hi-1][prev_idx][2] += [[a, hi, idx]]
+                                    idx                      += 1
+                            elif not checkl:
+                                if b[bidx, 0] != 0:
+                                    btree[hi][idx]            = [[b1l.copy(), s1l], q.copy(), []]
+                                    btree[hi-1][prev_idx][2] += [[a, hi, idx]]
+                                    idx                      += 1
                             # if the new belief already exists then we just need to add 
                             # the key of that existing belief to the previous belief
                             else:
@@ -482,9 +495,8 @@ class Agent(Environment):
             for a in range(self.num_actions):
                 s1l, _ = self._get_new_state(s, a, unlocked=False)
 
-                if [s, a] in self.uncertain_states_actions:
-                    
-                    bidx   = self.uncertain_states_actions.index([s, a])
+                bidx = self._check_uncertain([s, a])
+                if bidx is not None:
 
                     s1u, _ = self._get_new_state(s, a, unlocked=True)
                 
@@ -592,7 +604,7 @@ class Agent(Environment):
             rew  = self.config[y, x]
 
             tds += [q_old_vals[a] + self.alpha_r*(rew + self.gamma*np.nanmax(q_prime_u) - q_old_vals[a])]
-            tds += [q_old_vals[a] + self.alpha_r*(0 + self.gamma*np.nanmax(q_prime_l)- q_old_vals[a])]
+            tds += [q_old_vals[a] + self.alpha_r*(0 + self.gamma*np.nanmax(q_prime_l) - q_old_vals[a])]
 
         else:
             a, hi1, idx1 = val[0], val[1], val[2]
@@ -610,9 +622,9 @@ class Agent(Environment):
         if len(tds) != 2: 
             q_new_vals[a] = tds[0]
         else:    
-            idx = self.uncertain_states_actions.index([state, a])
-            b0  = b[idx, 0]/np.sum(b[idx, :])
-            b1  = 1 - b[idx, 0]/np.sum(b[idx, :])
+            bidx = self._check_uncertain([state, a])
+            b0   = b[bidx, 0]/np.sum(b[bidx, :])
+            b1   = 1 - b[bidx, 0]/np.sum(b[bidx, :])
             q_new_vals[a] = b0*tds[0] + b1*tds[1]
 
         Q_new[state, :]   = q_new_vals
@@ -849,16 +861,15 @@ class Agent(Environment):
             probs  = self._policy(self.Q[s, :], temp=self.online_beta)
             a      = np.random.choice(range(self.num_actions), p=probs)
 
-            if [s, a] in self.uncertain_states_actions:
-                idx    = self.uncertain_states_actions.index([s, a])
-
-                if self.barriers[idx]:
+            bidx = self._check_uncertain([s, a])
+            if bidx is not None:
+                if self.barriers[bidx]:
                     s1, r  = self._get_new_state(s, a, unlocked=False)
                 else:
                     s1, r  = self._get_new_state(s, a, unlocked=True)
                 
                 # update belief
-                self.M = self._belief_plan_update(self.M, idx, s, s1)
+                self.M = self._belief_plan_update(self.M, bidx, s, s1)
 
                 # fetch Q values of the new belief
                 for hi in range(self.horizon):

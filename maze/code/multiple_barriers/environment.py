@@ -75,7 +75,7 @@ class Environment:
                 return s, r
 
             # check the barriers
-            if (unlocked == True) or ([s, a] not in self.blocked_state_actions):
+            if (unlocked == True) or ([s, a] not in [i for j in self.blocked_state_actions for i in j]):
                 r  = self.config[y1_coord, x1_coord]
                 return s1, r
             else:

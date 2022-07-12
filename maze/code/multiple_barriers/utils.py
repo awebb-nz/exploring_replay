@@ -189,13 +189,15 @@ def plot_maze(ax, Q, agent, move=None):
                 else:
                     patches += add_patches(st, ac, Q[st, ac], agent.num_y_states, agent.num_x_states)
                 # patches += add_patches(st, ac, Q[st, ac], agent.num_y_states, agent.num_x_states)
-            if [st, ac] in agent.blocked_state_actions:
-                if agent.barriers[agent.blocked_state_actions.index([st, ac])]:
-                    i, j = np.argwhere(np.arange(agent.num_states).reshape(agent.num_y_states, agent.num_x_states) == st).flatten()
-                    if ac == 0:
-                        ax.hlines((agent.num_y_states-i), j, j+1, linewidth=6, color='b')
-                    elif ac == 2:
-                        ax.vlines(j, (agent.num_y_states-i)-1, (agent.num_y_states-i), linewidth=6, color='b')
+                for bidx, l in enumerate(agent.uncertain_states_actions):
+                    if [st, ac] in l:
+                        if agent.barriers[bidx]:
+                            i, j = np.argwhere(np.arange(agent.num_states).reshape(agent.num_y_states, agent.num_x_states) == st).flatten()
+                            if ac == 0:
+                                ax.hlines((agent.num_y_states-i), j, j+1, linewidth=6, color='b')
+                            elif ac == 2:
+                                ax.vlines(j, (agent.num_y_states-i)-1, (agent.num_y_states-i), linewidth=6, color='b')
+                        break
 
     if len(agent.nan_states) > 0:
         for s in agent.nan_states:
