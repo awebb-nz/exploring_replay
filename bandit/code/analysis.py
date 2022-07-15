@@ -16,14 +16,10 @@ def plot_values(data_folder, save_fig=True):
         qval_tree      = i
         policy_values += [tree.evaluate_policy(i)]
 
-        qvals          = qval_tree[0][(0, 0, 0)]
+        qvals          = qval_tree[0][0]
         root_values   += [np.dot(tree._policy(qvals), qvals)]
 
-    # tree.full_updates(tree.gamma)
-    # qval_tree = tree.qval_tree
-    # qvals     = qval_tree[0][(0, 0, 0)]
-    # v_full    = np.max(qvals)
-    v_full = 2.86583333
+    v_full = tree.full_updates()
 
     plt.figure(figsize=(7, 5), dpi=100, constrained_layout=True)
     
@@ -47,7 +43,7 @@ def plot_values(data_folder, save_fig=True):
             plt.xticks(range(len(root_values)), range(len(root_values)), fontsize=13)
         
         plt.xlim(0, len(qval_history)-1)
-        plt.ylim(0, 3.41258333+0.1)
+        plt.ylim(0, v_full+0.1)
         plt.legend(prop={'size':13})
 
     if save_fig:

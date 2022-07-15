@@ -253,42 +253,28 @@ def generate_big_tex_tree(h, replays, q_history, need_history, file_path):
             if hi == 0:
                 node_name = str(hi) + '_s_' + str(0)
                 y_node    = 0
-                for k, v in need_history[hi].items():
-                    if k[-1] == 0:
-                        alpha = v
-                        break
+                alpha     = need_history[hi][0]
                 f.write(r'\node[rectangle, text centered, draw=black, minimum height=1mm, text width=3mm, inner sep=0pt, fill=orange, fill opacity=%.2f, draw opacity=1] at (%.2f, %.2f) (%s){};'%(alpha, x_node, y_node, node_name) + '\n')
                 state_nodes[hi].append(node_name)
             else:
                 for idx, y_node in enumerate(reversed(np.linspace(-y_max*(hi+1)/h, y_max*(hi+1)/h, num_nodes))):
                     node_name = str(hi) + '_s_' + str(idx*2)
-                    for k, v in need_history[hi].items():
-                        if k[-1] == idx*2:
-                            alpha = v
-                            break
+                    alpha     = need_history[hi][idx*2]
                     f.write(r'\node[rectangle, text centered, draw=black, minimum height=1mm, text width=3mm, inner sep=0pt, fill=orange, fill opacity=%.2f, draw opacity=1] at (%.2f, %.2f) (%s) {};'%(alpha, x_node, y_node+0.08, node_name) + '\n')
                     if hi == h-1:
-                        for k, v in q_history[hi].items():
-                            if idx*2 == k[-1]:
-                                qvals  = v
-                                probas = np.exp(v)/np.sum(np.exp(v))
-                                val    = np.dot(probas, qvals) 
-                                break
+                        qvals  = q_history[hi][idx*2]
+                        probas = np.exp(qvals)/np.sum(np.exp(qvals))
+                        val    = np.dot(probas, qvals) 
                         f.write(r'\node[qval] at (%.2f, %.2f) () {\tiny \textcolor{blue}{%.2f}};'%(x_node+0.45, y_node+0.08, val) + '\n')
                     state_nodes[hi].append(node_name)
                     node_name = str(hi) + '_s_' + str(idx*2+1)
-                    for k, v in need_history[hi].items():
-                        if k[-1] == idx*2+1:
-                            alpha = v
-                            break
+                    
+                    alpha = need_history[hi][idx*2+1]
                     f.write(r'\node[rectangle, text centered, draw=black, minimum height=1mm, text width=3mm, inner sep=0pt, fill=orange, fill opacity=%.2f, draw opacity=1] at (%.2f, %.2f) (%s) {};'%(alpha, x_node, y_node-0.08, node_name) + '\n')
                     if hi == h-1:
-                        for k, v in q_history[hi].items():
-                            if idx*2+1 == k[-1]:
-                                qvals  = v
-                                probas = np.exp(v)/np.sum(np.exp(v))
-                                val    = np.dot(probas, qvals) 
-                                break
+                        qvals = q_history[hi][idx*2+1]
+                        probas = np.exp(qvals)/np.sum(np.exp(qvals))
+                        val    = np.dot(probas, qvals) 
                         f.write(r'\node[qval] at (%.2f, %.2f) () {\tiny \textcolor{blue}{%.2f}};'%(x_node+0.45, y_node-0.08, val) + '\n')
                     state_nodes[hi].append(node_name)
 
@@ -297,6 +283,7 @@ def generate_big_tex_tree(h, replays, q_history, need_history, file_path):
                 idx1 = int(k.split('_')[-1])
                 for k1 in between_nodes[hi+1]:
                     idx2 = int(k1.split('_')[-1])
+
                     cond = (idx1*2 == idx2) or (idx1*2+1 == idx2)
                     
                     if cond:
@@ -305,28 +292,28 @@ def generate_big_tex_tree(h, replays, q_history, need_history, file_path):
                         for rep_idx, rep in enumerate(replays[::-1]):
                             if rep is None:
                                 break
-                            if hi == rep[1]:
-                                this_rep = rep[-1]
-                                if (this_rep[2] == idx1):
-                                    if (this_rep[2]*2 + this_rep[-1]) == idx2:
+                            if hi in rep[0]:
+                                hidx = np.argwhere(rep[0] == hi).flatten()[0]
+                                if (idx1 == rep[1][hidx]):
+                                    if (rep[1][hidx]*2 + rep[-1][hidx]) == idx2:
                                         colour  = 'red'
                                         if rep_idx == 0:
                                             text = True
                                         break
 
                         for kq, vq in q_history[hi].items():
-                            if kq[-1] == idx1:
-                                if (kq[-1]*2 == idx2): 
+                            if kq == idx1:
+                                if (kq*2 == idx2): 
                                     q_val = vq[idx2%2]
                                     break
-                                if (kq[-1]*2+1 == idx2):
+                                if (kq*2+1 == idx2):
                                     q_val = vq[idx2%2]
                                     break
 
                         if not text:
                             f.write(r'\draw[->, thick, %s] (%s) -- (%s) node [pos=0.80, above=-0.2em, sloped, font=\tiny] () {\textcolor{blue}{%.2f}};'%(colour, k, k1, q_val) + '\n')
                         else:
-                            f.write(r'\draw[->, thick, %s] (%s) -- (%s) node [pos=0.35, above=-0.2em, sloped, font=\tiny] () {\textcolor{red}{update}} node [pos=0.80, above=-0.2em, sloped, font=\tiny] () {\textcolor{blue}{%.2f}};'%(colour, k, k1, q_val) + '\n')
+                            f.write(r'\draw[->, thick, green] (%s) -- (%s) node [pos=0.35, above=-0.2em, sloped, font=\tiny] () {\textcolor{green}{update}} node [pos=0.80, above=-0.2em, sloped, font=\tiny] () {\textcolor{blue}{%.2f}};'%(k, k1, q_val) + '\n')
 
         f.write(r'\end{tikzpicture}' + '\n')
         f.write(r'\end{minipage}' + '\n')
