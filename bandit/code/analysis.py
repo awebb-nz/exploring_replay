@@ -1,5 +1,4 @@
 import os, pickle
-from belief_tree import Tree
 import matplotlib.pyplot as plt
 import numpy as np
 from copy import deepcopy

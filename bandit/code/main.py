@@ -72,10 +72,17 @@ def main_single_replay(save_path):
 
 def main_multiple(save_path):
     
+    if os.path.exists(save_path):
+        shutil.rmtree(save_path)
+    else: pass
+    os.makedirs(save_path)
+    os.mkdir(os.path.join(save_path, 'replay_data'))
+    os.mkdir(os.path.join(save_path, 'data'))
+
     # vary these parameters
     xis       = np.logspace(np.log2(0.0001), np.log2(1.0), 11, base=2)
     horizons  = [2, 3, 4, 5]
-    betas     = [1.5, 2, 4]
+    betas     = [1, 2, 4, 8]
 
     # store results here
     P      = np.zeros((len(horizons), len(betas), len(xis)))
@@ -106,6 +113,8 @@ def main_multiple(save_path):
                 R[hidx, bidx, xidx]     = v_replay
                 nreps[hidx, bidx, xidx] = len(replays)-1
 
+                np.save(os.path.join(save_path, 'replay_data', 'replays_%u_%u_%u.npy'%(hidx, bidx, xidx)), replays)
+
                 # do full bayesian updates
                 if (bidx == 0) and (xidx == 0):
                     v_full       = tree.full_updates()
@@ -113,15 +122,10 @@ def main_multiple(save_path):
 
         print('Horizon %u'%horizon)
 
-    if os.path.exists(save_path):
-        shutil.rmtree(save_path)
-    else: pass
-    os.makedirs(save_path)
-
-    np.save(os.path.join(save_path, 'eval_pol.npy'), P)
-    np.save(os.path.join(save_path, 'root_pol.npy'), R)
-    np.save(os.path.join(save_path, 'full_upd.npy'), R_true)
-    np.save(os.path.join(save_path, 'nreps.npy'), nreps)
+    np.save(os.path.join(save_path, 'data', 'eval_pol.npy'), P)
+    np.save(os.path.join(save_path, 'data', 'root_pol.npy'), R)
+    np.save(os.path.join(save_path, 'data', 'full_upd.npy'), R_true)
+    np.save(os.path.join(save_path, 'data', 'nreps.npy'), nreps)
 
     plot_multiple(save_path, p['root_belief'], P, R, nreps, R_true, horizons, xis, betas)
 
