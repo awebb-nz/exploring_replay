@@ -18,6 +18,13 @@ class Tree:
         
         self.__dict__.update(**p)
 
+        if self.max_seq_len is None:
+            self.max_seq_len = self.horizon-1
+
+
+        self._build_tree()
+        self._build_qval_tree()
+
         return None
 
     def _policy(self, q_values):
@@ -61,7 +68,8 @@ class Tree:
         ----
         '''
 
-        eval_tree = {hi:{} for hi in range(self.horizon)}
+        nqval_tree = deepcopy(qval_tree)
+        eval_tree  = {hi:{} for hi in range(self.horizon)}
 
         # then propagate those values backwards
         for hi in reversed(range(self.horizon-1)):
@@ -71,7 +79,7 @@ class Tree:
 
                 eval_tree[hi][idx] = 0
 
-                qvals = qval_tree[hi][idx].copy()
+                qvals = nqval_tree[hi][idx].copy()
                 probs = self._policy(qvals)
 
                 next_idcs = vals[1]
@@ -81,7 +89,7 @@ class Tree:
                     idx1 = next_idx[1]
                     idx2 = next_idx[2]
 
-                    v_primes = [np.max(qval_tree[hi+1][idx1]), np.max(qval_tree[hi+1][idx2])]
+                    v_primes = [np.max(nqval_tree[hi+1][idx1]), np.max(nqval_tree[hi+1][idx2])]
 
                     b0 = b[a, 0]/np.sum(b[a, :])
                     b1 = b[a, 1]/np.sum(b[a, :])
@@ -109,7 +117,7 @@ class Tree:
             b_next[arm, 1] += 1
         return b_next
 
-    def build_tree(self):
+    def _build_tree(self):
 
         '''
         ----
@@ -284,7 +292,7 @@ class Tree:
                         probs_after  = self._policy(q_new)
                         gain         = np.dot(probs_after-probs_before, q_new)
                         evb          = need*gain
-                            
+                        
                         updates += [[np.array([hi]), np.array([idx]), np.array([a]), q_new.reshape(1, -1).copy(), np.array([gain]), np.array([need]), np.array([evb])]]
 
         return updates
@@ -315,9 +323,6 @@ class Tree:
                     prev_idx = seq[1][-1] # idx of the previous belief
                     prev_evb = seq[-1][-1]
 
-                    if prev_evb < self.xi:
-                        break
-                    
                     # belief idcs from which we consider adding an action
                     prev_next_idcs = self.belief_tree[prev_hi][prev_idx][1]
 
@@ -362,16 +367,15 @@ class Tree:
                                     gain         = np.dot(probs_after-probs_before, q_new)
                                     evb          = gain*need
                             
-                                    if evb >= self.xi:
-                                        this_seq     = deepcopy(seq)
-                                        this_seq[0]  = np.append(this_seq[0], prev_hi+1)
-                                        this_seq[1]  = np.append(this_seq[1], idx)
-                                        this_seq[2]  = np.append(this_seq[2], a)
-                                        this_seq[3]  = np.vstack((this_seq[3], q_new.copy()))
-                                        this_seq[4]  = np.append(this_seq[4], gain)
-                                        this_seq[5]  = np.append(this_seq[5], need)
-                                        this_seq[6]  = np.append(this_seq[6], np.dot(this_seq[4], this_seq[5]))
-                                        tmp += [deepcopy(this_seq)]
+                                    this_seq     = deepcopy(seq)
+                                    this_seq[0]  = np.append(this_seq[0], prev_hi+1)
+                                    this_seq[1]  = np.append(this_seq[1], idx)
+                                    this_seq[2]  = np.append(this_seq[2], a)
+                                    this_seq[3]  = np.vstack((this_seq[3], q_new.copy()))
+                                    this_seq[4]  = np.append(this_seq[4], gain)
+                                    this_seq[5]  = np.append(this_seq[5], need)
+                                    this_seq[6]  = np.append(this_seq[6], np.dot(this_seq[4], this_seq[5]))
+                                    tmp += [deepcopy(this_seq)]
 
                 if len(tmp) > 0:
                     seq_updates += tmp
@@ -404,9 +408,6 @@ class Tree:
                     levb = seq[-1][-1]
                     q    = seq[3][-1, :].copy()
 
-                    if levb <= self.xi:
-                        break
-                    
                     # find previous belief
                     for idx, vals in self.belief_tree[lhi-1].items():
 
@@ -445,16 +446,15 @@ class Tree:
                                 gain         = np.dot(probs_after-probs_before, q_new)
                                 evb          = gain*need
 
-                                if evb >= self.xi:
-                                    this_seq     = deepcopy(seq)
-                                    this_seq[0]  = np.append(this_seq[0], lhi-1)
-                                    this_seq[1]  = np.append(this_seq[1], idx)
-                                    this_seq[2]  = np.append(this_seq[2], a)
-                                    this_seq[3]  = np.vstack((this_seq[3], q_new.copy()))
-                                    this_seq[4]  = np.append(this_seq[4], gain)
-                                    this_seq[5]  = np.append(this_seq[5], need)
-                                    this_seq[6]  = np.append(this_seq[6], np.dot(this_seq[4], this_seq[5]))
-                                    tmp += [deepcopy(this_seq)]
+                                this_seq     = deepcopy(seq)
+                                this_seq[0]  = np.append(this_seq[0], lhi-1)
+                                this_seq[1]  = np.append(this_seq[1], idx)
+                                this_seq[2]  = np.append(this_seq[2], a)
+                                this_seq[3]  = np.vstack((this_seq[3], q_new.copy()))
+                                this_seq[4]  = np.append(this_seq[4], gain)
+                                this_seq[5]  = np.append(this_seq[5], need)
+                                this_seq[6]  = np.append(this_seq[6], np.dot(this_seq[4], this_seq[5]))
+                                tmp += [deepcopy(this_seq)]
 
                 if len(tmp) > 0:
                     seq_updates += tmp
@@ -501,13 +501,14 @@ class Tree:
             idcs   = update[1]
             aas    = update[2]
             q_news = update[3]
+            evbs   = update[6]
 
             for idx, hi in enumerate(his):
                 
                 q_old = self.qval_tree[hi][idcs[idx]]
                 q_new = q_news[idx, :].copy()
                 self.qval_tree[hi][idcs[idx]] = q_new.copy()
-                print('%u -- Replay %u/%u -- [%u, %u, %u], q_old: %.2f, q_new: %.2f'%(num, idx+1, len(his), hi, idcs[idx], aas[idx], q_old[aas[idx]], q_new[aas[idx]]))
+                print('%u -- Replay %u/%u -- [%u, %u, %u], q_old: %.2f, q_new: %.2f, evb: %.3f'%(num, idx+1, len(his), hi, idcs[idx], aas[idx], q_old[aas[idx]], q_new[aas[idx]], evbs[idx]))
 
             # save history
             qval_history += [deepcopy(self.qval_tree)]
