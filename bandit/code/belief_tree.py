@@ -293,6 +293,10 @@ class Tree:
                         gain         = np.dot(probs_after-probs_before, q_new)
                         evb          = need*gain
                         
+                        if self.constrain_seqs:
+                            if evb <= self.xi:
+                                continue
+
                         updates += [[np.array([hi]), np.array([idx]), np.array([a]), q_new.reshape(1, -1).copy(), np.array([gain]), np.array([need]), np.array([evb])]]
 
         return updates
@@ -321,7 +325,6 @@ class Tree:
                         break 
                     
                     prev_idx = seq[1][-1] # idx of the previous belief
-                    prev_evb = seq[-1][-1]
 
                     # belief idcs from which we consider adding an action
                     prev_next_idcs = self.belief_tree[prev_hi][prev_idx][1]
@@ -366,7 +369,10 @@ class Tree:
                                     need         = self.need_tree[prev_hi][prev_idx]
                                     gain         = np.dot(probs_after-probs_before, q_new)
                                     evb          = gain*need
-                            
+
+                                    if self.constrain_seqs:
+                                        if evb <= self.xi:
+                                            continue
                                     this_seq     = deepcopy(seq)
                                     this_seq[0]  = np.append(this_seq[0], prev_hi+1)
                                     this_seq[1]  = np.append(this_seq[1], idx)
@@ -405,7 +411,6 @@ class Tree:
                         break 
 
                     lidx = seq[1][-1]
-                    levb = seq[-1][-1]
                     q    = seq[3][-1, :].copy()
 
                     # find previous belief
@@ -446,6 +451,9 @@ class Tree:
                                 gain         = np.dot(probs_after-probs_before, q_new)
                                 evb          = gain*need
 
+                                if self.constrain_seqs:
+                                    if evb <= self.xi:
+                                        continue
                                 this_seq     = deepcopy(seq)
                                 this_seq[0]  = np.append(this_seq[0], lhi-1)
                                 this_seq[1]  = np.append(this_seq[1], idx)

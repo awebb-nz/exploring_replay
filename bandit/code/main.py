@@ -24,17 +24,18 @@ p = {
     'xi': 0.001,
     'beta': 4,
     'policy_type': 'softmax',
-    'sequences': True,
+    'sequences': False,
     'max_seq_len': None,
+    'constrain_seqs': False,
     'horizon': 5
 }
 
 # save path
 root_folder = '/home/georgy/Documents/Dayan_lab/PhD/bandits/bandit/data/new/'
-save_path   = os.path.join(root_folder, '1', 'seqs')
+save_path   = os.path.join(root_folder, '1', 'noseqs')
 
 # --- Main function for replay ---
-def main_single_replay(save_path):
+def main_single(save_path):
     tree = Tree(**p)
 
     qval_history, need_history, replay_history = tree.replay_updates()
@@ -130,4 +131,5 @@ def main_multiple(save_path):
     plot_multiple(save_path, p['root_belief'], P, R, nreps, R_true, horizons, xis, betas)
 
 if __name__ == '__main__':
+    # main_single(save_path)
     main_multiple(save_path)
