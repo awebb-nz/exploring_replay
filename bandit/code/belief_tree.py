@@ -201,7 +201,7 @@ class Tree:
         for hi in range(self.horizon):
             for idx, vals in self.belief_tree[hi].items():
 
-                if hi == (self.horizon - 1):
+                if self.init_qvals or (hi == (self.horizon - 1)):
                     b  = vals[0]
                     b0 = b[0, 0]/np.sum(b[0, :])
                     b1 = b[1, 0]/np.sum(b[1, :])
@@ -262,15 +262,14 @@ class Tree:
         for hi in reversed(range(self.horizon-1)):
                 for idx, vals in self.belief_tree[hi].items():
                     
-                    q = self.qval_tree[hi][idx].copy() # current Q values of this belief state
-
-                    b = vals[0]
-
+                    q    = self.qval_tree[hi][idx].copy() # current Q values of this belief state
+                    b    = vals[0]
                     need = self.need_tree[hi][idx]
 
                     # compute the new (updated) Q value 
                     next_idcs = vals[1]
                     for next_idx in next_idcs:
+                        
                         a    = next_idx[0]
                         idx1 = next_idx[1]
                         idx2 = next_idx[2]
@@ -294,11 +293,10 @@ class Tree:
                         evb          = need*gain
                         
                         if self.constrain_seqs:
-                            if evb <= self.xi:
-                                continue
-
-                        updates += [[np.array([hi]), np.array([idx]), np.array([a]), q_new.reshape(1, -1).copy(), np.array([gain]), np.array([need]), np.array([evb])]]
-
+                            if evb > self.xi:
+                                updates += [[np.array([hi]), np.array([idx]), np.array([a]), q_new.reshape(1, -1).copy(), np.array([gain]), np.array([need]), np.array([evb])]]
+                        else:
+                            updates += [[np.array([hi]), np.array([idx]), np.array([a]), q_new.reshape(1, -1).copy(), np.array([gain]), np.array([need]), np.array([evb])]]
         return updates
 
     def _generate_forward_sequences(self, updates):
@@ -319,12 +317,12 @@ class Tree:
                 for seq in pool:
 
                     prev_hi  = seq[0][-1] # horizon of the previous update
-                    prev_a   = seq[1][-1] # previous action
 
                     if (prev_hi == self.horizon-2):
                         break 
                     
                     prev_idx = seq[1][-1] # idx of the previous belief
+                    prev_a   = seq[2][-1] # previous action
 
                     # belief idcs from which we consider adding an action
                     prev_next_idcs = self.belief_tree[prev_hi][prev_idx][1]
@@ -339,8 +337,10 @@ class Tree:
                             prev_idx2 = prev_next_idx[2]
 
                             for idx in [prev_idx1, prev_idx2]:
-
+                                
                                 b = self.belief_tree[prev_hi+1][idx][0]
+                                q = self.qval_tree[prev_hi+1][idx].copy()
+
                                 next_idcs = self.belief_tree[prev_hi+1][idx][1]
                             
                                 for next_idx in next_idcs:
@@ -348,8 +348,6 @@ class Tree:
                                     a    = next_idx[0]
                                     idx1 = next_idx[1]
                                     idx2 = next_idx[2]
-
-                                    q = self.qval_tree[prev_hi+1][idx].copy()
 
                                     v_primes = [np.max(self.qval_tree[prev_hi+2][idx1]), np.max(self.qval_tree[prev_hi+2][idx2])] # values of next belief states
 
@@ -366,22 +364,31 @@ class Tree:
                                     
                                     probs_before = self._policy(q)
                                     probs_after  = self._policy(q_new)
-                                    need         = self.need_tree[prev_hi][prev_idx]
+                                    need         = self.need_tree[prev_hi+1][idx]
                                     gain         = np.dot(probs_after-probs_before, q_new)
                                     evb          = gain*need
 
                                     if self.constrain_seqs:
-                                        if evb <= self.xi:
-                                            continue
-                                    this_seq     = deepcopy(seq)
-                                    this_seq[0]  = np.append(this_seq[0], prev_hi+1)
-                                    this_seq[1]  = np.append(this_seq[1], idx)
-                                    this_seq[2]  = np.append(this_seq[2], a)
-                                    this_seq[3]  = np.vstack((this_seq[3], q_new.copy()))
-                                    this_seq[4]  = np.append(this_seq[4], gain)
-                                    this_seq[5]  = np.append(this_seq[5], need)
-                                    this_seq[6]  = np.append(this_seq[6], np.dot(this_seq[4], this_seq[5]))
-                                    tmp += [deepcopy(this_seq)]
+                                        if evb > self.xi:
+                                            this_seq     = deepcopy(seq)
+                                            this_seq[0]  = np.append(this_seq[0], prev_hi+1)
+                                            this_seq[1]  = np.append(this_seq[1], idx)
+                                            this_seq[2]  = np.append(this_seq[2], a)
+                                            this_seq[3]  = np.vstack((this_seq[3], q_new.copy()))
+                                            this_seq[4]  = np.append(this_seq[4], gain)
+                                            this_seq[5]  = np.append(this_seq[5], need)
+                                            this_seq[6]  = np.append(this_seq[6], np.dot(this_seq[4], this_seq[5]))
+                                            tmp += [deepcopy(this_seq)]
+                                    else:
+                                        this_seq     = deepcopy(seq)
+                                        this_seq[0]  = np.append(this_seq[0], prev_hi+1)
+                                        this_seq[1]  = np.append(this_seq[1], idx)
+                                        this_seq[2]  = np.append(this_seq[2], a)
+                                        this_seq[3]  = np.vstack((this_seq[3], q_new.copy()))
+                                        this_seq[4]  = np.append(this_seq[4], gain)
+                                        this_seq[5]  = np.append(this_seq[5], need)
+                                        this_seq[6]  = np.append(this_seq[6], np.dot(this_seq[4], this_seq[5]))
+                                        tmp += [deepcopy(this_seq)]
 
                 if len(tmp) > 0:
                     seq_updates += tmp
@@ -405,34 +412,34 @@ class Tree:
 
                 for seq in pool:
 
-                    lhi  = seq[0][-1]
+                    prev_hi  = seq[0][-1]
 
-                    if (lhi == 0):
+                    if (prev_hi == 0):
                         break 
 
-                    lidx = seq[1][-1]
-                    q    = seq[3][-1, :].copy()
+                    prev_idx = seq[1][-1]
+                    q_seq    = seq[3][-1, :].copy()
 
                     # find previous belief
-                    for idx, vals in self.belief_tree[lhi-1].items():
+                    for idx, vals in self.belief_tree[prev_hi-1].items():
 
                         next_idcs = vals[1]
 
                         for next_idx in next_idcs:
 
-                            if (next_idx[1] == lidx) or (next_idx[2] == lidx):
+                            if (next_idx[1] == prev_idx) or (next_idx[2] == prev_idx):
                         
                                 qval_tree = deepcopy(self.qval_tree)
-                                qval_tree[lhi][lidx] = q.copy()
+                                qval_tree[prev_hi][prev_idx] = q_seq.copy()
 
-                                q    = self.qval_tree[lhi-1][idx]
+                                q    = self.qval_tree[prev_hi-1][idx]
                                 b    = vals[0]
 
                                 a    = next_idx[0]
                                 idx1 = next_idx[1]
                                 idx2 = next_idx[2]
 
-                                v_primes = [np.max(self.qval_tree[lhi][idx1]), np.max(self.qval_tree[lhi][idx2])] # values of next belief states
+                                v_primes = [np.max(qval_tree[prev_hi][idx1]), np.max(qval_tree[prev_hi][idx2])] # values of next belief states
 
                                 # new (updated) Q value for action [a]
                                 b0 = b[a, 0]/np.sum(b[a, :])
@@ -447,22 +454,31 @@ class Tree:
                                 
                                 probs_before = self._policy(q)
                                 probs_after  = self._policy(q_new)
-                                need         = self.need_tree[lhi][lidx]
+                                need         = self.need_tree[prev_hi-1][idx]
                                 gain         = np.dot(probs_after-probs_before, q_new)
                                 evb          = gain*need
 
                                 if self.constrain_seqs:
-                                    if evb <= self.xi:
-                                        continue
-                                this_seq     = deepcopy(seq)
-                                this_seq[0]  = np.append(this_seq[0], lhi-1)
-                                this_seq[1]  = np.append(this_seq[1], idx)
-                                this_seq[2]  = np.append(this_seq[2], a)
-                                this_seq[3]  = np.vstack((this_seq[3], q_new.copy()))
-                                this_seq[4]  = np.append(this_seq[4], gain)
-                                this_seq[5]  = np.append(this_seq[5], need)
-                                this_seq[6]  = np.append(this_seq[6], np.dot(this_seq[4], this_seq[5]))
-                                tmp += [deepcopy(this_seq)]
+                                    if evb > self.xi:
+                                        this_seq     = deepcopy(seq)
+                                        this_seq[0]  = np.append(this_seq[0], prev_hi-1)
+                                        this_seq[1]  = np.append(this_seq[1], idx)
+                                        this_seq[2]  = np.append(this_seq[2], a)
+                                        this_seq[3]  = np.vstack((this_seq[3], q_new.copy()))
+                                        this_seq[4]  = np.append(this_seq[4], gain)
+                                        this_seq[5]  = np.append(this_seq[5], need)
+                                        this_seq[6]  = np.append(this_seq[6], np.dot(this_seq[4], this_seq[5]))
+                                        tmp += [deepcopy(this_seq)]
+                                else:
+                                    this_seq     = deepcopy(seq)
+                                    this_seq[0]  = np.append(this_seq[0], prev_hi-1)
+                                    this_seq[1]  = np.append(this_seq[1], idx)
+                                    this_seq[2]  = np.append(this_seq[2], a)
+                                    this_seq[3]  = np.vstack((this_seq[3], q_new.copy()))
+                                    this_seq[4]  = np.append(this_seq[4], gain)
+                                    this_seq[5]  = np.append(this_seq[5], need)
+                                    this_seq[6]  = np.append(this_seq[6], np.dot(this_seq[4], this_seq[5]))
+                                    tmp += [deepcopy(this_seq)]
 
                 if len(tmp) > 0:
                     seq_updates += tmp

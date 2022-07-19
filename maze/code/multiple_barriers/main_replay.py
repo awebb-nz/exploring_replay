@@ -32,7 +32,7 @@ ag_config = {
     'policy_type'    : 'softmax', # policy type [softmax / greedy]
     'gamma'          : 0.9,       # discount factor
     'horizon'        : 10,        # planning horizon (minus 1)
-    'xi'             : 0.1,      # EVB replay threshold
+    'xi'             : 0.2,      # EVB replay threshold
     'num_sims'       : 2000,      # number of MC simulations for need
     'sequences'      : True,
     'max_seq_len'    : 7,        

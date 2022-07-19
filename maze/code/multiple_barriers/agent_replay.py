@@ -430,35 +430,24 @@ class Agent(Environment):
                             # if it doesn't exist then add it to the belief tree
                             # and add its key to the previous belief that gave rise to it
                             if not checku and not checkl:
-                                if (b[bidx, 0] != 0) and (b[bidx, 1] != 0):
-                                    btree[hi][idx]            = [[b1u.copy(), s1u], q.copy(), []]
-                                    btree[hi][idx+1]          = [[b1l.copy(), s1l], q.copy(), []]
-                                    btree[hi-1][prev_idx][2] += [[[a, hi, idx], [a, hi, idx+1]]]
-                                    idx                      += 2
-                                else:
-                                    if b[bidx, 0] != 0:
-                                        btree[hi][idx]            = [[b1u.copy(), s1u], q.copy(), []]
-                                        btree[hi-1][prev_idx][2] += [[a, hi, idx]]
-                                        idx                      += 1
-                                    if b[bidx, 1] != 0:
-                                        btree[hi][idx]            = [[b1l.copy(), s1l], q.copy(), []]
-                                        btree[hi-1][prev_idx][2] += [[a, hi, idx]]
-                                        idx                      += 1
-                            elif not checku:
-                                if b[bidx, 0] != 0:
-                                    btree[hi][idx]            = [[b1u.copy(), s1u], q.copy(), []]
-                                    btree[hi-1][prev_idx][2] += [[a, hi, idx]]
-                                    idx                      += 1
-                            elif not checkl:
-                                if b[bidx, 0] != 0:
-                                    btree[hi][idx]            = [[b1l.copy(), s1l], q.copy(), []]
-                                    btree[hi-1][prev_idx][2] += [[a, hi, idx]]
-                                    idx                      += 1
+                                btree[hi][idx]            = [[b1u.copy(), s1u], q.copy(), []]
+                                btree[hi][idx+1]          = [[b1l.copy(), s1l], q.copy(), []]
+                                btree[hi-1][prev_idx][2] += [[[a, hi, idx], [a, hi, idx+1]]]
+                                idx                      += 2
+                            elif not checku and checkl:
+                                btree[hi][idx]            = [[b1u.copy(), s1u], q.copy(), []]
+                                btree[hi-1][prev_idx][2] += [[[a, hi, idx], [a, hil, idxl]]]
+                                idx                      += 1
+                            elif checku and not checkl:
+                                btree[hi][idx]            = [[b1l.copy(), s1l], q.copy(), []]
+                                btree[hi-1][prev_idx][2] += [[[a, hiu, idxu], [a, hi, idx]]]
+                                idx                      += 1
+                            else:
+                                to_add = [[a, hiu, idxu], [a, hil, idxl]]
+                                if (to_add not in btree[hi-1][prev_idx][2]):
+                                    btree[hi-1][prev_idx][2] += [to_add]
                             # if the new belief already exists then we just need to add 
                             # the key of that existing belief to the previous belief
-                            else:
-                                if [a, hip, idxp] not in btree[hi-1][prev_idx][2]:
-                                    btree[hi-1][prev_idx][2] += [[a, hip, idxp]]
 
                         else:
                             s1u, _ = self._get_new_state(s, a, unlocked=False)
