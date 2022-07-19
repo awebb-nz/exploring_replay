@@ -58,6 +58,10 @@ class Tree:
         else:
             raise KeyError('Unknown policy type')
 
+    def _value(self, qvals):
+
+        return np.dot(self._policy(qvals), qvals)
+
     def evaluate_policy(self, qval_tree):
 
         '''
@@ -89,7 +93,10 @@ class Tree:
                     idx1 = next_idx[1]
                     idx2 = next_idx[2]
 
-                    v_primes = [np.max(nqval_tree[hi+1][idx1]), np.max(nqval_tree[hi+1][idx2])]
+                    if hi == self.horizon - 2:
+                        v_primes = [self._value(nqval_tree[hi+1][idx1]), self._value(nqval_tree[hi+1][idx2])]
+                    else:
+                        v_primes = [eval_tree[hi+1][idx1], eval_tree[hi+1][idx2]]
 
                     b0 = b[a, 0]/np.sum(b[a, :])
                     b1 = b[a, 1]/np.sum(b[a, :])

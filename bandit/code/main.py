@@ -20,20 +20,21 @@ M = np.array([
 # other parameters
 p = {
     'root_belief':    M,
-    'init_qvals':     True,
+    'init_qvals':     False,
     'gamma':          0.9,
-    'xi':             0.001,
+    'xi':             0.0001,
     'beta':           4,
     'policy_type':    'softmax',
     'sequences':      True,
     'max_seq_len':    None,
     'constrain_seqs': True,
-    'horizon':        5
+    'horizon':        4
 }
 
 # save path
-root_folder = '/home/georgy/Documents/Dayan_lab/PhD/bandits/bandit/data/new/'
-save_path   = os.path.join(root_folder, '1', 'seqs', 'constrained', 'qvals_init')
+root_folder      = '/home/georgy/Documents/Dayan_lab/PhD/bandits/bandit/data/new/'
+save_path        = os.path.join(root_folder, '1', 'seqs', 'not_constrained', 'qvals_init')
+save_single_path = os.path.join(root_folder, '1', 'seqs', 'constrained', 'qvals_noinit', 'tree')
 
 # --- Main function for replay ---
 def main_single(save_path):
@@ -132,5 +133,5 @@ def main_multiple(save_path):
     plot_multiple(save_path, p['root_belief'], P, R, nreps, R_true, horizons, xis, betas)
 
 if __name__ == '__main__':
-    main_single(save_path)
+    main_single(save_single_path)
     # main_multiple(save_path)
