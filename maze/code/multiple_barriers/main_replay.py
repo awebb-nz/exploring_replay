@@ -18,7 +18,7 @@ env_config     = load_env(env_file_path)
 
 # --- Specify simulation parameters ---
 save_path      = os.path.join('/home/georgy/Documents/Dayan_lab/PhD/bandits/maze/data/replay/local/', env)
-num_steps      = 5
+num_steps      = 200
 
 seed           = 0
 
@@ -32,10 +32,10 @@ ag_config = {
     'policy_type'    : 'softmax', # policy type [softmax / greedy]
     'gamma'          : 0.9,       # discount factor
     'horizon'        : 10,        # planning horizon (minus 1)
-    'xi'             : 0.2,      # EVB replay threshold
+    'xi'             : 0.01,      # EVB replay threshold
     'num_sims'       : 2000,      # number of MC simulations for need
     'sequences'      : True,
-    'max_seq_len'    : 7,        
+    'max_seq_len'    : 5,        
     'env_name'       : env        # gridworld name
 }
 
@@ -60,7 +60,7 @@ def main():
     if not os.path.isdir(save_plot_path):
         os.mkdir(save_plot_path)
 
-    plot_simulation(agent, save_data_path, save_plot_path)
+    plot_simulation(agent, save_data_path, save_plot_path, move_start=70)
     
     # Q_MB        = agent._solve_mb(1e-5, barriers=[1, 1, 0])
     # agent.state = 38          # start state

@@ -9,8 +9,8 @@ import os, shutil, pickle
 
 # prior belief at the root
 
-alpha_0, beta_0 = 14, 10
-alpha_1, beta_1 = 4, 3
+alpha_0, beta_0 = 20, 1
+alpha_1, beta_1 = 1, 20
 
 M = np.array([
     [alpha_0, beta_0],
@@ -20,7 +20,7 @@ M = np.array([
 # other parameters
 p = {
     'root_belief':    M,
-    'init_qvals':     False,
+    'init_qvals':     0.6,
     'gamma':          0.9,
     'xi':             0.0001,
     'beta':           4,
@@ -32,9 +32,9 @@ p = {
 }
 
 # save path
-root_folder      = '/home/georgy/Documents/Dayan_lab/PhD/bandits/bandit/data/new/'
-save_path        = os.path.join(root_folder, '1', 'seqs', 'not_constrained', 'qvals_init')
-save_single_path = os.path.join(root_folder, '1', 'seqs', 'constrained', 'qvals_noinit', 'tree')
+root_folder        = '/home/georgy/Documents/Dayan_lab/PhD/bandits/bandit/data/new/'
+save_path_multiple = os.path.join(root_folder, '1', 'seqs', '06')
+# save_single_path   = os.path.join(root_folder, '1', 'seqs', 'constrained', 'qvals_init', 'tree')
 
 # --- Main function for replay ---
 def main_single(save_path):
@@ -83,9 +83,10 @@ def main_multiple(save_path):
     os.mkdir(os.path.join(save_path, 'data'))
 
     # vary these parameters
-    xis       = np.logspace(np.log2(0.0001), np.log2(1.0), 11, base=2)
-    horizons  = [2, 3, 4, 5]
-    betas     = [1, 2, 4, 8]
+    # xis       = np.logspace(np.log10(0.0001), np.log10(0.5), 15)
+    xis       = np.linspace(0.0001, 0.1, 20)
+    horizons  = [3, 4, 5, 6]
+    betas     = [1, 2, 4]
 
     # store results here
     P      = np.zeros((len(horizons), len(betas), len(xis)))
@@ -100,16 +101,16 @@ def main_multiple(save_path):
             for xidx, xi in enumerate(xis):
 
                 # initialise the agent
-                p['beta']    = beta
-                p['xi']      = xi
-                p['horizon'] = horizon
+                p['beta']       = beta
+                p['xi']         = xi
+                p['horizon']    = horizon
 
                 tree = Tree(**p)
 
                 # do replay
                 _, _, replays = tree.replay_updates()
                 qvals         = tree.qval_tree[0][0].copy()
-                v_replay      = np.dot(tree._policy(qvals), qvals)
+                v_replay      = tree._value(qvals)
                 eval_pol      = tree.evaluate_policy(tree.qval_tree)
 
                 P[hidx, bidx, xidx]     = eval_pol
@@ -121,7 +122,7 @@ def main_multiple(save_path):
                 # do full bayesian updates
                 if (bidx == 0) and (xidx == 0):
                     v_full       = tree.full_updates()
-                    R_true[hidx] = v_full
+                    R_true[hidx] = np.max(v_full[0][0])
 
         print('Horizon %u'%horizon)
 
@@ -133,5 +134,5 @@ def main_multiple(save_path):
     plot_multiple(save_path, p['root_belief'], P, R, nreps, R_true, horizons, xis, betas)
 
 if __name__ == '__main__':
-    main_single(save_single_path)
-    # main_multiple(save_path)
+    # main_single(save_single_path)
+    main_multiple(save_path_multiple)

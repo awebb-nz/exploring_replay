@@ -21,9 +21,9 @@ class Tree:
         if self.max_seq_len is None:
             self.max_seq_len = self.horizon-1
 
-
-        self._build_tree()
-        self._build_qval_tree()
+        self.belief_tree = self._build_belief_tree()
+        qval_tree        = self._build_qval_tree()
+        self.qval_tree   = self._adjust_qval_tree(qval_tree)
 
         return None
 
@@ -72,18 +72,17 @@ class Tree:
         ----
         '''
 
-        nqval_tree = deepcopy(qval_tree)
         eval_tree  = {hi:{} for hi in range(self.horizon)}
 
         # then propagate those values backwards
         for hi in reversed(range(self.horizon-1)):
             for idx, vals in self.belief_tree[hi].items():
 
-                b  = vals[0]
+                b     = vals[0]
 
                 eval_tree[hi][idx] = 0
 
-                qvals = nqval_tree[hi][idx].copy()
+                qvals = qval_tree[hi][idx].copy()
                 probs = self._policy(qvals)
 
                 next_idcs = vals[1]
@@ -94,7 +93,7 @@ class Tree:
                     idx2 = next_idx[2]
 
                     if hi == self.horizon - 2:
-                        v_primes = [self._value(nqval_tree[hi+1][idx1]), self._value(nqval_tree[hi+1][idx2])]
+                        v_primes = [self._value(qval_tree[hi+1][idx1]), self._value(qval_tree[hi+1][idx2])]
                     else:
                         v_primes = [eval_tree[hi+1][idx1], eval_tree[hi+1][idx2]]
 
@@ -124,7 +123,7 @@ class Tree:
             b_next[arm, 1] += 1
         return b_next
 
-    def _build_tree(self):
+    def _build_belief_tree(self):
 
         '''
         ----
@@ -135,14 +134,14 @@ class Tree:
         '''
 
         # initialise the hyperstate tree
-        self.belief_tree = {hi:{} for hi in range(self.horizon)}
+        belief_tree = {hi:{} for hi in range(self.horizon)}
         
         idx = 0
-        self.belief_tree[0][idx] = [self.root_belief, []]
+        belief_tree[0][idx] = [self.root_belief, []]
     
         for hi in range(1, self.horizon):
             idx = 0
-            for prev_idx, vals in self.belief_tree[hi-1].items():
+            for prev_idx, vals in belief_tree[hi-1].items():
 
                 b = vals[0]
 
@@ -151,19 +150,19 @@ class Tree:
                     # success
                     r    = 1
                     b1s  = self._belief_update(b, a, r)
-                    self.belief_tree[hi][idx] = [b1s, []]
+                    belief_tree[hi][idx] = [b1s, []]
                     
                     # fail
                     r    = 0
                     b1f  = self._belief_update(b, a, r)
-                    self.belief_tree[hi][idx+1] = [b1f, []]
+                    belief_tree[hi][idx+1] = [b1f, []]
 
                     # add these to the previous belief
-                    self.belief_tree[hi-1][prev_idx][-1] += [[a, idx, idx+1]]
+                    belief_tree[hi-1][prev_idx][-1] += [[a, idx, idx+1]]
 
                     idx += 2
 
-        return None
+        return belief_tree
 
     def full_updates(self):
         '''
@@ -175,7 +174,7 @@ class Tree:
         ----
         '''
 
-        self._build_qval_tree()
+        qval_tree = self._build_qval_tree()
 
         # then propagate those values backwards
         for hi in reversed(range(self.horizon-1)):
@@ -183,7 +182,7 @@ class Tree:
                 
                 b  = vals[0]
                 
-                self.qval_tree[hi][idx] = np.zeros(2)
+                qval_tree[hi][idx] = np.zeros(2)
 
                 next_idcs = vals[1]
                 
@@ -195,43 +194,49 @@ class Tree:
                     b0 = b[a, 0]/np.sum(b[a, :])
                     b1 = b[a, 1]/np.sum(b[a, :])
                     
-                    v_primes = [np.max(self.qval_tree[hi+1][idx1]), np.max(self.qval_tree[hi+1][idx2])]
+                    v_primes = [np.max(qval_tree[hi+1][idx1]), np.max(qval_tree[hi+1][idx2])]
                     
-                    self.qval_tree[hi][idx][a] = b0*(1.0 + self.gamma*v_primes[0]) + b1*(0.0 + self.gamma*v_primes[1])
+                    qval_tree[hi][idx][a] = b0*(1.0 + self.gamma*v_primes[0]) + b1*(0.0 + self.gamma*v_primes[1])
 
-        return np.max(self.qval_tree[0][0])
+        return qval_tree
 
     def _build_qval_tree(self):
         
-        self.qval_tree = {hi:{} for hi in range(self.horizon)}
+        qval_tree = {hi:{} for hi in range(self.horizon)}
 
-        for hi in range(self.horizon):
-            for idx, vals in self.belief_tree[hi].items():
+        # set the leaf values as expected immediate reward
+        for idx, vals in self.belief_tree[self.horizon-1].items():
+            b  = vals[0]
+            b0 = b[0, 0]/np.sum(b[0, :])
+            b1 = b[1, 0]/np.sum(b[1, :])
 
-                if self.init_qvals or (hi == (self.horizon - 1)):
-                    b  = vals[0]
-                    b0 = b[0, 0]/np.sum(b[0, :])
-                    b1 = b[1, 0]/np.sum(b[1, :])
-                    q_values = np.array([b0, b1])
-                else:
-                    q_values = np.zeros(2)
+            qval_tree[self.horizon-1][idx] = np.array([b0, b1])
+
+        return qval_tree
+
+    def _adjust_qval_tree(self, qval_tree):
+
+        full_qval_tree = self.full_updates()
+
+        for hi in range(self.horizon-1):
+            for idx, vals in full_qval_tree[hi].items():
                 
-                self.qval_tree[hi][idx] = q_values.copy() # change temperature?
+                qval_tree[hi][idx] = self.init_qvals * vals
 
-        return None
+        return qval_tree
 
     def _build_need_tree(self):
 
-        self.need_tree  = {hi:{} for hi in range(self.horizon)}
+        need_tree  = {hi:{} for hi in range(self.horizon)}
 
-        self.need_tree[0][0] = 1
+        need_tree[0][0] = 1
         for hi in range(1, self.horizon):
             for prev_idx, vals in self.belief_tree[hi-1].items():
                 # compute Need with the default (softmax) policy
-                prev_need    = self.need_tree[hi-1][prev_idx]
+                prev_need    = need_tree[hi-1][prev_idx]
                 policy_proba = self._policy(self.qval_tree[hi-1][prev_idx])
                 
-                b         = vals[0]
+                b  = vals[0]
                 b0 = b[0, 0]/np.sum(b[0, :])
                 b1 = b[1, 0]/np.sum(b[1, :])
                 
@@ -240,12 +245,12 @@ class Tree:
                     a    = next_idx[0]
                     
                     idx1 = next_idx[1]
-                    self.need_tree[hi][idx1] = policy_proba[a]*b0*prev_need*self.gamma
+                    need_tree[hi][idx1] = policy_proba[a]*b0*prev_need*self.gamma
 
                     idx2 = next_idx[2]
-                    self.need_tree[hi][idx2] = policy_proba[a]*b1*prev_need*self.gamma
+                    need_tree[hi][idx2] = policy_proba[a]*b1*prev_need*self.gamma
 
-        return None
+        return need_tree
 
     def _get_highest_evb(self, updates):
         
@@ -267,43 +272,43 @@ class Tree:
         updates = []
 
         for hi in reversed(range(self.horizon-1)):
-                for idx, vals in self.belief_tree[hi].items():
+            for idx, vals in self.belief_tree[hi].items():
+                
+                q    = self.qval_tree[hi][idx].copy() # current Q values of this belief state
+                b    = vals[0]
+                need = self.need_tree[hi][idx]
+
+                # compute the new (updated) Q value 
+                next_idcs = vals[1]
+                for next_idx in next_idcs:
                     
-                    q    = self.qval_tree[hi][idx].copy() # current Q values of this belief state
-                    b    = vals[0]
-                    need = self.need_tree[hi][idx]
+                    a    = next_idx[0]
+                    idx1 = next_idx[1]
+                    idx2 = next_idx[2]
 
-                    # compute the new (updated) Q value 
-                    next_idcs = vals[1]
-                    for next_idx in next_idcs:
-                        
-                        a    = next_idx[0]
-                        idx1 = next_idx[1]
-                        idx2 = next_idx[2]
+                    v_primes = [np.max(self.qval_tree[hi+1][idx1]), np.max(self.qval_tree[hi+1][idx2])] # values of next belief states
 
-                        v_primes = [np.max(self.qval_tree[hi+1][idx1]), np.max(self.qval_tree[hi+1][idx2])] # values of next belief states
+                    # new (updated) Q value for action [a]
+                    b0 = b[a, 0]/np.sum(b[a, :])
+                    b1 = b[a, 1]/np.sum(b[a, :])
 
-                        # new (updated) Q value for action [a]
-                        b0 = b[a, 0]/np.sum(b[a, :])
-                        b1 = b[a, 1]/np.sum(b[a, :])
+                    q_upd = b0*(1.0 + self.gamma*v_primes[0]) + b1*(0.0 + self.gamma*v_primes[1])
 
-                        q_upd = b0*(1.0 + self.gamma*v_primes[0]) + b1*(0.0 + self.gamma*v_primes[1])
-
-                        if a == 0:
-                            q_new = np.array([q_upd, q[1]])
-                        else:
-                            q_new = np.array([q[0], q_upd])
-                        
-                        probs_before = self._policy(q)
-                        probs_after  = self._policy(q_new)
-                        gain         = np.dot(probs_after-probs_before, q_new)
-                        evb          = need*gain
-                        
-                        if self.constrain_seqs:
-                            if evb > self.xi:
-                                updates += [[np.array([hi]), np.array([idx]), np.array([a]), q_new.reshape(1, -1).copy(), np.array([gain]), np.array([need]), np.array([evb])]]
-                        else:
+                    if a == 0:
+                        q_new = np.array([q_upd, q[1]])
+                    else:
+                        q_new = np.array([q[0], q_upd])
+                    
+                    probs_before = self._policy(q)
+                    probs_after  = self._policy(q_new)
+                    gain         = np.dot(probs_after-probs_before, q_new)
+                    evb          = need*gain
+                    
+                    if self.constrain_seqs:
+                        if evb > self.xi:
                             updates += [[np.array([hi]), np.array([idx]), np.array([a]), q_new.reshape(1, -1).copy(), np.array([gain]), np.array([need]), np.array([evb])]]
+                    else:
+                        updates += [[np.array([hi]), np.array([idx]), np.array([a]), q_new.reshape(1, -1).copy(), np.array([gain]), np.array([need]), np.array([evb])]]
         return updates
 
     def _generate_forward_sequences(self, updates):
@@ -496,9 +501,7 @@ class Tree:
         '''
         Perform replay updates in the belief tree
         '''
-
-        self._build_qval_tree()
-        self._build_need_tree()
+        self.need_tree = self._build_need_tree()
 
         backups      = [None]
         qval_history = [deepcopy(self.qval_tree)]
@@ -532,6 +535,8 @@ class Tree:
             idcs   = update[1]
             aas    = update[2]
             q_news = update[3]
+            gains  = update[4]
+            needs  = update[5]
             evbs   = update[6]
 
             for idx, hi in enumerate(his):
@@ -539,12 +544,12 @@ class Tree:
                 q_old = self.qval_tree[hi][idcs[idx]]
                 q_new = q_news[idx, :].copy()
                 self.qval_tree[hi][idcs[idx]] = q_new.copy()
-                print('%u -- Replay %u/%u -- [%u, %u, %u], q_old: %.2f, q_new: %.2f, evb: %.3f'%(num, idx+1, len(his), hi, idcs[idx], aas[idx], q_old[aas[idx]], q_new[aas[idx]], evbs[idx]))
+                print('%u -- Replay %u/%u -- [%u, %u, %u], q_old: %.2f, q_new: %.2f, gain: %.3f, need: %.3f, evb: %.3f'%(num, idx+1, len(his), hi, idcs[idx], aas[idx], q_old[aas[idx]], q_new[aas[idx]], gains[idx], needs[idx], evbs[idx]))
 
             # save history
             qval_history += [deepcopy(self.qval_tree)]
             need_history += [deepcopy(self.need_tree)]
             backups      += [[his, idcs, aas]]
 
-            self._build_need_tree()
+            self.need_tree = self._build_need_tree()
             num += 1

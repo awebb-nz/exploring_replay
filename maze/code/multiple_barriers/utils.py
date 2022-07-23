@@ -15,7 +15,7 @@ def load_env(env_file_path):
     
     return env_config 
 
-def plot_simulation(agent, data_path, save_path, start_plotting=None):
+def plot_simulation(agent, data_path, save_path, move_start=None):
     
     if os.path.isdir(save_path):
         shutil.rmtree(save_path)
@@ -24,8 +24,8 @@ def plot_simulation(agent, data_path, save_path, start_plotting=None):
     files = glob.glob(os.path.join(data_path, '*.npz'))
     files.sort(key=lambda s: int(s.split('_')[-1][:-4]))
 
-    if start_plotting is not None:
-        files = files[start_plotting:]
+    if move_start is not None:
+        files = files[move_start:]
 
     for file in files:
         data         = np.load(file, allow_pickle=True)
@@ -241,7 +241,7 @@ def plot_replay(ax, agent, move=None):
                     patches += add_patches(st, ac, 1, agent.num_y_states, agent.num_x_states)
             else:
                 pass
-            if [st, ac] in agent.blocked_state_actions:
+            if [st, ac] in [i for j in agent.blocked_state_actions for i in j]:
                 i, j = np.argwhere(np.arange(agent.num_states).reshape(agent.num_y_states, agent.num_x_states) == st).flatten()
                 if ac == 0:
                     ax.hlines((agent.num_y_states-i), j, j+1, linewidth=6, color='b')

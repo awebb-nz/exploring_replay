@@ -18,7 +18,7 @@ def plot_root_values(data_folder):
         policy_values += [tree.evaluate_policy(i)]
 
         qvals          = qval_tree[0][0]
-        root_values   += [np.dot(tree._policy(qvals), qvals)]
+        root_values   += [tree._value(qvals)]
 
     v_full = tree.full_updates()
 
