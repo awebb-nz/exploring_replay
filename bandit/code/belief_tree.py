@@ -23,7 +23,10 @@ class Tree:
 
         self.belief_tree = self._build_belief_tree()
         qval_tree        = self._build_qval_tree()
-        self.qval_tree   = self._adjust_qval_tree(qval_tree)
+        if self.rand_init:
+            self.qval_tree = self._adjust_qval_tree(qval_tree)
+        else:
+            self.qval_tree = qval_tree
 
         return None
 
@@ -218,10 +221,19 @@ class Tree:
 
         full_qval_tree = self.full_updates()
 
-        for hi in range(self.horizon-1):
-            for idx, vals in full_qval_tree[hi].items():
-                
-                qval_tree[hi][idx] = self.init_qvals * vals
+        all_hors  = []
+        all_idcs  = []
+        for hi in range(self.horizon - 1):
+            num_idcs  = len(self.belief_tree[hi].keys())
+            all_idcs += [i for i in self.belief_tree[hi].keys()]
+            all_hors += [hi]*num_idcs
+
+        for hi in range(self.horizon - 1):
+            for idx in full_qval_tree[hi].keys():  
+                ch = np.random.choice(range(len(all_hors)))
+                qval_tree[hi][idx] = np.random.uniform(0, 1) * full_qval_tree[all_hors[ch]][all_idcs[ch]]
+                all_hors.pop(ch)
+                all_idcs.pop(ch)
 
         return qval_tree
 

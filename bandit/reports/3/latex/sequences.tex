@@ -1,0 +1,90 @@
+\documentclass{article}
+
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath, amsfonts}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usepackage{graphicx}
+
+\tikzset{block/.style ={rectangle,draw}
+}
+\usetikzlibrary{positioning, shapes.geometric}
+\usetikzlibrary{trees}
+
+\setlength{\parindent}{0pt}
+
+\begin{document}
+
+I simulated $200$ trees with each tree's initial $Q^{init}$-values being initialised as a random (independent for each belief state) 
+fraction of the true $Q^{DP}$-values (computed by a full DP solution): that is, each $Q^{init}(b, \cdot)$ was initialised as 
+$uQ^{DP}(b, \cdot)$, where $u \sim U[0, 1]$. The plot below shows the average policy value as a result of replay in each of these trees.
+
+\vspace*{0.4cm}
+
+\begin{minipage}{0.5\textwidth}
+    \centering
+    Horizon 4
+    \includegraphics[width=0.85\textwidth]{../figures/hor5/policy_value.png}
+\end{minipage}%
+\begin{minipage}{0.5\textwidth}
+    \centering
+    Horizon 5
+    \includegraphics[width=0.85\textwidth]{../figures/hor6/policy_value.png}
+\end{minipage}
+
+So, on average, the replay yields a near-optimal policy (which depends on the $Q$-value initialisation, as well as 
+the softmax and $\xi$ parameters which were fixed in these simulations).
+\newpage
+The next plot shows the average number of executed replays, both with sequences (total number of state-action updates, so 
+accounting for sequence lenghts), and without sequences. The difference doesn't seem to be significant, but it will be 
+interesting to see the 'time' equivalent -- i.e., what we discussed before with inter- vs inta-replay intervals.
+
+\vspace*{0.4cm}
+
+\begin{minipage}{0.5\textwidth}
+    \centering
+    Horizon 4
+    \includegraphics[width=0.85\textwidth]{../figures/hor5/num_updates.png}
+\end{minipage}%
+\begin{minipage}{0.5\textwidth}
+    \centering
+    Horizon 5
+    \includegraphics[width=0.85\textwidth]{../figures/hor6/num_updates.png}
+\end{minipage}
+
+The next plot shows the average relative proportion of forward vs reverse sequences (perhaps there's a better 
+way of showing this since here I'm treating all $>2$-step sequences equally).
+
+\vspace*{0.4cm}
+
+\begin{minipage}{0.5\textwidth}
+    \centering
+    Horizon 4
+    \includegraphics[width=0.85\textwidth]{../figures/hor5/fwd_rev_prop.png}
+\end{minipage}%
+\begin{minipage}{0.5\textwidth}
+    \centering
+    Horizon 5
+    \includegraphics[width=0.85\textwidth]{../figures/hor6/fwd_rev_prop.png}
+\end{minipage}
+
+And finally I also looked at whether there is any decipherable systematic relationship 
+between the initial $Q^{init}$-values and the proportion of forward and reverse sequences -- this 
+is shown in the next figure. It shows the difference between the average $Q^{init}$-values 
+of the trees with the proportion of forward replays above the mean and the average $Q^{init}$-values 
+of the trees below the mean (based on the bar plot above). For clarity, I'm showing this in a tree with horizon $3$.
+\newpage
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.5\textwidth]{../figures/init_val_diff.pdf}
+    \caption{Average difference in $Q^{init}$-values between the trees in which the proportion of forward seuences was 
+    above the mean and the trees in which it was below the mean. Red values are positive and blue values are negative.}
+\end{figure}
+
+I think the main takeaway is exactly what we thought -- that a fraction of rewards must be known, but not too high (since the average difference is rather small for most $Q^{init}$-values), because 
+otherwise Need at the deeper horizons is too high which initiates reverse sequences.
+
+\end{document}

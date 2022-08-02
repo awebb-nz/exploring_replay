@@ -1,9 +1,10 @@
 from logging import root
 import numpy as np
 from belief_tree import Tree
-from analysis import plot_root_values, plot_multiple
+from analysis import plot_root_values, analyse
 from tex_tree import generate_big_tex_tree
 import os, shutil, pickle
+from copy import deepcopy
 
 # --- Specify parameters ---
 
@@ -21,6 +22,7 @@ M = np.array([
 p = {
     'root_belief':    M,
     'init_qvals':     0.6,
+    'rand_init':      True,
     'gamma':          0.9,
     'xi':             0.0001,
     'beta':           4,
@@ -28,111 +30,97 @@ p = {
     'sequences':      True,
     'max_seq_len':    None,
     'constrain_seqs': True,
-    'horizon':        4
+    'horizon':        6
 }
 
 # save path
-root_folder        = '/home/georgy/Documents/Dayan_lab/PhD/bandits/bandit/data/new/'
-save_path_multiple = os.path.join(root_folder, '1', 'seqs', '06')
-# save_single_path   = os.path.join(root_folder, '1', 'seqs', 'constrained', 'qvals_init', 'tree')
+root_folder = '/home/georgy/Documents/Dayan_lab/PhD/bandits/bandit/data/fully_random/trees_horizon6/'
 
 # --- Main function for replay ---
-def main_single(save_path):
-    tree = Tree(**p)
-
-    qval_history, need_history, replay_history = tree.replay_updates()
-    print('Number of replays: %u'%(len(replay_history)-1))
-    print('Policy value: %.2f'%tree.evaluate_policy(tree.qval_tree))
-
-    if os.path.exists(save_path):
-        shutil.rmtree(save_path)
-    else: pass
-    os.makedirs(save_path)
-
-    np.save(os.path.join(save_path, 'qval_history.npy'), qval_history)
-    np.save(os.path.join(save_path, 'need_history.npy'), need_history)
-    np.save(os.path.join(save_path, 'replay_history.npy'), replay_history)
-
-    for idx in range(len(replay_history)):
-        these_replays  = replay_history[:idx+1]
-        this_save_path = os.path.join(save_path, 'tex_tree_%u.tex'%idx)
-        generate_big_tex_tree(tree.horizon, these_replays, qval_history[idx], need_history[idx], this_save_path)
-
-    with open(os.path.join(save_path, 'tree.pkl'), 'wb') as f:
-        pickle.dump(tree, f, pickle.HIGHEST_PROTOCOL)
-
-    # save params
-    with open(os.path.join(save_path, 'params.txt'), 'w') as f:
-        f.write('Horizon:       %u\n'%tree.horizon)
-        f.write('Prior belief: (alpha_0: %u, beta_0: %u, alpha_1: %u, beta_1: %u)\n'%(alpha_0, beta_0, alpha_1, beta_1))
-        f.write('gamma:         %.2f\n'%tree.gamma)
-        f.write('xi:            %.4f\n'%tree.xi)
-        f.write('beta:          %.2f\n'%tree.beta)
-
-    plot_root_values(save_path)
-
-    return None
-
-def main_multiple(save_path):
+def main(save_path , params, plot_tree=False):
     
     if os.path.exists(save_path):
         shutil.rmtree(save_path)
     else: pass
     os.makedirs(save_path)
-    os.mkdir(os.path.join(save_path, 'replay_data'))
-    os.mkdir(os.path.join(save_path, 'data'))
+    
+    save_path_seqs = os.path.join(save_path, 'seqs')
+    os.mkdir(save_path_seqs)
 
-    # vary these parameters
-    # xis       = np.logspace(np.log10(0.0001), np.log10(0.5), 15)
-    xis       = np.linspace(0.0001, 0.1, 20)
-    horizons  = [3, 4, 5, 6]
-    betas     = [1, 2, 4]
+    params['sequences'] = True
+    tree   = Tree(**params)
+    q_init = deepcopy(tree.qval_tree)
+    qval_history, need_history, replay_history = tree.replay_updates()
 
-    # store results here
-    P      = np.zeros((len(horizons), len(betas), len(xis)))
-    R      = np.zeros((len(horizons), len(betas), len(xis)))
-    nreps  = np.zeros((len(horizons), len(betas), len(xis)), dtype=int)
-    R_true = np.zeros(len(horizons))
+    print('Number of replays: %u'%(len(replay_history)-1))
+    print('Policy value: %.2f'%tree.evaluate_policy(tree.qval_tree))
 
-    for hidx, horizon in enumerate(horizons):
-                
-        for bidx, beta in enumerate(betas):
+    os.mkdir(os.path.join(save_path_seqs, 'replay_data'))
+    np.save(os.path.join(save_path_seqs, 'replay_data', 'qval_history.npy'), qval_history)
+    np.save(os.path.join(save_path_seqs, 'replay_data', 'need_history.npy'), need_history)
+    np.save(os.path.join(save_path_seqs, 'replay_data', 'replay_history.npy'), replay_history)
 
-            for xidx, xi in enumerate(xis):
+    if plot_tree:
+        os.mkdir(os.path.join(save_path_seqs, 'tree'))
+        for idx in range(len(replay_history)):
+            these_replays  = replay_history[:idx+1]
+            this_save_path = os.path.join(save_path_seqs, 'tree', 'tex_tree_%u.tex'%idx)
+            generate_big_tex_tree(tree.horizon, these_replays, qval_history[idx], need_history[idx], this_save_path)
 
-                # initialise the agent
-                p['beta']       = beta
-                p['xi']         = xi
-                p['horizon']    = horizon
+    with open(os.path.join(save_path_seqs, 'tree.pkl'), 'wb') as f:
+        pickle.dump(tree, f, pickle.HIGHEST_PROTOCOL)
+    
+    plot_root_values(save_path_seqs)
 
-                tree = Tree(**p)
+    # save params
+    with open(os.path.join(save_path_seqs, 'params.txt'), 'w') as f:
+        for k, v in p.items():
+            f.write(k)
+            f.write(':  ')
+            f.write(str(v))
+            f.write('\n')
 
-                # do replay
-                _, _, replays = tree.replay_updates()
-                qvals         = tree.qval_tree[0][0].copy()
-                v_replay      = tree._value(qvals)
-                eval_pol      = tree.evaluate_policy(tree.qval_tree)
+    save_path_noseqs = os.path.join(save_path, 'noseqs')
+    os.mkdir(save_path_noseqs)
+    
+    params['sequences'] = False
+    tree = Tree(**params)
+    tree.qval_tree = q_init
+    qval_history, need_history, replay_history = tree.replay_updates()
 
-                P[hidx, bidx, xidx]     = eval_pol
-                R[hidx, bidx, xidx]     = v_replay
-                nreps[hidx, bidx, xidx] = len(replays)-1
+    print('Number of replays: %u'%(len(replay_history)-1))
+    print('Policy value: %.2f'%tree.evaluate_policy(tree.qval_tree))
 
-                np.save(os.path.join(save_path, 'replay_data', 'replays_%u_%u_%u.npy'%(hidx, bidx, xidx)), replays)
+    os.mkdir(os.path.join(save_path_noseqs, 'replay_data'))
+    np.save(os.path.join(save_path_noseqs, 'replay_data', 'qval_history.npy'), qval_history)
+    np.save(os.path.join(save_path_noseqs, 'replay_data', 'need_history.npy'), need_history)
+    np.save(os.path.join(save_path_noseqs, 'replay_data', 'replay_history.npy'), replay_history)
 
-                # do full bayesian updates
-                if (bidx == 0) and (xidx == 0):
-                    v_full       = tree.full_updates()
-                    R_true[hidx] = np.max(v_full[0][0])
+    if plot_tree:
+        os.mkdir(os.path.join(save_path_noseqs, 'tree'))
+        for idx in range(len(replay_history)):
+            these_replays  = replay_history[:idx+1]
+            this_save_path = os.path.join(save_path_noseqs, 'tree', 'tex_tree_%u.tex'%idx)
+            generate_big_tex_tree(tree.horizon, these_replays, qval_history[idx], need_history[idx], this_save_path)
 
-        print('Horizon %u'%horizon)
+    with open(os.path.join(save_path_noseqs, 'tree.pkl'), 'wb') as f:
+        pickle.dump(tree, f, pickle.HIGHEST_PROTOCOL)
+    
+    plot_root_values(save_path_noseqs)
 
-    np.save(os.path.join(save_path, 'data', 'eval_pol.npy'), P)
-    np.save(os.path.join(save_path, 'data', 'root_pol.npy'), R)
-    np.save(os.path.join(save_path, 'data', 'full_upd.npy'), R_true)
-    np.save(os.path.join(save_path, 'data', 'nreps.npy'), nreps)
+    # save params
+    with open(os.path.join(save_path_noseqs, 'params.txt'), 'w') as f:
+        for k, v in p.items():
+            f.write(k)
+            f.write(':  ')
+            f.write(str(v))
+            f.write('\n')
 
-    plot_multiple(save_path, p['root_belief'], P, R, nreps, R_true, horizons, xis, betas)
+    return None
 
 if __name__ == '__main__':
-    # main_single(save_single_path)
-    main_multiple(save_path_multiple)
+    for i in range(200):
+        save_path      = os.path.join(root_folder, '%u'%i)
+        main(save_path, p, plot_tree=True)
+
+    analyse(root_folder)
