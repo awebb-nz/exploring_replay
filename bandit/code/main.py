@@ -1,9 +1,9 @@
-from logging import root
 import numpy as np
 from belief_tree import Tree
 from analysis import plot_root_values, analyse
 from tex_tree import generate_big_tex_tree
-import os, shutil, pickle
+import os, shutil, pickle, sys
+sys.path.join('/home/georgy/Documents/Dayan_lab/PhD/bandits/bandit/code')
 from copy import deepcopy
 
 # --- Specify parameters ---
@@ -30,7 +30,7 @@ p = {
     'sequences':      True,
     'max_seq_len':    None,
     'constrain_seqs': True,
-    'horizon':        6
+    'horizon':        3
 }
 
 # save path

@@ -1,5 +1,5 @@
 import numpy as np
-from agent_replay import Agent
+from agent_replay import AgentPOMDP, AgentMDP
 from utils import load_env, plot_simulation
 import os, argparse, pickle
 
@@ -17,26 +17,31 @@ env_file_path  = os.path.join('/home/georgy/Documents/Dayan_lab/PhD/bandits/maze
 env_config     = load_env(env_file_path)
 
 # --- Specify simulation parameters ---
-save_path      = os.path.join('/home/georgy/Documents/Dayan_lab/PhD/bandits/maze/data/replay/local/', env)
-num_steps      = 200
+save_path      = os.path.join('/home/georgy/Documents/Dayan_lab/PhD/bandits/maze/data/replay/local/', env, 'no_uncertainty')
+num_steps      = 6000
 
 seed           = 0
 
 # --- Specify agent parameters ---
+pag_config = {
+    'alpha': 1,
+    'beta':  10, 
+    'gain_beta': 10,
+    'need_beta': 10,
+    'gamma': 0.9,
+    'policy_type': 'softmax',
+    'mf_forget': 0.02
+}
+
 ag_config = {
-    'alpha'          : 1,         # online learning rate
     'alpha_r'        : 1,         # offline learning rate
-    'online_beta'    : 1,         # online inverse temperature
-    'gain_beta'      : 30,        # gain inverse temperature
-    'need_beta'      : 1,         # need inverse temperature
-    'policy_type'    : 'softmax', # policy type [softmax / greedy]
-    'gamma'          : 0.9,       # discount factor
     'horizon'        : 10,        # planning horizon (minus 1)
-    'xi'             : 0.01,      # EVB replay threshold
+    'xi'             : 0.001,      # EVB replay threshold
     'num_sims'       : 2000,      # number of MC simulations for need
     'sequences'      : True,
     'max_seq_len'    : 5,        
-    'env_name'       : env        # gridworld name
+    'env_name'       : env,       # gridworld name
+    'barriers'       : [1, 1, 0]
 }
 
 # --- Main function ---
@@ -44,40 +49,28 @@ def main():
     np.random.seed(seed)
     # --------------------
     # --- REPLAY AGENT ---
-    # --------------------
+    # -------------------- 
     save_data_path = os.path.join(save_path, str(seed))
     
     # initialise the agent
-    agent = Agent(*[ag_config, env_config])
+    # agent = AgentPOMDP(*[pag_config, ag_config, env_config])
+    agent = AgentMDP(*[pag_config, ag_config, env_config])
 
     # # run the simulation
     agent.run_simulation(num_steps=num_steps, save_path=save_data_path)
 
-    # with open(os.path.join(save_data_path, 'ag.pkl'), 'wb') as f:
-    #     pickle.dump(agent, f, pickle.HIGHEST_PROTOCOL)
+    with open(os.path.join(save_data_path, 'ag.pkl'), 'wb') as f:
+        pickle.dump(agent, f, pickle.HIGHEST_PROTOCOL)
 
-    save_plot_path = os.path.join(save_data_path, 'plots')
-    if not os.path.isdir(save_plot_path):
-        os.mkdir(save_plot_path)
+    # save_plot_path = os.path.join(save_data_path, 'plots')
+    # if not os.path.isdir(save_plot_path):
+    #     os.mkdir(save_plot_path)
 
-    plot_simulation(agent, save_data_path, save_plot_path, move_start=70)
-    
-    # Q_MB        = agent._solve_mb(1e-5, barriers=[1, 1, 0])
-    # agent.state = 38          # start state
-    # agent.M     = np.array([[1, 0], [0, 1], [1, 0]])
-    # agent.Q     = Q_MB.copy() # set MF Q values
-    # Q_history, gain_history, need_history = agent._replay()
-
-    # Q              = agent.Q.copy()
-    # Q_after        = Q.copy()
-    # Q_after[14, 0] = 0
-    # agent.Q        = Q_after.copy()
-
-    # agent.state = 14
-    # agent.M     = np.array([[0, 1], [0, 1], [1, 0]])
-    # Q_history, gain_history, need_history = agent._replay()
+    # plot_simulation(agent, save_data_path, save_plot_path, move_start=70)
 
     return None
 
 if __name__ == '__main__':
-    main()
+    for seed in range(10):
+        main()
+        print(seed)

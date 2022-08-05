@@ -23,7 +23,7 @@ def plot_root_values(data_folder):
 
     v_full = np.max(tree.full_updates()[0][0])
 
-    plt.figure(figsize=(7, 5), dpi=100, constrained_layout=True)
+    plt.figure(figsize=(6, 5), dpi=100, constrained_layout=True)
     
     for i in [1, 2]:
         plt.subplot(2, 1, i)

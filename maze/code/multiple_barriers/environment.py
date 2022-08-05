@@ -1,6 +1,6 @@
 import numpy as np
 
-class Environment:
+class Environment():
 
     def __init__(self, **p):
 
@@ -23,6 +23,7 @@ class Environment:
         self.goal_state  = self._convert_coords_to_state(self.goal_coords)
 
         return None
+
 
     def _get_new_state(self, s, a, unlocked=False):
 
@@ -82,7 +83,6 @@ class Environment:
                 r = self.config[y_coord, x_coord]
                 return s, r
             
-
     def _convert_state_to_coords(self, s):
 
         y_coord = s // self.num_x_states
@@ -97,8 +97,87 @@ class Environment:
 
         return states[y_coord, x_coord]
 
-    def _init_barriers(self, bars: list):
+    # def _init_barriers(self, bars=None):
 
-        self.barriers = bars
+    #     if bars is None:
+    #         return None
+    #     else:
+    #         self.barriers = bars
 
+    #     return None
+
+    def _init_q_values(self):
+
+        self.Q = np.zeros((self.num_states, self.num_actions))
+
+        # set edge Q values to np.nan
+        for s in np.delete(range(self.num_states), [self.goal_state] + self.nan_states):
+            for a in range(self.num_actions):
+                bidx = self._check_uncertain([s, a])
+                if bidx is None:
+                    s1, _ = self._get_new_state(s, a, unlocked=False)
+                    if (s1 == s):
+                        self.Q[s, a] = np.nan
+
+        if len(self.nan_states) > 0:
+            for s in self.nan_states:
+                self.Q[s, :] = np.nan
+
+        if self.env_name == 'tolman1':
+            self.Q[8,  1] = np.nan
+        elif self.env_name == 'tolman2':
+            self.Q[20, 1] = np.nan
+        elif self.env_name == 'tolman3':
+            self.Q[8,  3] = np.nan
+        elif self.env_name == 'u':
+            self.Q[1,  2] = np.nan
+        else: pass
+
+        self.Q_nans = self.Q.copy()
+
+        return None
+
+    def _solve_mb(self, eps, barriers=None):
+        
+        if barriers is None:
+            barriers = self.barriers
+        else:
+            self.barriers = barriers
+
+        Q_MB  = self.Q_nans.copy()
+        delta = 1
+        while delta > eps:
+            Q_MB_new = Q_MB.copy()
+            for s in np.delete(range(self.num_states), self.goal_state):
+                for a in range(self.num_actions):
+                    if ~np.isnan(Q_MB[s, a]):
+                        bidx = self._check_uncertain([s, a])
+                        if bidx is not None:
+                            if self.barriers[bidx]:
+                                s1, r = self._get_new_state(s, a, unlocked=False)
+                            else:
+                                s1, r = self._get_new_state(s, a, unlocked=True)
+                        else:
+                            s1, r = self._get_new_state(s, a, unlocked=True)
+                        Q_MB_new[s, a] += r + self.gamma*np.nanmax(Q_MB[s1, :]) - Q_MB_new[s, a]
+            diff  = np.abs(Q_MB_new - Q_MB)
+            delta = np.nanmax(diff[:])
+            Q_MB  = Q_MB_new
+
+        return Q_MB_new
+
+    def _check_uncertain(self, sa: list):
+
+        for bidx, l in enumerate(self.uncertain_states_actions):
+            if sa in l:
+                return bidx
+        
+        return None
+
+    def _check_blocked(self, sa: list):
+
+        for bidx, l in enumerate(self.blocked_state_actions):
+            if sa in l:
+                return bidx
+        
         return None

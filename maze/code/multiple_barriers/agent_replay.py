@@ -1,9 +1,10 @@
 from environment import Environment
+from panagent import PanAgent
 import numpy as np
 from copy import deepcopy, copy
 import os, shutil, ast
 
-class Agent(Environment):
+class AgentPOMDP(PanAgent, Environment):
 
     def __init__(self, *configs):
         
@@ -22,19 +23,17 @@ class Agent(Environment):
         horizon                  -- planning / replay horizon
         xi                       -- replay EVB threshold
         num_sims                 -- number of simulations for need estimation 
-        beta_online              -- online inverse temperature
-        beta_gain                -- gain inverse temperature
-        need_beta                -- need inverse temperature
+        beta                     -- inverse temperature
         policy_type              -- softmax / greedy
         ----
         '''
         
-        ag_config  = configs[0]
-        env_config = configs[1]
+        pag_config = configs[0]
+        ag_config  = configs[1]
+        env_config = configs[2]
         
-        super().__init__(**env_config)
-        self._init_barriers(bars=[0, 0, 0])
-        
+        Environment.__init__(self, **env_config)
+        PanAgent.__init__(self, **pag_config)
         self.__dict__.update(**ag_config)
 
         self.state = self.start_state
@@ -46,151 +45,6 @@ class Agent(Environment):
         self.M = np.ones((len(self.barriers), 2))
 
         return None
-        
-    def _init_q_values(self):
-
-        self.Q = np.zeros((self.num_states, self.num_actions))
-
-        # set edge Q values to np.nan
-        for s in np.delete(range(self.num_states), [self.goal_state] + self.nan_states):
-            for a in range(self.num_actions):
-                bidx = self._check_uncertain([s, a])
-                if bidx is None:
-                    s1, _ = self._get_new_state(s, a, unlocked=False)
-                    if (s1 == s):
-                        self.Q[s, a] = np.nan
-
-        if len(self.nan_states) > 0:
-            for s in self.nan_states:
-                self.Q[s, :] = np.nan
-
-        if self.env_name == 'tolman1':
-            self.Q[8,  1] = np.nan
-        elif self.env_name == 'tolman2':
-            self.Q[20, 1] = np.nan
-        elif self.env_name == 'tolman3':
-            self.Q[8,  3] = np.nan
-        # elif self.env_name == 'tolman123':
-        #     self.Q[8,  1] = np.nan
-        #     self.Q[20, 1] = np.nan
-        #     self.Q[8,  3] = np.nan
-        elif self.env_name == 'u':
-            self.Q[1,  2] = np.nan
-
-        self.Q_nans = self.Q.copy()
-
-        return None
-
-    def _solve_mb(self, eps, barriers=None):
-        
-        if barriers is None:
-            barriers = self.barriers
-        else:
-            self.barriers = barriers
-
-        Q_MB  = self.Q_nans.copy()
-        delta = 1
-        while delta > eps:
-            Q_MB_new = Q_MB.copy()
-            for s in np.delete(range(self.num_states), self.goal_state):
-                for a in range(self.num_actions):
-                    if ~np.isnan(Q_MB[s, a]):
-                        bidx = self._check_uncertain([s, a])
-                        if bidx is not None:
-                            if self.barriers[bidx]:
-                                s1, r = self._get_new_state(s, a, unlocked=False)
-                            else:
-                                s1, r = self._get_new_state(s, a, unlocked=True)
-                        else:
-                            s1, r = self._get_new_state(s, a, unlocked=True)
-                        Q_MB_new[s, a] += r + self.gamma*np.nanmax(Q_MB[s1, :]) - Q_MB_new[s, a]
-            diff  = np.abs(Q_MB_new - Q_MB)
-            delta = np.nanmax(diff[:])
-            Q_MB  = Q_MB_new
-
-        return Q_MB_new
-
-    def _policy(self, q_vals, temp=None):
-
-        '''
-        ----
-        Agent's policy
-
-        q_vals -- q values at the current state
-        ----
-        '''
-        if np.all(np.isnan(q_vals)):
-            return np.full(self.num_actions, 1/self.num_actions)
-
-        nan_idcs = np.argwhere(np.isnan(q_vals)).flatten()
-        if len(nan_idcs) > 0:
-            q_vals_allowed = np.delete(q_vals, nan_idcs)
-        else:
-            q_vals_allowed = q_vals
-
-        if np.all(q_vals_allowed == q_vals_allowed.max()):
-            probs = np.ones(len(q_vals_allowed))/len(q_vals_allowed)
-            if len(nan_idcs) > 0:
-                for nan_idx in nan_idcs:
-                    probs = np.insert(probs, nan_idx, 0)
-            return probs
-
-        if self.policy_type == 'softmax':
-
-            if temp is not None:
-                t = temp
-            else:
-                t = self.online_beta
-
-            probs = np.exp(q_vals_allowed*t)/np.sum(np.exp(q_vals_allowed*t))
-            if len(nan_idcs) > 0:
-                for nan_idx in nan_idcs:
-                    probs = np.insert(probs, nan_idx, 0)
-            return probs
-        elif self.policy_type == 'greedy':
-            if np.all(q_vals_allowed == q_vals_allowed.max()):
-                ps           = np.ones(self.num_actions)
-                ps[nan_idcs] = 0
-                ps          /= ps.sum()
-                a            = np.random.choice(range(self.num_actions), p=ps)
-                probs        = np.zeros(self.num_actions)
-                probs[a]     = 1
-                return probs
-            else:
-                probs = np.zeros(self.num_actions)
-                probs[np.nanargmax(q_vals)] = 1
-                return probs
-        else:
-            raise KeyError('Unknown policy type')
-
-    def _compute_gain(self, q_before, q_after):
-
-        '''
-        ---
-        Compute gain associated with each replay update
-        ---
-        '''
-
-        probs_before = self._policy(q_before, temp=self.gain_beta)
-        probs_after  = self._policy(q_after, temp=self.gain_beta)
-
-        return np.nansum((probs_after-probs_before)*q_after)
-
-    def _compute_need(self, T, Q):
-        
-        '''
-        ---
-        Compute need associated with each state
-        ---
-        '''
-
-        Ts = np.zeros((self.num_states, self.num_states))
-        for s in range(self.num_states):
-            probs = self._policy(Q[s, :], temp=self.need_beta)
-            for a in range(self.num_actions):
-                Ts[s, :] += probs[a]*T[s, a, :]
-
-        return np.linalg.inv(np.eye(self.num_states) - self.gamma*Ts)
 
     def _find_belief(self, z):
 
@@ -275,29 +129,6 @@ class Agent(Environment):
 
         return his
 
-    def _belief_step_update(self, M, idx, s, s1):
-
-        '''
-        ----
-        Bayesian belief updates for transition beta prior
-
-        s           -- previous state 
-        a           -- chosen action
-        s1          -- resulting new state
-        ----
-        ''' 
-
-        M_out = M.copy()
-
-        # unsuccessful 
-        if s == s1:
-            M_out[idx, 1] += 1
-        # successful
-        else:
-            M_out[idx, 0] += 1
-
-        return M_out
-
     def _belief_plan_update(self, M, idx, s, s1):
 
         M_out = M.copy()
@@ -312,48 +143,6 @@ class Agent(Environment):
             M_out[idx, 1] = 0
 
         return M_out
-
-    def _belief_trial_update(self, M, tried=False, success=None):
-
-        M_out = M
-
-        if not tried:
-            M_out = self.kappa*self.phi + (1-self.kappa)*M_out
-        else:
-            if success:
-                M_out = 1 - self.kappa*(1-self.phi)
-            else:
-                M_out = self.kappa*self.phi
-
-        return M_out
-
-    def _check_uncertain(self, sa: list):
-
-        for bidx, l in enumerate(self.uncertain_states_actions):
-            if sa in l:
-                return bidx
-        
-        return None
-
-    def _qval_update(self, s, a, r, s1):
-
-        '''
-        ----
-        MF Q values update
-
-        s           -- previous state 
-        a           -- chosen action
-        r           -- received reward
-        s1          -- resulting new state
-        ----
-        ''' 
-
-        # if s != s1:
-        self.Q[s, a] += self.alpha*(r + self.gamma*np.nanmax(self.Q[s1, :]) - self.Q[s, a])
-        # else:
-            # self.Q[s, a] += self.alpha*(0 - self.Q[s, a])
-
-        return None
 
     def _check_belief_exists(self, btree, z):
 
@@ -400,9 +189,9 @@ class Agent(Environment):
             for prev_idx, vals in btree[hi-1].items():
                 
                 # retrieve previous belief information
-                b        = vals[0][0].copy()
-                s        = vals[0][1]
-                q        = vals[1].copy()
+                b = vals[0][0].copy()
+                s = vals[0][1]
+                q = vals[1].copy()
 
                 # terminate at the goal state
                 if s == self.goal_state:
@@ -424,28 +213,44 @@ class Agent(Environment):
                             s1l    = s
                             b1l    = self._belief_plan_update(b, bidx, s, s)
 
-                            # check if this belief already exists
+                            # check if these new beliefs already exist
                             hiu, idxu, checku = self._check_belief_exists(btree, [b1u, s1u])
                             hil, idxl, checkl = self._check_belief_exists(btree, [b1l, s1l])
-                            # if it doesn't exist then add it to the belief tree
-                            # and add its key to the previous belief that gave rise to it
+
+                            # if both don't then add them to the belief tree
+                            # and the new keys to the previous belief
+                            to_add = [] 
                             if not checku and not checkl:
-                                btree[hi][idx]            = [[b1u.copy(), s1u], q.copy(), []]
-                                btree[hi][idx+1]          = [[b1l.copy(), s1l], q.copy(), []]
-                                btree[hi-1][prev_idx][2] += [[[a, hi, idx], [a, hi, idx+1]]]
-                                idx                      += 2
+                                if b[bidx, 0] != 0:
+                                    btree[hi][idx]        = [[b1u.copy(), s1u], q.copy(), []]
+                                    to_add               += [[a, hi, idx]]
+                                if b[bidx, 1] != 0:
+                                    btree[hi][idx+1]      = [[b1l.copy(), s1l], q.copy(), []]
+                                    to_add               += [[a, hi, idx+1]]
+                                
+                                btree[hi-1][prev_idx][2] += to_add
+                                idx                      += len(to_add)
+
                             elif not checku and checkl:
-                                btree[hi][idx]            = [[b1u.copy(), s1u], q.copy(), []]
-                                btree[hi-1][prev_idx][2] += [[[a, hi, idx], [a, hil, idxl]]]
-                                idx                      += 1
+                                if b[bidx, 0] != 0:
+                                    btree[hi][idx]        = [[b1u.copy(), s1u], q.copy(), []]
+                                    to_add               += [[a, hi, idx]]
+                                to_add                   += [[a, hil, idxl]]
+                                btree[hi-1][prev_idx][2] += to_add
+                                idx                      += len(to_add) - 1
+
                             elif checku and not checkl:
-                                btree[hi][idx]            = [[b1l.copy(), s1l], q.copy(), []]
-                                btree[hi-1][prev_idx][2] += [[[a, hiu, idxu], [a, hi, idx]]]
-                                idx                      += 1
+                                to_add += [[a, hiu, idxu]]
+                                if b[bidx, 1] != 0:
+                                    btree[hi][idx]        = [[b1l.copy(), s1l], q.copy(), []]
+                                    to_add               += [[a, hi, idx]]
+                                btree[hi-1][prev_idx][2] += to_add
+                                idx                      += len(to_add) - 1
                             else:
+                                # if both exist then add their existing keys 
                                 to_add = [[a, hiu, idxu], [a, hil, idxl]]
                                 if (to_add not in btree[hi-1][prev_idx][2]):
-                                    btree[hi-1][prev_idx][2] += [to_add]
+                                    btree[hi-1][prev_idx][2] += to_add
                             # if the new belief already exists then we just need to add 
                             # the key of that existing belief to the previous belief
 
@@ -498,7 +303,7 @@ class Agent(Environment):
         T = np.zeros((self.num_states, self.num_states))
         for s in range(self.num_states):
             qvals = Q[s, :]
-            probs = self._policy(qvals, temp=self.online_beta)
+            probs = self._policy(qvals, temp=self.need_beta)
             for a in range(self.num_actions):
                 T[s, :] += probs[a] * Ta[s, a, :]
 
@@ -682,6 +487,9 @@ class Agent(Environment):
 
                                     need   = pntree[s]
                                     gain   = self._compute_gain(Q_old[s, :].copy(), Q_new[s, :].copy())
+                                    evb    = gain * need
+
+                                    # if evb >= self.xi:
 
                                     this_seq[0]  = np.append(this_seq[0], nhi)
                                     this_seq[1]  = np.append(this_seq[1], nidx)
@@ -756,7 +564,8 @@ class Agent(Environment):
                                         need   = pntree[s]
                                         gain   = self._compute_gain(Q_old[s, :].copy(), Q_new[s, :].copy())
                                         evb    = gain*need
-
+                                        
+                                        # if evb >= self.xi:
                                         this_seq[0]  = np.append(this_seq[0], hor)
                                         this_seq[1]  = np.append(this_seq[1], k)
                                         if len(next_idx) == 2:
@@ -926,7 +735,7 @@ class Agent(Environment):
             s      = self.state
 
             # choose action and receive feedback
-            probs  = self._policy(self.Q[s, :], temp=self.online_beta)
+            probs  = self._policy(self.Q[s, :], temp=self.beta)
             a      = np.random.choice(range(self.num_actions), p=probs)
 
             bidx = self._check_uncertain([s, a])
@@ -976,6 +785,166 @@ class Agent(Environment):
                     np.savez(os.path.join(save_path, 'Q_%u.npz'%move), barrier=self.barriers, Q_history=Q_history, M=self.M, gain_history=gain_history, need_history=need_history, move=[s, a, r, s1])
                 else:
                     np.savez(os.path.join(save_path, 'Q_%u.npz'%move), barrier=self.barriers, Q_history=self.Q, M=self.M, move=[s, a, r, s1])
+
+            if s1 == self.goal_state:
+                self.state = self.start_state
+
+        return None
+
+
+class AgentMDP(PanAgent, Environment):
+
+    def __init__(self, *configs):
+        
+        '''
+        ----
+        configs is a list containing 
+                    [0] panagent parameters; [1] agent parameters; [2] environment parameters
+        ----
+        '''
+        
+        pag_config = configs[0]
+        ag_config  = configs[1]
+        env_config = configs[2]
+        
+        Environment.__init__(self, **env_config)
+        PanAgent.__init__(self, **pag_config)
+        self.__dict__.update(**ag_config)
+
+        self.state = self.start_state
+
+        # initialise everything
+        self._init_q_values()
+        self._init_t_model()
+        self._init_replay_buff()
+
+        return None
+
+    def _init_t_model(self):
+
+        self.T = np.zeros((self.num_states, self.num_actions, self.num_states))
+        for s in range(self.num_states):
+            for a in range(self.num_actions):
+                s1, _ = self._get_new_state(s, a)
+                self.T[s, a, s1] = 1
+
+        return None
+
+    def _init_replay_buff(self):
+
+        self.M = np.full((self.num_states*self.num_actions, 2), np.nan)
+
+        return None
+
+    def _update_replay_buff(self, s, a, r, s1):
+
+        self.M[s*self.num_actions + a, 0] = r
+        self.M[s*self.num_actions + a, 1] = s1
+
+        return None
+
+    def _replay(self):
+        
+        Q_history    = [self.Q.copy()]
+        gain_history = [None]
+        need_history = [None]
+        backups      = [None]
+
+        while True:
+
+            Q_new = np.zeros_like(self.Q)
+            gain  = Q_new.copy()
+            evb   = Q_new.copy()
+            SR    = self._compute_need(self.T, self.Q, inv_temp=self.beta)
+            need  = SR[self.state, :]
+
+            for s in np.delete(range(self.num_states), self.goal_state):
+                q_old = self.Q[s, :].copy()
+                for a in range(self.num_actions):
+                    if ~np.isnan(self.Q[s, a]) and ~np.isnan(self.M[s*self.num_actions+a, 1]):
+                        q_new       = q_old.copy()
+                        rr          = int(self.M[s*self.num_actions + a, 0])
+                        s1r         = int(self.M[s*self.num_actions + a, 1])
+                        q_new[a]   += self.alpha_r*(rr + self.gamma*np.nanmax(self.Q[s1r, :]) - self.Q[s, a])
+                        
+                        Q_new[s, a] = q_new[a]
+
+                        gain[s, a]  = self._compute_gain(q_old, q_new, inv_temp=self.beta)
+                        evb[s, a]   = gain[s, a] * need[s]
+            
+            max_evb = np.max(evb[:])
+            if max_evb >= self.xi:
+                evb_idx        = np.argwhere(evb == max_evb)
+                sr, ar         = evb_idx[0, :]
+                self.Q[sr, ar] = Q_new[sr, ar]
+
+                Q_history     += [self.Q.copy()]
+                gain_history  += [gain.copy()]
+                need_history  += [need.copy()]
+                backups       += [[sr, ar]]
+
+            else:
+                return Q_history, gain_history, need_history, backups
+                    
+    def run_simulation(self, num_steps=100, save_path=None):
+
+        '''
+        ---
+        Main loop for the simulation
+
+        num_steps    -- number of simulation steps
+        start_replay -- after which step to start replay
+        reset_pior   -- whether to reset transition prior before first replay bout
+        save_path    -- path for saving data after replay starts
+        ---
+        '''
+
+        if save_path:
+            self.save_path = save_path
+
+            if os.path.isdir(self.save_path):
+                shutil.rmtree(self.save_path)
+            os.makedirs(self.save_path)
+        else:
+            self.save_path = None
+
+        for move in range(num_steps):
+            
+            if move >= 3000:
+                self.barriers = [0, 1, 0]
+            else:
+                self.barriers = [1, 1, 0]
+
+            s      = self.state
+
+            # choose action and receive feedback
+            probs  = self._policy(self.Q[s, :], temp=self.beta)
+            a      = np.random.choice(range(self.num_actions), p=probs)
+
+            bidx   = self._check_blocked([s, a])
+            if bidx is not None:
+                if not self.barriers[bidx]:
+                    locked = True
+                else:
+                    locked = False
+            else:
+                locked = False
+            s1, r  = self._get_new_state(s, a, unlocked=locked)
+
+            # update MF Q values
+            self._qval_update(s, a, r, s1)
+
+            # update replay buffer
+            self._update_replay_buff(s, a, r, s1)
+
+            Q_history, gain_history, need_history, backups = self._replay()
+
+            self.state = s1
+
+            if save_path:
+                np.savez(os.path.join(save_path, 'Q_%u.npz'%move), barrier=self.barriers, Q_history=Q_history, replays=backups, gain_history=gain_history, need_history=need_history, move=[s, a, r, s1])
+
+            self._mf_forget()
 
             if s1 == self.goal_state:
                 self.state = self.start_state

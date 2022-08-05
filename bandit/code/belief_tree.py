@@ -208,12 +208,16 @@ class Tree:
         qval_tree = {hi:{} for hi in range(self.horizon)}
 
         # set the leaf values as expected immediate reward
-        for idx, vals in self.belief_tree[self.horizon-1].items():
-            b  = vals[0]
-            b0 = b[0, 0]/np.sum(b[0, :])
-            b1 = b[1, 0]/np.sum(b[1, :])
-
-            qval_tree[self.horizon-1][idx] = np.array([b0, b1])
+        for hi in range(self.horizon):
+            for idx, vals in self.belief_tree[hi].items():
+                if (hi == self.horizon - 1):
+                    b  = vals[0]
+                    b0 = b[0, 0]/np.sum(b[0, :])
+                    b1 = b[1, 0]/np.sum(b[1, :])
+                else:
+                    b0 = 0.0
+                    b1 = 0.0
+                qval_tree[hi][idx] = np.array([b0, b1])
 
         return qval_tree
 
@@ -559,9 +563,10 @@ class Tree:
                 print('%u -- Replay %u/%u -- [%u, %u, %u], q_old: %.2f, q_new: %.2f, gain: %.3f, need: %.3f, evb: %.3f'%(num, idx+1, len(his), hi, idcs[idx], aas[idx], q_old[aas[idx]], q_new[aas[idx]], gains[idx], needs[idx], evbs[idx]))
 
             # save history
+            self.need_tree = self._build_need_tree()
+            
             qval_history += [deepcopy(self.qval_tree)]
             need_history += [deepcopy(self.need_tree)]
             backups      += [[his, idcs, aas]]
 
-            self.need_tree = self._build_need_tree()
             num += 1

@@ -139,20 +139,20 @@ def add_patches(s, a, q, num_y_states, num_x_states):
     
     # move up
     if a == 0:
-        patches.append(RegularPolygon((0.5+j, num_y_states-0.18-i), 3, radius=0.1, lw=0.5, orientation=0, edgecolor='k', fill=True, facecolor=col_tuple))
+        patches.append(RegularPolygon((0.5+j, num_y_states-0.18-i), 3, radius=0.13, lw=0.5, orientation=0, edgecolor='k', fill=True, facecolor=col_tuple))
     # move down
     elif a == 1:
-        patches.append(RegularPolygon((0.5+j, num_y_states-0.82-i), 3, radius=0.1, lw=0.5, orientation=np.pi, edgecolor='k', fill=True, facecolor=col_tuple))
+        patches.append(RegularPolygon((0.5+j, num_y_states-0.82-i), 3, radius=0.13, lw=0.5, orientation=np.pi, edgecolor='k', fill=True, facecolor=col_tuple))
     # move left
     elif a == 2:
-        patches.append(RegularPolygon((0.20+j, num_y_states-0.49-i), 3, radius=0.1, lw=0.5, orientation=np.pi/2, edgecolor='k', fill=True, facecolor=col_tuple))
+        patches.append(RegularPolygon((0.20+j, num_y_states-0.49-i), 3, radius=0.13, lw=0.5, orientation=np.pi/2, edgecolor='k', fill=True, facecolor=col_tuple))
     # move right
     else:
-        patches.append(RegularPolygon((0.80+j, num_y_states-0.49-i), 3, radius=0.1, lw=0.5, orientation=-np.pi/2, edgecolor='k', fill=True, facecolor=col_tuple))
+        patches.append(RegularPolygon((0.80+j, num_y_states-0.49-i), 3, radius=0.13, lw=0.5, orientation=-np.pi/2, edgecolor='k', fill=True, facecolor=col_tuple))
                     
     return patches
 
-def plot_maze(ax, Q, agent, move=None):
+def plot_maze(ax, Q, agent, move=None, colorbar=True):
     
     # state grid
     for st_x in range(agent.num_x_states):
@@ -171,13 +171,14 @@ def plot_maze(ax, Q, agent, move=None):
                 if np.absolute(Q[s, a]) > np.absolute(max_val):
                     Q_plot[s] = Q[s, a]
                     max_val   = Q[s, a]
+
     # Q_plot   = np.nanmax(Q, axis=1).reshape(agent.num_y_states, agent.num_x_states)[::-1, :]
     Q_plot = Q_plot.reshape(agent.num_y_states, agent.num_x_states)[::-1, :]
 
     if np.all(Q_plot == 0):
-        sns.heatmap(np.absolute(Q_plot), cmap=['white'], annot=False, fmt='.2f', cbar=True, vmin=0, vmax=1, ax=ax)
+        sns.heatmap(np.absolute(Q_plot), cmap=['white'], annot=False, fmt='.2f', cbar=colorbar, vmin=0, vmax=1, ax=ax)
     else:
-        sns.heatmap(np.absolute(Q_plot), cmap='Greys', annot=True, fmt='.2f', cbar=True, vmin=0, vmax=1, ax=ax)
+        sns.heatmap(np.absolute(Q_plot), cmap=sns.light_palette("seagreen", as_cmap=True), annot=False, fmt='.2f', cbar=colorbar, vmin=0, vmax=1, ax=ax)
     
     # arrows for actions
     patches = []
@@ -288,6 +289,7 @@ def plot_need(ax, need, agent):
     
     need_plot = need.reshape(agent.num_y_states, agent.num_x_states)[::-1, :]
     need_plot = need_plot/np.nanmax(need_plot)
+
     if np.all(need_plot == 0):
         sns.heatmap(need_plot, cmap=['white'], annot=False, fmt='.2f', cbar=True, ax=ax)
     else:
@@ -297,12 +299,15 @@ def plot_need(ax, need, agent):
     patches = []
     for st in np.delete(range(agent.num_states), [agent.goal_state] + agent.nan_states):
         for ac in range(4):
-            if [st, ac] in agent.blocked_state_actions:
-                i, j = np.argwhere(np.arange(agent.num_states).reshape(agent.num_y_states, agent.num_x_states) == st).flatten()
-                if ac == 0:
-                    ax.hlines((agent.num_y_states-i), j, j+1, linewidth=6, color='b')
-                elif ac == 3:
-                    ax.vlines(j+1, (agent.num_y_states-i)-1, (agent.num_y_states-i), linewidth=6, color='b')
+            for bidx, l in enumerate(agent.uncertain_states_actions):
+                if [st, ac] in l:
+                    if agent.barriers[bidx]:
+                        i, j = np.argwhere(np.arange(agent.num_states).reshape(agent.num_y_states, agent.num_x_states) == st).flatten()
+                        if ac == 0:
+                            ax.hlines((agent.num_y_states-i), j, j+1, linewidth=6, color='b')
+                        elif ac == 2:
+                            ax.vlines(j, (agent.num_y_states-i)-1, (agent.num_y_states-i), linewidth=6, color='b')
+                    break
 
     if len(agent.nan_states) > 0:
         for s in agent.nan_states:
@@ -327,7 +332,5 @@ def plot_need(ax, need, agent):
 
     ax.set_xlim(0, agent.num_x_states)
     ax.set_ylim(0, agent.num_y_states)
-
-    ax.set_title('Need', fontsize=20)
 
     return None
