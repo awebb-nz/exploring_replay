@@ -53,8 +53,9 @@ def main():
     save_data_path = os.path.join(save_path, str(seed))
     
     # initialise the agent
-    # agent = AgentPOMDP(*[pag_config, ag_config, env_config])
-    agent = AgentMDP(*[pag_config, ag_config, env_config])
+    agent = AgentPOMDP(*[pag_config, ag_config, env_config])
+    # agent = AgentMDP(*[pag_config, ag_config, env_config])
+    agent.M = np.array([[7, 2], [7, 2], [7, 2]])
 
     # # run the simulation
     agent.run_simulation(num_steps=num_steps, save_path=save_data_path)

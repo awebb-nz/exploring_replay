@@ -315,12 +315,14 @@ def generate_value_diff_tree(qval_tree1, qval_tree2, file_path):
 
     return None
 
-def generate_big_tex_tree(h, replays, q_history, need_history, file_path, height=None):
+def generate_big_tex_tree(replays, q_history, need_history, file_path, display_need=True, tree_height=None, between_height=0.1, between_width=0.7, state_height=0.2, state_width=0.45, gap=0.22):
     
-    if height is None:
+    h = len(q_history)
+
+    if tree_height is None:
         y_max = 9
     else:
-        y_max = height
+        y_max = tree_height
 
     x_max = 10
 
@@ -332,8 +334,7 @@ def generate_big_tex_tree(h, replays, q_history, need_history, file_path, height
         f.write(r'\begin{minipage}{\textwidth}' + '\n')
         f.write(r'\centering' + '\n')
         f.write(r'\begin{tikzpicture}' + '\n') 
-        f.write(r'\tikzstyle{between} = [rectangle, minimum height=0.1cm, minimum width=0.70cm, draw opacity=0]' + '\n')
-        f.write(r'\tikzstyle{qval}    = [rectangle, text centered, text width=2cm]' + '\n')
+        f.write(r'\tikzstyle{between} = [rectangle, minimum height=%.2fcm, minimum width=%.2fcm, draw opacity=0]'%(between_height, between_width) + '\n')
         f.write(r'\tikzstyle{qval}    = [rectangle, text centered, text width=2cm]' + '\n')
         
         # generate nodes towards which arrows will be drawn
@@ -367,28 +368,37 @@ def generate_big_tex_tree(h, replays, q_history, need_history, file_path, height
                 node_name = str(hi) + '_s_' + str(0)
                 y_node    = 0
                 alpha     = need_history[hi][0]
-                f.write(r'\node[rectangle, text centered, draw=black, minimum height=0.2cm, minimum width=0.45cm, fill=orange, fill opacity=%.2f, draw opacity=1, text opacity=1] at (%.2f, %.2f) (%s) {\tiny %.2f};'%(alpha, x_node, y_node, node_name, alpha) + '\n')
+                if display_need:
+                    f.write(r'\node[rectangle, text centered, draw=black, minimum height=%.2fcm, minimum width=%.2fcm, fill=orange, fill opacity=%.2f, draw opacity=1, text opacity=1] at (%.2f, %.2f) (%s) {\tiny %.2f};'%(state_height, state_width, alpha, x_node, y_node, node_name, alpha) + '\n')
+                else:
+                    f.write(r'\node[rectangle, draw=black, inner sep=0pt, minimum height=%.2fcm, minimum width=%.2fcm, fill=orange, fill opacity=%.2f, draw opacity=1] at (%.2f, %.2f) (%s) {};'%(state_height, state_width, alpha, x_node, y_node, node_name) + '\n')
                 state_nodes[hi].append(node_name)
             else:
                 for idx, y_node in enumerate(reversed(np.linspace(-y_max*(hi+1)/h, y_max*(hi+1)/h, num_nodes))):
                     node_name = str(hi) + '_s_' + str(idx*2)
                     alpha     = need_history[hi][idx*2]
-                    f.write(r'\node[rectangle, text centered, draw=black, minimum height=0.2cm, minimum width=0.45cm, fill=orange, fill opacity=%.2f, draw opacity=1, text opacity=1] at (%.2f, %.2f) (%s) {\tiny %.2f};'%(alpha, x_node, y_node+0.22, node_name, alpha) + '\n')
+                    if display_need:
+                        f.write(r'\node[rectangle, text centered, draw=black, minimum height=%.2fcm, minimum width=%.2fcm, fill=orange, fill opacity=%.2f, draw opacity=1, text opacity=1] at (%.2f, %.2f) (%s) {\tiny %.2f};'%(state_height, state_width, alpha, x_node, y_node+gap, node_name, alpha) + '\n')
+                    else:
+                        f.write(r'\node[rectangle, draw=black, inner sep=0pt, minimum height=%.2fcm, minimum width=%.2fcm, fill=orange, fill opacity=%.2f, draw opacity=1] at (%.2f, %.2f) (%s) {};'%(state_height, state_width, alpha, x_node, y_node+gap, node_name) + '\n')
                     if hi == h-1:
                         qvals  = q_history[hi][idx*2]
                         probas = np.exp(qvals)/np.sum(np.exp(qvals))
                         val    = np.dot(probas, qvals) 
-                        f.write(r'\node[qval] at (%.2f, %.2f) () {\tiny \textcolor{blue}{%.2f}};'%(x_node+0.60, y_node+0.22, val) + '\n')
+                        f.write(r'\node[qval] at (%.2f, %.2f) () {\tiny \textcolor{blue}{%.2f}};'%(x_node+0.60, y_node+gap, val) + '\n')
                     state_nodes[hi].append(node_name)
                     node_name = str(hi) + '_s_' + str(idx*2+1)
                     
                     alpha = need_history[hi][idx*2+1]
-                    f.write(r'\node[rectangle, text centered, draw=black, minimum height=0.2cm, minimum width=0.45cm, fill=orange, fill opacity=%.2f, draw opacity=1, text opacity=1] at (%.2f, %.2f) (%s) {\tiny %.2f};'%(alpha, x_node, y_node-0.22, node_name, alpha) + '\n')
+                    if display_need:
+                        f.write(r'\node[rectangle, text centered, draw=black, minimum height=%.2fcm, minimum width=%.2fcm, fill=orange, fill opacity=%.2f, draw opacity=1, text opacity=1] at (%.2f, %.2f) (%s) {\tiny %.2f};'%(state_height, state_width, alpha, x_node, y_node-gap, node_name, alpha) + '\n')
+                    else:
+                        f.write(r'\node[rectangle, draw=black, inner sep=0pt, minimum height=%.2fcm, minimum width=%.2fcm, fill=orange, fill opacity=%.2f, draw opacity=1] at (%.2f, %.2f) (%s) {};'%(state_height, state_width, alpha, x_node, y_node-gap, node_name) + '\n')
                     if hi == h-1:
                         qvals = q_history[hi][idx*2+1]
                         probas = np.exp(qvals)/np.sum(np.exp(qvals))
                         val    = np.dot(probas, qvals) 
-                        f.write(r'\node[qval] at (%.2f, %.2f) () {\tiny \textcolor{blue}{%.2f}};'%(x_node+0.60, y_node-0.22, val) + '\n')
+                        f.write(r'\node[qval] at (%.2f, %.2f) () {\tiny \textcolor{blue}{%.2f}};'%(x_node+0.60, y_node-gap, val) + '\n')
                     state_nodes[hi].append(node_name)
 
         for hi in range(h-1):

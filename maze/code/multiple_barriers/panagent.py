@@ -56,19 +56,18 @@ class PanAgent():
                     probs = np.insert(probs, nan_idx, 0)
             return probs
 
-        if self.policy_type == 'softmax':
+        if temp is not None:
+            t = temp
+        else:
+            t = self.beta
 
-            if temp is not None:
-                t = temp
-            else:
-                t = self.beta
-
+        if t != 'greedy':
             probs = np.exp(q_vals_allowed*t)/np.sum(np.exp(q_vals_allowed*t))
             if len(nan_idcs) > 0:
                 for nan_idx in nan_idcs:
                     probs = np.insert(probs, nan_idx, 0)
             return probs
-        elif self.policy_type == 'greedy':
+        elif t == 'greedy':
             if np.all(q_vals_allowed == q_vals_allowed.max()):
                 ps           = np.ones(self.num_actions)
                 ps[nan_idcs] = 0
@@ -116,5 +115,5 @@ class PanAgent():
             probs = self._policy(Q[s, :], temp=inv_temp)
             for a in range(self.num_actions):
                 Ts[s, :] += probs[a]*T[s, a, :]
-
+        
         return np.linalg.inv(np.eye(self.num_states) - self.gamma*Ts)

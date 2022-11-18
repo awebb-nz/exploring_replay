@@ -50,9 +50,9 @@ class Tree:
         else:
             t = 1
             
-        if self.policy_type == 'softmax':
+        if t != 'greedy':
             return np.exp(q_values*t)/np.sum(np.exp(q_values*t))
-        elif self.policy_type == 'greedy':
+        elif t == 'greedy':
             if np.all(q_values == q_values.max()):
                 a = np.random.choice([1, 0], p=[0.5, 0.5])
                 return np.array([a, 1-a])
@@ -235,7 +235,7 @@ class Tree:
         for hi in range(self.horizon - 1):
             for idx in full_qval_tree[hi].keys():  
                 ch = np.random.choice(range(len(all_hors)))
-                qval_tree[hi][idx] = np.random.uniform(0, 1) * full_qval_tree[all_hors[ch]][all_idcs[ch]]
+                qval_tree[hi][idx] = full_qval_tree[all_hors[ch]][all_idcs[ch]]
                 all_hors.pop(ch)
                 all_idcs.pop(ch)
 
@@ -252,14 +252,14 @@ class Tree:
                 prev_need    = need_tree[hi-1][prev_idx]
                 policy_proba = self._policy(self.qval_tree[hi-1][prev_idx])
                 
-                b  = vals[0]
-                b0 = b[0, 0]/np.sum(b[0, :])
-                b1 = b[1, 0]/np.sum(b[1, :])
-                
                 next_idcs = vals[1]
                 for next_idx in next_idcs:
                     a    = next_idx[0]
                     
+                    b  = vals[0]
+                    b0 = b[a, 0]/np.sum(b[a, :])
+                    b1 = b[a, 1]/np.sum(b[a, :])
+
                     idx1 = next_idx[1]
                     need_tree[hi][idx1] = policy_proba[a]*b0*prev_need*self.gamma
 

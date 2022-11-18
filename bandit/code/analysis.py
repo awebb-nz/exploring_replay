@@ -23,30 +23,30 @@ def plot_root_values(data_folder):
 
     v_full = np.max(tree.full_updates()[0][0])
 
-    plt.figure(figsize=(6, 5), dpi=100, constrained_layout=True)
+    plt.figure(figsize=(2, 5), dpi=100, constrained_layout=True)
     
     for i in [1, 2]:
         plt.subplot(2, 1, i)
 
         if i == 1:
             plt.plot(root_values)
-            plt.ylabel(r'$V(b_{\rho})$', fontsize=17)
+            plt.ylabel(r'$V(b_{\rho})$', fontsize=12)
         else:
             plt.plot(policy_values)
-            plt.ylabel(r'$V^{\pi}$', fontsize=17)
+            plt.ylabel(r'$V^{\pi}$', fontsize=12)
 
         plt.axhline(v_full, linestyle='--', color='k', alpha=0.7, label='Optimal value')
-        plt.tick_params(axis='y', labelsize=13)
+        plt.tick_params(axis='y', labelsize=10)
 
         if i == 1:
             plt.xticks([])
         else:
-            plt.xlabel('Number of updates', fontsize=17)
-            plt.xticks(range(len(root_values)), range(len(root_values)), fontsize=13)
+            plt.xlabel('Number of updates', fontsize=12)
+            plt.xticks(range(len(root_values)), range(len(root_values)), fontsize=10)
         
         plt.xlim(0, len(qval_history)-1)
         plt.ylim(0, v_full+0.1)
-        plt.legend(prop={'size':13})
+        plt.legend(prop={'size':9})
 
     plt.savefig(os.path.join(data_folder, 'root_values.png'))
     plt.savefig(os.path.join(data_folder, 'root_values.svg'), transparent=True)

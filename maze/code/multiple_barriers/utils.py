@@ -98,13 +98,17 @@ def plot_env(ax, env):
     for st_y in range(env.num_y_states):
         ax.axhline(st_y, c='k', linewidth=0.6)
     
-    for k in env.blocked_state_actions:
-        s, a = k
-        i, j = env._convert_state_to_coords(s)
-        if a == 0:
-            ax.hlines((env.num_y_states-i), j, j+1, linewidth=6, color='b')
-        elif a == 3:
-            ax.vlines(j+1, (env.num_y_states-i)-1, (env.num_y_states-i), linewidth=6, color='b')
+    for st in range(env.num_states):
+        for ac in range(env.num_actions):
+            for bidx, l in enumerate(env.uncertain_states_actions):
+                if [st, ac] in l:
+                    if env.barriers[bidx]:
+                        i, j = np.argwhere(np.arange(env.num_states).reshape(env.num_y_states, env.num_x_states) == st).flatten()
+                        if ac == 0:
+                            ax.hlines((env.num_y_states-i), j, j+1, linewidth=6, color='b')
+                        elif ac == 2:
+                            ax.vlines(j, (env.num_y_states-i)-1, (env.num_y_states-i), linewidth=6, color='b')
+                    break
 
     if len(env.nan_states) > 0:
         patches = []
@@ -152,7 +156,7 @@ def add_patches(s, a, q, num_y_states, num_x_states):
                     
     return patches
 
-def plot_maze(ax, Q, agent, move=None, colorbar=True):
+def plot_maze(ax, Q, agent, move=None, colorbar=True, colormap='Blues'):
     
     # state grid
     for st_x in range(agent.num_x_states):
@@ -160,17 +164,16 @@ def plot_maze(ax, Q, agent, move=None, colorbar=True):
     for st_y in range(agent.num_y_states):
         ax.axhline(st_y, c='k', linewidth=0.6)
 
-    nan_idcs = np.argwhere(np.all(np.isnan(Q), axis=1)).flatten()
-    Q[nan_idcs, :] = 0
+    # nan_idcs = np.argwhere(np.all(np.isnan(Q), axis=1)).flatten()
+    # Q[nan_idcs, :] = 0
 
     Q_plot = np.zeros(agent.num_states)
     for s in range(agent.num_states):
-        max_val = 0
-        for a in range(agent.num_actions):
-            if ~np.isnan(Q[s, a]):
-                if np.absolute(Q[s, a]) > np.absolute(max_val):
-                    Q_plot[s] = Q[s, a]
-                    max_val   = Q[s, a]
+        max_val   = 0
+        if np.all(np.isnan(Q[s, :])):
+            Q_plot[s] = 0
+        else:
+            Q_plot[s] = np.nanmax(Q[s, :])
 
     # Q_plot   = np.nanmax(Q, axis=1).reshape(agent.num_y_states, agent.num_x_states)[::-1, :]
     Q_plot = Q_plot.reshape(agent.num_y_states, agent.num_x_states)[::-1, :]
@@ -178,7 +181,7 @@ def plot_maze(ax, Q, agent, move=None, colorbar=True):
     if np.all(Q_plot == 0):
         sns.heatmap(np.absolute(Q_plot), cmap=['white'], annot=False, fmt='.2f', cbar=colorbar, vmin=0, vmax=1, ax=ax)
     else:
-        sns.heatmap(np.absolute(Q_plot), cmap=sns.light_palette("seagreen", as_cmap=True), annot=False, fmt='.2f', cbar=colorbar, vmin=0, vmax=1, ax=ax)
+        sns.heatmap(np.absolute(Q_plot), cmap=colormap, annot=False, fmt='.2f', cbar=colorbar, vmin=0, vmax=1, ax=ax)
     
     # arrows for actions
     patches = []
@@ -189,16 +192,15 @@ def plot_maze(ax, Q, agent, move=None, colorbar=True):
                     patches += add_patches(st, ac, 0, agent.num_y_states, agent.num_x_states)
                 else:
                     patches += add_patches(st, ac, Q[st, ac], agent.num_y_states, agent.num_x_states)
-                # patches += add_patches(st, ac, Q[st, ac], agent.num_y_states, agent.num_x_states)
-                for bidx, l in enumerate(agent.uncertain_states_actions):
-                    if [st, ac] in l:
-                        if agent.barriers[bidx]:
-                            i, j = np.argwhere(np.arange(agent.num_states).reshape(agent.num_y_states, agent.num_x_states) == st).flatten()
-                            if ac == 0:
-                                ax.hlines((agent.num_y_states-i), j, j+1, linewidth=6, color='b')
-                            elif ac == 2:
-                                ax.vlines(j, (agent.num_y_states-i)-1, (agent.num_y_states-i), linewidth=6, color='b')
-                        break
+            for bidx, l in enumerate(agent.uncertain_states_actions):
+                if [st, ac] in l:
+                    if agent.barriers[bidx]:
+                        i, j = np.argwhere(np.arange(agent.num_states).reshape(agent.num_y_states, agent.num_x_states) == st).flatten()
+                        if ac == 0:
+                            ax.hlines((agent.num_y_states-i), j, j+1, linewidth=6, color='b')
+                        elif ac == 2:
+                            ax.vlines(j, (agent.num_y_states-i)-1, (agent.num_y_states-i), linewidth=6, color='b')
+                    break
 
     if len(agent.nan_states) > 0:
         for s in agent.nan_states:
@@ -210,13 +212,13 @@ def plot_maze(ax, Q, agent, move=None, colorbar=True):
 
     # goal symbol
     goal_y, goal_x   = np.argwhere(np.arange(agent.num_states).reshape(agent.num_y_states, agent.num_x_states) == agent.goal_state).flatten()
-    ax.scatter(goal_x+0.5, agent.num_y_states - goal_y -0.5, s=600, c='orange', marker=r'$\clubsuit$', alpha=0.7)
+    ax.scatter(goal_x+0.5, agent.num_y_states - goal_y -0.5, s=300, c='orange', marker=r'$\clubsuit$', alpha=0.7)
 
     # agent location
     if move is not None:
         agent_state      = move[-1]
         agent_y, agent_x = np.argwhere(np.arange(agent.num_states).reshape(agent.num_y_states, agent.num_x_states) == agent_state).flatten()
-        ax.scatter(agent_x+0.5, agent.num_y_states - agent_y -0.5, s=600, c='green', alpha=0.7)
+        ax.scatter(agent_x+0.5, agent.num_y_states - agent_y -0.5, s=80, c='green', alpha=0.7)
 
     ax.set_xticks([])
     ax.set_yticks([])
@@ -224,8 +226,8 @@ def plot_maze(ax, Q, agent, move=None, colorbar=True):
     ax.set_xlim(0, agent.num_x_states)
     ax.set_ylim(0, agent.num_y_states)
 
-    if move is not None:
-        ax.set_title('[' + ' '.join(map(str, [int(i) for i in move])) + ']', fontsize=20)
+    # if move is not None:
+        # ax.set_title('[' + ' '.join(map(str, [int(i) for i in move])) + ']', fontsize=20)
 
     return None
 
@@ -285,15 +287,15 @@ def plot_replay(ax, agent, move=None):
 
     return None
 
-def plot_need(ax, need, agent):
+def plot_need(ax, need, agent, colorbar=True, colormap='Blues'):
     
     need_plot = need.reshape(agent.num_y_states, agent.num_x_states)[::-1, :]
     need_plot = need_plot/np.nanmax(need_plot)
 
     if np.all(need_plot == 0):
-        sns.heatmap(need_plot, cmap=['white'], annot=False, fmt='.2f', cbar=True, ax=ax)
+        sns.heatmap(need_plot, cmap=['white'], annot=False, fmt='.2f', cbar=colorbar, ax=ax)
     else:
-        sns.heatmap(need_plot, cmap='Blues', annot=True, fmt='.2f', cbar=True, ax=ax)
+        sns.heatmap(need_plot, cmap=colormap, annot=True, fmt='.2f', cbar=colorbar, ax=ax)
     
     # arrows for actions
     patches = []

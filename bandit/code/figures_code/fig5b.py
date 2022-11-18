@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 
 # prior belief at the root
 alpha_0, beta_0 = 20, 1
+
 alpha_1, beta_1 = 1, 20
 
 M = np.array([

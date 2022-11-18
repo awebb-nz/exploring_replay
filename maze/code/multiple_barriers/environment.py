@@ -131,6 +131,9 @@ class Environment():
             self.Q[8,  3] = np.nan
         elif self.env_name == 'u':
             self.Q[1,  2] = np.nan
+        elif self.env_name == 'tolman123_nocheat':
+            self.Q[8,  1] = np.nan
+            self.Q[20, 1] = np.nan
         else: pass
 
         self.Q_nans = self.Q.copy()
