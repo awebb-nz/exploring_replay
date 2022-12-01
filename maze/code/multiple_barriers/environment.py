@@ -71,17 +71,8 @@ class Environment():
 
             s1 = self._convert_coords_to_state([y1_coord, x1_coord])
 
-            if s1 in self.nan_states:
-                r  = self.config[y_coord, x_coord]
-                return s, r
-
-            # check the barriers
-            if (unlocked == True) or ([s, a] not in [i for j in self.blocked_state_actions for i in j]):
-                r  = self.config[y1_coord, x1_coord]
-                return s1, r
-            else:
-                r = self.config[y_coord, x_coord]
-                return s, r
+            r  = self.config[y1_coord, x1_coord]
+            return s1, r
             
     def _convert_state_to_coords(self, s):
 
