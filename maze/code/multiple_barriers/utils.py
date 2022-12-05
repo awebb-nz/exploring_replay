@@ -287,15 +287,16 @@ def plot_replay(ax, agent, move=None):
 
     return None
 
-def plot_need(ax, need, agent, colorbar=True, colormap='Blues'):
+def plot_need(ax, need, agent, colorbar=True, colormap='Blues', normalise=True, vmin=0, vmax=1):
     
     need_plot = need.reshape(agent.num_y_states, agent.num_x_states)[::-1, :]
-    need_plot = need_plot/np.nanmax(need_plot)
+    if normalise:
+        need_plot = need_plot/np.nanmax(need_plot)
 
     if np.all(need_plot == 0):
-        sns.heatmap(need_plot, cmap=['white'], annot=False, fmt='.2f', cbar=colorbar, ax=ax)
+        sns.heatmap(need_plot, cmap=['white'], annot=False, fmt='.3f', cbar=colorbar, ax=ax, vmin=vmin, vmax=vmax)
     else:
-        sns.heatmap(need_plot, cmap=colormap, annot=True, fmt='.2f', cbar=colorbar, ax=ax)
+        sns.heatmap(need_plot, cmap=colormap, annot=True, fmt='.3f', cbar=colorbar, ax=ax, vmin=vmin, vmax=vmax)
     
     # arrows for actions
     patches = []

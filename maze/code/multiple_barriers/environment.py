@@ -38,6 +38,9 @@ class Environment():
         if s == self.goal_state:
             return self.start_state, 0
 
+        if s in self.nan_states:
+            return s, 0
+
         y_coord, x_coord = self._convert_state_to_coords(s)
 
         # ----
@@ -55,6 +58,7 @@ class Environment():
             r = self.config[y_coord, x_coord]
             return s, r
         else:
+
             # ----
             # choose up
             if a == 0:
@@ -71,8 +75,17 @@ class Environment():
 
             s1 = self._convert_coords_to_state([y1_coord, x1_coord])
 
-            r  = self.config[y1_coord, x1_coord]
-            return s1, r
+            if s1 in self.nan_states:
+                r  = self.config[y_coord, x_coord]
+                return s, r
+
+            # check the barriers
+            if (unlocked == True) or self._check_blocked([s, a]) is None:
+                r  = self.config[y1_coord, x1_coord]
+                return s1, r
+            else:
+                r = self.config[y_coord, x_coord]
+                return s, r
             
     def _convert_state_to_coords(self, s):
 
@@ -104,7 +117,7 @@ class Environment():
         # set edge Q values to np.nan
         for s in np.delete(range(self.num_states), [self.goal_state] + self.nan_states):
             for a in range(self.num_actions):
-                bidx = self._check_uncertain([s, a])
+                bidx = self._check_blocked([s, a])
                 if bidx is None:
                     s1, _ = self._get_new_state(s, a, unlocked=False)
                     if (s1 == s):
@@ -145,7 +158,7 @@ class Environment():
             for s in np.delete(range(self.num_states), self.goal_state):
                 for a in range(self.num_actions):
                     if ~np.isnan(Q_MB[s, a]):
-                        bidx = self._check_uncertain([s, a])
+                        bidx = self._check_blocked([s, a])
                         if bidx is not None:
                             if self.barriers[bidx]:
                                 s1, r = self._get_new_state(s, a, unlocked=False)
