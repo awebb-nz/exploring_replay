@@ -199,7 +199,7 @@ class AgentPOMDP(PanAgent, Environment):
                 q = vals[1].copy()
 
                 # terminate at the goal state
-                if s == self.goal_state:
+                if s in self.goal_states:
                     continue
                 
                 for a in range(self.num_actions):
@@ -478,7 +478,7 @@ class AgentPOMDP(PanAgent, Environment):
 
                             vals = self.belief_tree[nhi][nidx]
                             s        = vals[0][1]
-                            if s == self.goal_state:
+                            if s in self.goal_states:
                                 continue
                             b        = vals[0][0].copy()
 
@@ -606,7 +606,7 @@ class AgentPOMDP(PanAgent, Environment):
                 state = vals[0][1]
 
                 # do not consider if goal state
-                if state == self.goal_state:
+                if state in self.goal_states:
                     continue
                 
                 b_this     = vals[0][0]
@@ -633,15 +633,18 @@ class AgentPOMDP(PanAgent, Environment):
                             bp              = vals1[0][0]
                             Q_old           = vals1[1]
                             if (sp == state):
-                                Q_new           = self._imagine_update(Q_old_this, sp, bp, val, self.belief_tree)
-                                if (Q_new[sp, a] == Q_new_this[sp, a]):
-                                    need            = pntree[hi1][idx1]
-                                    this_gain       = self._compute_gain(Q_old[sp, :].copy(), Q_new[sp, :].copy())
-                                    gain[hi1][idx1] = this_gain
-                                    evb[hi1][idx1]  = need * this_gain
+                                for val1 in vals1[2]:
+                                    ap                  = val1[0][0]
+                                    if ap == a:
+                                        Q_new               = self._imagine_update(Q_old_this, sp, bp, val1, self.belief_tree)
+                                        if (Q_new[sp, a]   == Q_new_this[sp, a]):
+                                            need            = pntree[hi1][idx1]
+                                            this_gain       = self._compute_gain(Q_old[sp, :].copy(), Q_new[sp, :].copy())
+                                            gain[hi1][idx1] = this_gain
+                                            evb[hi1][idx1]  = need * this_gain
 
                     # if evb > self.xi:
-                    updates += [[np.array([hi]), np.array([idx]), np.array([state, a]).reshape(-1, 2), Q_new.copy(), [gain], [pntree], [evb]]]
+                    updates += [[np.array([hi]), np.array([idx]), np.array([state, a]).reshape(-1, 2), Q_new_this.copy(), [gain], [pntree], [evb]]]
 
         return updates
 
@@ -653,8 +656,8 @@ class AgentPOMDP(PanAgent, Environment):
             evb = 0
             evb_tree = upd[-1][-1]
             for hi in range(self.horizon):
-                for idx, val in evb_tree[hi].items():
-                    evb += val
+                for idx1, val1 in evb_tree[hi].items():
+                    evb += val1
 
             if evb > max_evb:
                 max_evb = evb
@@ -708,7 +711,7 @@ class AgentPOMDP(PanAgent, Environment):
                 for sidx, si in enumerate(s):
                     Q_old = self.belief_tree[hi[sidx]][k[sidx]][1].copy()
                     b     = self.belief_tree[hi[sidx]][k[sidx]][0][0]
-                    print('%u - Replay %u/%u [<%u>, %u] horizon %u, q_old: %.2f, q_new: %.2f, evb: %.2f'%(num, sidx+1, len(s), si, a[sidx], hi[sidx], Q_old[si, a[sidx]], Q_new[si, a[sidx]], evb[sidx]), flush=True)
+                    print('%u - Replay %u/%u [<%u>, %u] horizon %u, q_old: %.2f, q_new: %.2f, evb: %.2f'%(num, sidx+1, len(s), si, a[sidx], hi[sidx], Q_old[si, a[sidx]], Q_new[si, a[sidx]], evb), flush=True)
                     print(b)
                     print('---')
                     Q_old[si, a[sidx]] = Q_new[si, a[sidx]].copy()
@@ -719,8 +722,8 @@ class AgentPOMDP(PanAgent, Environment):
                     
                     Q_history += [deepcopy(self.belief_tree)]
 
-                need_history  += [pneed_tree.copy()]
-                gain_history  += [Gain.copy()]
+                need_history  += [need]
+                gain_history  += [gain]
 
                 traj_tree      = self._simulate_trajs()
                 pneed_tree     = self._build_pneed_tree(traj_tree)
@@ -795,7 +798,7 @@ class AgentPOMDP(PanAgent, Environment):
             # transition to new state
             self.state = s1
 
-            if self.state == self.goal_state:
+            if self.state in self.goal_states:
                 replay = True
 
             if replay:
@@ -810,7 +813,7 @@ class AgentPOMDP(PanAgent, Environment):
                 else:
                     np.savez(os.path.join(save_path, 'Q_%u.npz'%move), barrier=self.barriers, Q_history=self.Q, M=self.M, move=[s, a, r, s1])
 
-            if s1 == self.goal_state:
+            if s1 in self.goal_states:
                 self.state = self.start_state
 
         return None
@@ -904,7 +907,7 @@ class AgentMDP(PanAgent, Environment):
             SR    = self._compute_need(self.T, self.Q, inv_temp=self.beta)
             need  = SR[self.state, :]
 
-            for s in np.delete(range(self.num_states), [self.goal_state] + self.nan_states):
+            for s in np.delete(range(self.num_states), self.goal_states + self.nan_states):
                 q_old = self.Q[s, :].copy()
                 for a in range(self.num_actions):
                     if ~np.isnan(self.Q[s, a]) and ~np.isnan(self.M[s*self.num_actions+a, 1]):
@@ -1008,7 +1011,7 @@ class AgentMDP(PanAgent, Environment):
                 # else:
                     # np.savez(os.path.join(save_path, 'Q_%u.npz'%move), barrier=self.barriers, Q_history=self.Q, move=[s, a, r, s1])
 
-            if self.state == self.goal_state:
+            if self.state in self.goal_states:
                 self.state = self.start_state
 
             self._mf_forget()

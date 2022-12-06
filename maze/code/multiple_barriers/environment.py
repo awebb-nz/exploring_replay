@@ -15,13 +15,15 @@ class Environment():
 
         self.__dict__.update(**p)
 
-        self.config      = np.zeros((self.num_y_states, self.num_x_states))
-        self.config[self.goal_coords[0], self.goal_coords[1]] = self.rew_value
         self.num_states  = self.num_x_states*self.num_y_states
-
         self.start_state = self._convert_coords_to_state(self.start_coords)
-        self.goal_state  = self._convert_coords_to_state(self.goal_coords)
 
+        self.config      = np.zeros((self.num_y_states, self.num_x_states))
+        self.goal_states = []
+        for idx, goal in enumerate(self.goal_coords):
+            self.config[goal[0], goal[1]] = self.rew_value[idx]
+            self.goal_states += [self._convert_coords_to_state(goal)]
+        
         return None
 
 
@@ -35,8 +37,8 @@ class Environment():
         ----
         '''
 
-        if s == self.goal_state:
-            return self.start_state, 0
+        if s in self.goal_states:
+            return self.start_state, self.config.ravel()[s]
 
         if s in self.nan_states:
             return s, 0
@@ -115,7 +117,7 @@ class Environment():
         self.Q = np.zeros((self.num_states, self.num_actions))
 
         # set edge Q values to np.nan
-        for s in np.delete(range(self.num_states), [self.goal_state] + self.nan_states):
+        for s in np.delete(range(self.num_states), self.goal_states + self.nan_states):
             for a in range(self.num_actions):
                 bidx = self._check_blocked([s, a])
                 if bidx is None:
@@ -155,7 +157,7 @@ class Environment():
         delta = 1
         while delta > eps:
             Q_MB_new = Q_MB.copy()
-            for s in np.delete(range(self.num_states), self.goal_state):
+            for s in np.delete(range(self.num_states), self.goal_states):
                 for a in range(self.num_actions):
                     if ~np.isnan(Q_MB[s, a]):
                         bidx = self._check_blocked([s, a])
