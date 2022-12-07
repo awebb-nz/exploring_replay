@@ -39,7 +39,7 @@ def main():
     agent = AgentPOMDP(*[pag_config, ag_config, env_config])
     Q_MB  = agent.Q.copy()
 
-    np.save(os.path.join(save_path, 'q_mb.npy'), Q_MB)
+    np.save(os.path.join(save_path, 'q_init.npy'), Q_MB)
 
     a, b        = 0, 1
     agent.state = 7 # start state
@@ -57,8 +57,18 @@ def main():
 
     Q_history, gain_history, need_history = agent._replay()
 
-    np.save(os.path.join(save_path, 'q_explore_replay_after.npy'), agent.Q)
-    np.save(os.path.join(save_path, 'q_explore_replay_diff_after.npy'), agent.Q-Q_MB)
+    states = [1, 2, 3]
+    Q = agent.Q_nans.copy()
+    Q_tree = Q_history[-1]
+    for hi in reversed(range(agent.horizon)):
+        for k, val in Q_tree[hi].items():
+            state  = val[0][1]
+            if state in states:
+                Q_vals = val[1]
+                Q[state, :] = Q_vals[state, :]
+
+    np.save(os.path.join(save_path, 'q_explore_replay_after.npy'), Q)
+    np.save(os.path.join(save_path, 'q_explore_replay_diff_after.npy'), Q-Q_MB)
 
     with open(os.path.join(save_path, 'ag.pkl'), 'wb') as f:
         pickle.dump(agent, f, pickle.HIGHEST_PROTOCOL)
