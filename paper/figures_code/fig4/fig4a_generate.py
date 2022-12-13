@@ -34,14 +34,15 @@ save_path = '/home/georgy/Documents/Dayan_lab/PhD/bandits/paper/figures/fig4/t_m
 
 def main():
 
-    env_config['barriers'] = [1]
+    env_config['barriers']  = [1]
+    env_config['rew_value'] = [0, 0]
 
     agent = AgentPOMDP(*[pag_config, ag_config, env_config])
     Q_MB  = agent.Q.copy()
 
     np.save(os.path.join(save_path, 'q_init.npy'), Q_MB)
 
-    a, b        = 0, 1
+    a, b        = 7, 2
     agent.state = 7 # start state
     agent.M     = np.array([[a, b]])
 
@@ -50,10 +51,8 @@ def main():
     np.save(os.path.join(save_path, 'q_explore_replay_before.npy'), agent.Q)
     np.save(os.path.join(save_path, 'q_explore_replay_diff_before.npy'), agent.Q-Q_MB)
 
-    agent.Q     = Q_MB
-    a, b        = 7, 2
-    agent.state = 7 # start state
-    agent.M     = np.array([[a, b]])
+    agent.rew_value      = [0, 1]
+    agent._init_reward()
 
     Q_history, gain_history, need_history = agent._replay()
 

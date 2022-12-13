@@ -17,15 +17,18 @@ class Environment():
 
         self.num_states  = self.num_x_states*self.num_y_states
         self.start_state = self._convert_coords_to_state(self.start_coords)
+        
+        self._init_reward()
+
+        return None
+
+    def _init_reward(self):
 
         self.config      = np.zeros((self.num_y_states, self.num_x_states))
         self.goal_states = []
         for idx, goal in enumerate(self.goal_coords):
             self.config[goal[0], goal[1]] = self.rew_value[idx]
             self.goal_states += [self._convert_coords_to_state(goal)]
-        
-        return None
-
 
     def _get_new_state(self, s, a, unlocked=False):
 

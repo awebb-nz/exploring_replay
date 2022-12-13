@@ -303,7 +303,7 @@ def plot_need(ax, need, agent, colorbar=True, colormap='Blues', normalise=True, 
     
     # arrows for actions
     patches = []
-    for st in np.delete(range(agent.num_states), [agent.goal_state] + agent.nan_states):
+    for st in np.delete(range(agent.num_states), agent.goal_states + agent.nan_states):
         for ac in range(4):
             for bidx, l in enumerate(agent.uncertain_states_actions):
                 if [st, ac] in l:
