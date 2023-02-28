@@ -1,6 +1,6 @@
 import numpy as np
 import sys, os
-sys.path.append('/home/georgy/Documents/Dayan_lab/PhD/bandits/bandit/code')
+sys.path.append('/home/georgy/Documents/Dayan_lab/PhD/bandits/paper/code/bandit')
 import matplotlib.pyplot as plt
 from scipy.stats import ttest_ind, ttest_1samp
 

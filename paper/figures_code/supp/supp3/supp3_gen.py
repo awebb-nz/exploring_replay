@@ -1,6 +1,6 @@
 import numpy as np
 import sys, os, shutil, pickle
-sys.path.append('/home/georgy/Documents/Dayan_lab/PhD/bandits/bandit/code')
+sys.path.append('/home/georgy/Documents/Dayan_lab/PhD/bandits/paper/code/bandit')
 from belief_tree import Tree
 
 # --- Specify parameters ---

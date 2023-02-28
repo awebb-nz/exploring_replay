@@ -1,13 +1,13 @@
 import numpy as np
 import sys, os, pickle
-sys.path.append('/home/georgy/Documents/Dayan_lab/PhD/bandits/maze/code/multiple_barriers')
+sys.path.append('/home/georgy/Documents/Dayan_lab/PhD/bandits/paper/code/maze')
 from agent_replay import AgentPOMDP
 from utils import load_env
 
 np.random.seed(2)
 
 env            = 'tolman123'
-env_file_path  = '/home/georgy/Documents/Dayan_lab/PhD/bandits/maze/code/mazes/' + env + '.txt'
+env_file_path  = '/home/georgy/Documents/Dayan_lab/PhD/bandits/paper/code/maze/mazes/' + env + '.txt'
 env_config     = load_env(env_file_path)
 
 # --- Specify agent parameters ---
@@ -30,8 +30,7 @@ ag_config = {
     'env_name'       : env,       # gridworld name
 }
 
-# save_path = '/home/georgy/Documents/Dayan_lab/PhD/bandits/paper/figures/fig4'
-save_path = '/home/georgy/Documents/Dayan_lab/PhD/bandits/paper/figures/test'
+save_path = '/home/georgy/Documents/Dayan_lab/PhD/bandits/paper/figures/fig4'
 
 def main():
 

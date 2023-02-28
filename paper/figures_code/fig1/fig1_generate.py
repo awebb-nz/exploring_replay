@@ -1,12 +1,12 @@
 import numpy as np
 import sys, os, pickle
-sys.path.append('/home/georgy/Documents/Dayan_lab/PhD/bandits/maze/code/multiple_barriers')
+sys.path.append('/home/georgy/Documents/Dayan_lab/PhD/bandits/paper/code/maze')
 from agent_replay import AgentMDP
 from utils import load_env
 
 # --- Load environment ---
 env            = 'tolman123_nocheat'
-env_file_path  = os.path.join('/home/georgy/Documents/Dayan_lab/PhD/bandits/maze/code/mazes', env + '.txt')
+env_file_path  = os.path.join('/home/georgy/Documents/Dayan_lab/PhD/bandits/paper/code/maze/mazes', env + '.txt')
 env_config     = load_env(env_file_path)
 
 env_config['barriers'] = [1, 1, 0]

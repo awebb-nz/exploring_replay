@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import sys, os, pickle
-sys.path.append('/home/georgy/Documents/Dayan_lab/PhD/bandits/maze/code/multiple_barriers')
+sys.path.append('/home/georgy/Documents/Dayan_lab/PhD/bandits/paper/code/maze')
 from utils import plot_maze
 
 load_path = '/home/georgy/Documents/Dayan_lab/PhD/bandits/paper/figures/supp/supp5'
