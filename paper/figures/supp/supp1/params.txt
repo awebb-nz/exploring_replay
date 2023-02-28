@@ -1,0 +1,12 @@
+root_belief:  [[5 3]
+ [1 5]]
+init_qvals:  0.6
+rand_init:  False
+gamma:  0.9
+xi:  0.01
+beta:  4
+policy_type:  softmax
+sequences:  False
+max_seq_len:  None
+constrain_seqs:  True
+horizon:  3
