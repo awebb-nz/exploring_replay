@@ -11,20 +11,29 @@ class AgentPOMDP(PanAgent, Environment):
         '''
         ----
         configs is a list containing 
-                    [0] agent parameters and [1] environment parameters
+            [0] panagent, [1] agent, [2] environment parameters
 
-        start_coords             -- start state coordinates
-        goal_coords              -- goal state coordinates 
-        blocked_state_actions    -- list with state-action pairs [s, a] which are blocked
-        uncertain_states_actions -- list with states and actions about which the agent becomes uncertain 
-        alpha                    -- on-line value learning rate
-        alpha_r                  -- replay learning rate
-        gamma                    -- discount factor
-        horizon                  -- planning / replay horizon
-        xi                       -- replay EVB threshold
-        num_sims                 -- number of simulations for need estimation 
-        beta                     -- inverse temperature
-        policy_type              -- softmax / greedy
+        panagent parameters:
+            alpha          -- on-line MF learning rate
+            beta           -- inverse temperature
+            gain_beta      -- inverse temperature for gain
+            need_beta      -- inverse temperature for need
+            gamma          -- discount factor
+            policy_type    -- 'softmax'/'greedy'
+            mf_forget      -- MF forgetting rate
+
+        agent parameters:
+            alpha_r        -- off-line replay learning rate
+            horizon        -- planning horizon
+            xi             -- EVB threshold
+            num_sims       -- number of particles for need
+            sequences      -- True/False
+            max_seq_length -- maximal sequence length
+            env_name       -- environment name
+            barriers       -- which barriers are present/absent
+
+        returns:
+            None
         ----
         '''
         
@@ -48,6 +57,18 @@ class AgentPOMDP(PanAgent, Environment):
 
     def _find_belief(self, z):
 
+        '''
+        ---
+        determine whether belief state z exists in the planning tree
+
+        parameters:
+            z -- belief state
+
+        returns:
+            True/False, Q values
+        ---
+        '''
+
         b = z[0]
         s = z[1]
 
@@ -65,41 +86,50 @@ class AgentPOMDP(PanAgent, Environment):
 
         '''
         ---
-        Simulate forward histrories from the agent's current belief
-        Important for computing Need of distal beliefs
+        simulate forward histrories from the agent's current belief state
+        
+        parameters:
+            None
+        
+        returns:
+            his 
         ---
         '''
 
         his = {hi:{} for hi in range(self.horizon)}
 
         for sim in range(self.num_sims):
-            s     = self.state
-            b     = self.M
-            d     = 1
+            s     = self.state # initial state
+            b     = self.M     # current belief
+            d     = 1          # counter
 
-            # current state
+            # check if the current belief state is already in the belief tree
             hi, k, _ = self._check_belief_exists(self.belief_tree, [b, s])
+            # if not then add it
             if k not in his[hi].keys():
                 his[hi][k] = [np.full(self.num_sims, np.nan), np.full(self.num_sims, np.nan)]
             
-            # need
-            his[hi][k][0][sim] = 1
+            his[hi][k][0][sim] = 1 # need
+            his[hi][k][1][sim] = 0 # number of steps to reach this belief state
 
-            # number of steps
-            his[hi][k][1][sim] = 0
-
+            # start particle simulations
             while ((self.gamma**d) > 1e-4):
-
+                
+                # check if the current belief state is within the subject's horizon reach
                 check, q = self._find_belief([b, s])
 
+                # terminate the particle if beyond
                 if not check:
                     break
-
+                
+                # choose an action to perform at this belief state
                 qvals = q[s, :]
                 probs = self._policy(qvals, temp=self.need_beta)
                 a     = np.random.choice(range(self.num_actions), p=probs)
                 
+                # check whether the subject is uncertain about this action outcome
                 bidx = self._check_uncertain([s, a])
+                # if yes
                 if bidx is not None:
 
                     s1u, _ = self._get_new_state(s, a, unlocked=True)
@@ -107,23 +137,26 @@ class AgentPOMDP(PanAgent, Environment):
 
                     # sample next state
                     bp = b[bidx, 0]/np.sum(b[bidx, :])
-                    
                     s1 = np.random.choice([s1u, s1l], p=[bp, 1-bp])
 
-                    # update belief based on the observed transition
+                    # update belief based on the transition
                     b = self._belief_plan_update(b, bidx, s, s1)
-
+                # if not
                 else:
                     s1, _  = self._get_new_state(s, a, unlocked=False)
 
+                # check if this new belief state is within the subject's horizon reach
                 hi, k, check = self._check_belief_exists(self.belief_tree, [b, s1])
 
+                # terminate the particle if beyond
                 if not check:
                     break
-
+                
+                # otherwise add 
                 if k not in his[hi].keys():
                     his[hi][k] = [np.full(self.num_sims, np.nan), np.full(self.num_sims, np.nan)]
 
+                # update the associated values
                 curr_val = his[hi][k][0][sim]
                 if np.isnan(curr_val):
                     his[hi][k][0][sim] = self.gamma**d
@@ -135,6 +168,21 @@ class AgentPOMDP(PanAgent, Environment):
         return his
 
     def _belief_plan_update(self, M, idx, s, s1):
+
+        '''
+        ---
+        perform bayesian belief update
+
+        parameters:
+            M   -- current belief 
+            idx -- belief about which barrier to update
+            s   -- initial physical state
+            s1  -- final physical state
+
+        returns
+            M_out
+        ---
+        '''
 
         M_out = M.copy()
 
@@ -153,7 +201,14 @@ class AgentPOMDP(PanAgent, Environment):
 
         '''
         ---
-        Checks if the belief state z already exists in the tree
+        check if the belief state z already exists in the tree
+
+        parameters:
+            btree -- current belief tree
+            z     -- belief state
+
+        returns:
+            horizon, idx, True/False
         ---
         '''
 
@@ -172,7 +227,13 @@ class AgentPOMDP(PanAgent, Environment):
         
         '''
         ---
-        Build a tree with future belief states up to horizon self.horizon
+        build a tree with future belief states up to horizon self.horizon
+
+        parameters:
+            None
+
+        returns:
+            btree -- {hi:{k: vals}}, hi: horizon, k: unique id, vals: [[b, s], Q, [a, hi, idx]]
         ---
         '''
 
@@ -283,10 +344,14 @@ class AgentPOMDP(PanAgent, Environment):
 
         '''
         ---
-        Marginalise T[s, a, s'] over actions with the current policy 
+        marginalise T[s, a, s'] over actions with the current policy 
 
-        b -- current belief about transition structure
-        Q -- MF Q values associated with this belief
+        parameters:
+            b -- current belief about transition structure
+            Q -- Q values associated with this belief
+
+        returns:
+            T -- state-state transition matrix under \pi
         ---
         '''
         Ta     = np.zeros((self.num_states, self.num_actions, self.num_states))
@@ -314,11 +379,11 @@ class AgentPOMDP(PanAgent, Environment):
 
         return T
 
-    def _build_pneed_tree(self, ttree):
+    def _build_pneed_tree(self):
 
         '''
         ---
-        Compute Need for each information state
+        Compute Need for each belief state
 
         ttree -- tree with the estimated probabilities 
         ---
@@ -344,6 +409,8 @@ class AgentPOMDP(PanAgent, Environment):
         # The path to X is estimated based on 
         # monte-carlo returns in the method called 
         # simulate_trajs()
+
+        ttree = self._simulate_trajs()
 
         ntree = {hi:{} for hi in range(self.horizon)}
 
@@ -385,27 +452,51 @@ class AgentPOMDP(PanAgent, Environment):
 
     def _imagine_update(self, Q_old, state, b, val, btree):
         
+        '''
+        ---
+        propose a model-based update to a model-free value at a single belief state 
+
+        parameters:
+            Q_old -- current MF value
+            state -- physical location 
+            b     -- belief
+            val   -- index
+            btree -- belief tree
+
+        returns:
+            Q_new -- new updated MF value
+        ---
+        '''
+
         q_old_vals = Q_old[state, :].copy()
 
         tds = []
 
+        # if there are two belief states to which the subject can transition from the 
+        # current belief state, it means that this action's outcome is uncertain
         if len(val) == 2:
-
+            
+            # retrieve next belief states' indices
             a, hiu, idxu = val[0][0], val[0][1], val[0][2]
             _, hil, idxl = val[1][0], val[1][1], val[1][2]
 
+            # s1u -- new state with unlocked barrier
             s1u          = btree[hiu][idxu][0][1]
             q_prime_u    = btree[hiu][idxu][1][s1u, :].copy()
 
+            # s1l -- new state with locked barrier
             s1l          = btree[hil][idxl][0][1]
             q_prime_l    = btree[hil][idxl][1][s1l, :].copy()
 
+            # reward for new location (old location is just 0)
             y, x = self._convert_state_to_coords(s1u)
             rew  = self.config[y, x]
 
+            # add temporal difference errors for both updates
             tds += [q_old_vals[a] + self.alpha_r*(rew + self.gamma*np.nanmax(q_prime_u) - q_old_vals[a])]
             tds += [q_old_vals[a] + self.alpha_r*(0 + self.gamma*np.nanmax(q_prime_l) - q_old_vals[a])]
 
+        # otherwise there's only one possible next belief state
         else:
             a, hi1, idx1 = val[0][0], val[0][1], val[0][2]
             s1           = btree[hi1][idx1][0][1]
@@ -419,22 +510,38 @@ class AgentPOMDP(PanAgent, Environment):
         Q_new      = Q_old.copy()
         q_new_vals = q_old_vals.copy()
 
+        # perform the update
         if len(tds) != 2: 
             q_new_vals[a] = tds[0]
         else:    
             bidx = self._check_uncertain([state, a])
             b0   = b[bidx, 0]/np.sum(b[bidx, :])
             b1   = 1 - b[bidx, 0]/np.sum(b[bidx, :])
+            # weighted by the subject's prior belief 
             q_new_vals[a] = b0*tds[0] + b1*tds[1]
 
-        Q_new[state, :]   = q_new_vals
+        Q_new[state, :] = q_new_vals
 
         return Q_new
 
-    def _generate_forward_sequences(self, updates, pntree):
+    def _generate_forward_sequences(self, updates):
+
+        '''
+        ---
+        generates forward replay sequences 
+
+        parameters:
+            updates     -- single-action replay updates to extend 
+            pntree      -- need
+
+        retuns:
+            seq_updates -- forward sequence updates
+        ---
+        '''
 
         seq_updates = []
 
+        # iterate over all single-action updates
         for update in updates:
             for l in range(self.max_seq_len-1):
                 
@@ -445,7 +552,7 @@ class AgentPOMDP(PanAgent, Environment):
 
                 tmp  = []
                 
-                for seq in pool: # take an existing sequence
+                for seq in pool: # take an existing (current) sequence
                     
                     lhi   = seq[0][-1]
                     levb  = seq[-1][-1]
@@ -495,9 +602,11 @@ class AgentPOMDP(PanAgent, Environment):
 
                                     Q_new  = self._imagine_update(Q_old, s, b, next_next_idx, self.belief_tree)
 
-                                    need   = pntree[s]
-                                    gain   = self._compute_gain(Q_old[s, :].copy(), Q_new[s, :].copy())
-                                    evb    = gain * need
+                                    # need   = self.pneed_tree[s]
+                                    # gain   = self._compute_gain(Q_old[s, :].copy(), Q_new[s, :].copy())
+                                    # evb    = gain * need
+                                    a          = next_next_idx[0][0]
+                                    gain, evb  = self._generalised_gain(s, a, Q_old, Q_new, self.belief_tree)
 
                                     if evb >= self.xi:
                                         this_seq[0]  = np.append(this_seq[0], nhi)
@@ -507,8 +616,8 @@ class AgentPOMDP(PanAgent, Environment):
                                         Q[s, :]      = Q_new[s, :].copy()
                                         this_seq[3]  = Q.copy()
                                         this_seq[4]  = np.append(this_seq[4], gain.copy())
-                                        this_seq[5]  = np.append(this_seq[5], need.copy())
-                                        this_seq[6]  = np.append(this_seq[6], np.dot(this_seq[4], this_seq[5]))
+                                        this_seq[5]  = np.append(this_seq[5], self.pneed_tree.copy())
+                                        this_seq[6]  = np.append(this_seq[6], np.sum(this_seq[6])+evb)
                                         tmp         += [deepcopy(this_seq)]
 
                 if len(tmp) > 0:
@@ -516,7 +625,7 @@ class AgentPOMDP(PanAgent, Environment):
 
         return seq_updates
 
-    def _generate_reverse_sequences(self, updates, pntree):
+    def _generate_reverse_sequences(self, updates):
 
         seq_updates = []
 
@@ -569,11 +678,16 @@ class AgentPOMDP(PanAgent, Environment):
                                         nbtree[lhi][lidx][1] = Q.copy()
                                         Q_old  = nbtree[hor][k][1].copy()
 
+                                        a      = next_idx[0][0]
                                         Q_new  = self._imagine_update(Q_old, s, b, next_idx, nbtree)
 
-                                        need   = pntree[s]
-                                        gain   = self._compute_gain(Q_old[s, :].copy(), Q_new[s, :].copy())
-                                        evb    = gain*need
+                                        # need   = self.pneed_tree[s]
+                                        # gain   = self._compute_gain(Q_old[s, :].copy(), Q_new[s, :].copy())
+                                        # evb    = gain*need
+
+                                        gain, evb  = self._generalised_gain(s, a, Q_old, Q_new, nbtree)
+
+                                        # gain, evb = self._generalised_gain(state, a, pntree, Q_old_this, Q_new_this)
                                         
                                         if evb >= self.xi:
                                             this_seq[0]  = np.append(this_seq[0], hor)
@@ -583,8 +697,8 @@ class AgentPOMDP(PanAgent, Environment):
                                             Q[s, :]      = Q_new[s, :].copy()
                                             this_seq[3]  = Q.copy()
                                             this_seq[4]  = np.append(this_seq[4], gain.copy())
-                                            this_seq[5]  = np.append(this_seq[5], need.copy())
-                                            this_seq[6]  = np.append(this_seq[6], np.dot(this_seq[4], this_seq[5]))
+                                            this_seq[5]  = np.append(this_seq[5], deepcopy(self.pneed_tree))
+                                            this_seq[6]  = np.append(this_seq[6], np.sum(this_seq[6])+evb)
                                             tmp         += [deepcopy(this_seq)]
 
                 if len(tmp) > 0:
@@ -592,15 +706,55 @@ class AgentPOMDP(PanAgent, Environment):
 
         return seq_updates
 
-    def _generate_single_updates(self, pntree):
+    def _generalised_gain(self, state, a, Q_old_this, Q_new_this, belief_tree):
+
+        gain  = {hi1:{} for hi1 in range(self.horizon)}
+        evb   = 0
+
+        for hi1 in range(self.horizon):
+            for idx1, vals1 in self.belief_tree[hi1].items():
+
+                gain[hi1][idx1] = 0
+                sp              = vals1[0][1]
+                bp              = vals1[0][0]
+                Q_old           = vals1[1]
+                if (sp == state):
+                    for val1 in vals1[2]:
+                        ap = val1[0][0]
+                        if ap == a:
+                            Q_new           = self._imagine_update(Q_old, sp, bp, val1, belief_tree)
+                            if Q_new[sp, ap] == Q_new_this[sp, a]:
+                                need            = self.pneed_tree[hi1][idx1]
+                                this_gain       = self._compute_gain(Q_old[sp, :].copy(), Q_new[sp, :].copy())
+                                gain[hi1][idx1] = this_gain
+                                
+                                evb            += need * this_gain
+
+        return gain, evb
+
+    def _generate_single_updates(self):
+
+        '''
+        ---
+        generate all single-action reply updates
+
+        parameters:
+            pntree  -- need tree
+
+        returns:
+            updates -- generated single-action replay updates
+        ---
+        '''
 
         updates     = []
 
-        # first generate single-step updates
         for hi in reversed(range(self.horizon-1)):
+
+            # skip to the previous horizon if at the end
             if len(self.belief_tree[hi+1]) == 0:
                 continue
-
+            
+            # iterate over every belief state
             for idx, vals in self.belief_tree[hi].items():
                 
                 state = vals[0][1]
@@ -609,61 +763,42 @@ class AgentPOMDP(PanAgent, Environment):
                 if state in self.goal_states:
                     continue
                 
-                b_this     = vals[0][0]
-                Q_old_this = vals[1]
+                b_this     = vals[0][0] # belief
+                Q_old_this = vals[1]    # current Q values
 
+                # iterate over belief states to which it is possible to transition from this belief state
                 for val in vals[2]:
                     
-                    a          = val[0][0]
-                    Q_new_this = self._imagine_update(Q_old_this, state, b_this, val, self.belief_tree)
+                    a          = val[0][0] # action that results in the transition
+                    Q_new_this = self._imagine_update(Q_old_this, state, b_this, val, self.belief_tree)     # new updated Q value
+                    gain, evb  = self._generalised_gain(state, a, Q_old_this, Q_new_this, self.belief_tree) # gain & evb associated with the update
 
-                    # generalisation -- ?? We need to compute the potential benefit of a single update at <s', b'> at all other beliefs;
-                    # that is, <s', b*> for all b* in B. The equation for Need is:
-                    # \sum_{<s', b'>} \sum_i \gamma^i P(<s, b> -> <s', b'>, i, \pi_{old})
-                    # The equation for Gain is:
-                    # \sum_{<s', b'>} \sum_a [\pi_{new}(a | <s', b'>) - \pi_{new}(a | <s', b'>)]q_{\pi_{new}}(<s', b'>, a)
-
-                    evb  = {hi1:{} for hi1 in range(self.horizon)}
-                    gain = deepcopy(evb)
-                    for hi1 in range(self.horizon):
-                        for idx1, vals1 in self.belief_tree[hi1].items():
-                            evb[hi1][idx1]  = 0
-                            gain[hi1][idx1] = 0
-                            sp              = vals1[0][1]
-                            bp              = vals1[0][0]
-                            Q_old           = vals1[1]
-                            if (sp == state):
-                                for val1 in vals1[2]:
-                                    ap                  = val1[0][0]
-                                    if ap == a:
-                                        Q_new               = self._imagine_update(Q_old_this, sp, bp, val1, self.belief_tree)
-                                        if (Q_new[sp, a]   == Q_new_this[sp, a]):
-                                            need            = pntree[hi1][idx1]
-                                            this_gain       = self._compute_gain(Q_old[sp, :].copy(), Q_new[sp, :].copy())
-                                            gain[hi1][idx1] = this_gain
-                                            evb[hi1][idx1]  = need * this_gain
-
-                    # if evb > self.xi:
-                    updates += [[np.array([hi]), np.array([idx]), np.array([state, a]).reshape(-1, 2), Q_new_this.copy(), [gain], [pntree], [evb]]]
+                    # add to the list of potential updates
+                    updates += [[np.array([hi]), np.array([idx]), np.array([state, a]).reshape(-1, 2), Q_new_this.copy(), [gain], [self.pneed_tree], [evb]]]
 
         return updates
 
     def _get_highest_evb(self, updates):
         
-        max_evb = 0
+        evb_all = np.zeros(len(updates))
         loc     = None
         for idx, upd in enumerate(updates):
-            evb = 0
-            evb_tree = upd[-1][-1]
-            for hi in range(self.horizon):
-                for idx1, val1 in evb_tree[hi].items():
-                    evb += val1
+            evb = upd[-1][-1]
+            evb_all[idx] = evb
 
-            if evb > max_evb:
-                max_evb = evb
-                loc     = idx 
+        max_evb = np.max(evb_all)
+        loc     = np.argwhere(evb_all == max_evb)[0]
 
-        return loc, max_evb
+        if len(loc) > 1:
+            tmp_updates = updates[loc]
+            min_len     = self.max_seq_len
+            for idx, upd in enumerate(tmp_updates):
+                if len(upd[-1]) <= min_len:
+                    this_loc = loc[idx]
+                    min_len  = len(upd[-1])
+            loc = this_loc
+
+        return loc[0], max_evb
 
     def _replay(self):
         
@@ -671,18 +806,17 @@ class AgentPOMDP(PanAgent, Environment):
         need_history = [None]
 
         self.belief_tree = self._build_belief_tree()
-        traj_tree        = self._simulate_trajs()
-        pneed_tree       = self._build_pneed_tree(traj_tree)
+        self.pneed_tree  = self._build_pneed_tree()
         
         Q_history        = [deepcopy(self.belief_tree)]
 
         num = 1
         while True:
-            updates = self._generate_single_updates(pneed_tree)
+            updates = self._generate_single_updates()
 
             if self.sequences:
-                rev_updates  = self._generate_reverse_sequences(updates, pneed_tree)
-                fwd_updates  = self._generate_forward_sequences(updates, pneed_tree)
+                fwd_updates  = self._generate_forward_sequences(updates)
+                rev_updates  = self._generate_reverse_sequences(updates)
                 if len(rev_updates) > 0:
                     updates += rev_updates
                 if len(fwd_updates) > 0:
@@ -725,8 +859,7 @@ class AgentPOMDP(PanAgent, Environment):
                 need_history  += [need]
                 gain_history  += [gain]
 
-                traj_tree      = self._simulate_trajs()
-                pneed_tree     = self._build_pneed_tree(traj_tree)
+                self.pneed_tree = self._build_pneed_tree()
 
                 num += 1
 

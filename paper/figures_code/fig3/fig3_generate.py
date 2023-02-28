@@ -30,7 +30,8 @@ ag_config = {
     'env_name'       : env,       # gridworld name
 }
 
-save_path = '/home/georgy/Documents/Dayan_lab/PhD/bandits/paper/figures/fig6'
+# save_path = '/home/georgy/Documents/Dayan_lab/PhD/bandits/paper/figures/fig3'
+save_path = '/home/georgy/Documents/Dayan_lab/PhD/bandits/paper/figures/test'
 
 def main():
 

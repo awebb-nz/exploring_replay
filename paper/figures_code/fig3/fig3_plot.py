@@ -4,7 +4,8 @@ import sys, os, pickle
 sys.path.append('/home/georgy/Documents/Dayan_lab/PhD/bandits/maze/code/multiple_barriers')
 from utils import plot_maze
 
-load_path = '/home/georgy/Documents/Dayan_lab/PhD/bandits/paper/figures/fig3'
+# load_path = '/home/georgy/Documents/Dayan_lab/PhD/bandits/paper/figures/fig3'
+load_path = '/home/georgy/Documents/Dayan_lab/PhD/bandits/paper/figures/test'
 
 def main():
 

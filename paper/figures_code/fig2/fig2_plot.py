@@ -4,7 +4,8 @@ import sys, os, pickle
 sys.path.append('/home/georgy/Documents/Dayan_lab/PhD/bandits/maze/code/multiple_barriers')
 from utils import plot_maze
 
-load_path = '/home/georgy/Documents/Dayan_lab/PhD/bandits/paper/figures/fig2'
+# load_path = '/home/georgy/Documents/Dayan_lab/PhD/bandits/paper/figures/fig2'
+load_path = '/home/georgy/Documents/Dayan_lab/PhD/bandits/paper/figures/test'
 
 def main():
 
@@ -30,37 +31,6 @@ def main():
     ax3.set_title(r'Updated exploratory policy', fontsize=16)
     ax3.text(-0.1, 1.1, 'C', transform=ax3.transAxes, fontsize=16, fontweight='bold', va='top', ha='right')
 
-    # ax4 = fig.add_subplot(4,3,5)
-
-    # M_range = [[0, 1], [1, 7], [1, 5], [1, 3], [1, 1], [3, 1], [5, 1], [7, 1], [1, 0]]
-    # betas   = [1, 5, 10, 20]
-    # x       = np.arange(len(M_range))
-
-    # qs      = np.load(os.path.join(load_path, 'qs_explore.npy'))
-    
-    # for beta in betas:
-
-    #     agent.beta = beta
-    #     probs = np.zeros(len(M_range))
-    #     for i in range(0, len(qs), 8):
-    #         probs[i//8] = agent._policy(qs[i])[0]*agent._policy(qs[i+1])[0]*agent._policy(qs[i+2])[3]*agent._policy(qs[i+3])[3]*agent._policy(qs[i+4])[0]*agent._policy(qs[i+5])[0]*agent._policy(qs[i+6])[2]*agent._policy(qs[i+7])[2]
-    #     ax4.plot(x, probs, label=r'$\beta=%u$'%beta)
-
-    # probs = np.load(os.path.join(load_path, 'probas_greedy.npy'))
-    # for i in range(7, len(qs), 8):
-    #     probs[i//8] = (qs[i][2] == np.nanmax(qs[i]))
-    # ax4.plot(x, probs, label='greedy')
-
-    # ax4.set_ylim(-0.05, 1.05)
-    # ax4.set_xlim(0, 1)
-
-    # ax4.set_xticks(x, np.linspace(0, 1, len(x)), fontsize=12, rotation=30)
-    # ax4.set_xlabel('Belief', fontsize=12)
-    # ax4.set_title('Exploration quality of the new policy', fontsize=12)
-    # ax4.set_ylabel('Exploration probability', fontsize=12)
-    # ax4.legend(prop={'size':12})
-    # ax4.text(-0.1, 1.1, 'D', transform=ax4.transAxes, fontsize=16, fontweight='bold', va='top', ha='right')
-
     ax5 = fig.add_subplot(2,3,4)
     plot_maze(ax5, np.load(os.path.join(load_path, 'q_explore_online.npy')), agent, colorbar=True, colormap='Purples', move=[14])
     ax5.set_title(r'Online discovery', fontsize=16)
@@ -77,14 +47,6 @@ def main():
     plot_maze(ax7, np.load(os.path.join(load_path, 'q_explore_online_replay.npy')), agent, colorbar=True, colormap='Purples', move=[14])
     ax7.set_title(r'Updated policy', fontsize=16)
     ax7.text(-0.1, 1.1, 'F', transform=ax7.transAxes, fontsize=16, fontweight='bold', va='top', ha='right')
-
-    # ax8  = fig.add_subplot(4,3,11)
-    # gain = np.load(os.path.join(load_path, 'gain_history.npy'), allow_pickle=True)[-1]
-    # gain[gain <= agent.xi] = np.nan
-    # gain = gain/np.nanmax(gain[:])
-    # plot_maze(ax8, gain, agent, colorbar=True, colormap='Greens')
-    # ax8.set_title('Normalised Gain for the second replay', fontsize=12)
-    # ax8.text(-0.1, 1.1, 'H', transform=ax8.transAxes, fontsize=16, fontweight='bold', va='top', ha='right')
 
     plt.savefig(os.path.join(load_path, 'fig2.png'))
     plt.savefig(os.path.join(load_path, 'fig2.svg'), transparent=True)

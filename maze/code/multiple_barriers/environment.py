@@ -43,6 +43,9 @@ class Environment():
         if s in self.goal_states:
             return self.start_state, self.config.ravel()[s]
 
+        if self._check_blocked([s, a]) is not None:
+            return s, self.config.ravel()[s]
+
         if s in self.nan_states:
             return s, 0
 
@@ -84,8 +87,8 @@ class Environment():
                 r  = self.config[y_coord, x_coord]
                 return s, r
 
-            # check the barriers
-            if (unlocked == True) or self._check_blocked([s, a]) is None:
+            # check barriers
+            if (unlocked == True) or self._check_uncertain([s, a]) is None:
                 r  = self.config[y1_coord, x1_coord]
                 return s1, r
             else:
@@ -122,9 +125,10 @@ class Environment():
         # set edge Q values to np.nan
         for s in np.delete(range(self.num_states), self.goal_states + self.nan_states):
             for a in range(self.num_actions):
-                bidx = self._check_blocked([s, a])
-                if bidx is None:
-                    s1, _ = self._get_new_state(s, a, unlocked=False)
+                # bidx = self._check_blocked([s, a])
+                # if bidx is None:
+                s1, _ = self._get_new_state(s, a, unlocked=True)
+                if self._check_blocked([s, a]) is None and self._check_uncertain([s, a]) is None:
                     if (s1 == s):
                         self.Q[s, a] = np.nan
 
@@ -143,6 +147,8 @@ class Environment():
         elif self.env_name == 'tolman123_nocheat':
             self.Q[8,  1] = np.nan
             self.Q[20, 1] = np.nan
+        elif self.env_name == 'tolman1234':
+            self.Q[8, 1]  = np.nan
         else: pass
 
         self.Q_nans = self.Q.copy()
@@ -163,7 +169,7 @@ class Environment():
             for s in np.delete(range(self.num_states), self.goal_states):
                 for a in range(self.num_actions):
                     if ~np.isnan(Q_MB[s, a]):
-                        bidx = self._check_blocked([s, a])
+                        bidx = self._check_uncertain([s, a])
                         if bidx is not None:
                             if self.barriers[bidx]:
                                 s1, r = self._get_new_state(s, a, unlocked=False)

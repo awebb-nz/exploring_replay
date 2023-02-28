@@ -30,7 +30,8 @@ ag_config = {
     'env_name'       : env,      # gridworld name
 }
 
-save_path = '/home/georgy/Documents/Dayan_lab/PhD/bandits/paper/figures/fig4'
+# save_path = '/home/georgy/Documents/Dayan_lab/PhD/bandits/paper/figures/fig4'
+save_path = '/home/georgy/Documents/Dayan_lab/PhD/bandits/paper/figures/test'
 
 def main():
 
@@ -50,7 +51,7 @@ def main():
 
     belief_tree = Q_history[-1]
 
-    Q1 = agent.Q.copy()
+    Q1 = Q_MB.copy()
     for hi in range(agent.horizon):
         for k, v in belief_tree[hi].items():
             if np.array_equal(agent.M, v[0][0]):
@@ -60,7 +61,7 @@ def main():
 
     new_M = agent.M.copy()
     new_M[3, :] = [1, 0]
-    Q2 = agent.Q.copy()
+    Q2 = Q_MB.copy()
     for hi in range(agent.horizon):
         for k, v in belief_tree[hi].items():
             if np.array_equal(new_M, v[0][0]):

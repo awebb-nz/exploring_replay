@@ -36,7 +36,7 @@ pag_config = {
 ag_config = {
     'alpha_r'        : 1,         # offline learning rate
     'horizon'        : 10,        # planning horizon (minus 1)
-    'xi'             : 0.001,      # EVB replay threshold
+    'xi'             : 0.001,     # EVB replay threshold
     'num_sims'       : 2000,      # number of MC simulations for need
     'sequences'      : True,
     'max_seq_len'    : 5,        
@@ -54,7 +54,7 @@ def main():
     
     # initialise the agent
     agent = AgentPOMDP(*[pag_config, ag_config, env_config])
-    # agent = AgentMDP(*[pag_config, ag_config, env_config])
+    # agent   = AgentMDP(*[pag_config, ag_config, env_config])
     agent.M = np.array([[7, 2], [7, 2], [7, 2]])
 
     # # run the simulation
