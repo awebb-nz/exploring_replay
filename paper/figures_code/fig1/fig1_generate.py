@@ -6,14 +6,13 @@ from utils import load_env
 
 # --- Load environment ---
 env            = 'tolman123_nocheat'
-env_file_path  = os.path.join('/home/georgy/Documents/Dayan_lab/PhD/bandits/paper/code/maze/mazes', env + '.txt')
+env_file_path  = os.path.join('/home/georgy/Documents/Dayan_lab/PhD/bandits/paper/code/mazes', env + '.txt')
 env_config     = load_env(env_file_path)
 
 env_config['barriers'] = [1, 1, 0]
 
 # --- Specify simulation parameters ---
 save_path  = os.path.join('/home/georgy/Documents/Dayan_lab/PhD/bandits/paper/figures/fig1', 'data', 'yes_forgetting')
-# save_path  = os.path.join('/home/georgy/Documents/Dayan_lab/PhD/bandits/maze/data/replay/local/', env, 'no_uncertainty', 'no_forgetting')
 num_steps  = 4000
 
 # --- Specify agent parameters ---

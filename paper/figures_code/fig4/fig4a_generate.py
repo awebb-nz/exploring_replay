@@ -7,7 +7,7 @@ from utils import load_env
 np.random.seed(2)
 
 env            = 't'
-env_file_path  = '/home/georgy/Documents/Dayan_lab/PhD/bandits/paper/code/maze/mazes/' + env + '.txt'
+env_file_path  = '/home/georgy/Documents/Dayan_lab/PhD/bandits/paper/code/mazes/' + env + '.txt'
 env_config     = load_env(env_file_path)
 
 # --- Specify agent parameters ---
