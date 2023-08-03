@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import FormatStrFormatter
 import os
 
-params = [[5, 3], [1, 5], [7, 3], [5, 5], [3, 5], [1, 7]]
+params = [[13, 12], [2, 2], [15, 12], [4, 2], [14, 13], [2, 4]]
 x      = np.linspace(0, 1, 100)
 
 for idx, p in enumerate(params):
@@ -21,10 +21,10 @@ for idx, p in enumerate(params):
     ax.set_ylim(0-0.2, np.max(rv.pdf(x))+0.2)
 
     ax.tick_params(axis='both', which='both', colors='black', labelsize=45)
-    ax.set_xlabel(r'$p$(reward)$=1$', fontsize=50)
+    ax.set_xlabel(r'$p$(reward)', fontsize=50)
 
     ax.yaxis.set_major_formatter(FormatStrFormatter('%.1f'))
 
-    plt.savefig(os.path.join('/home/georgy/Documents/Dayan_lab/PhD/bandits/paper/figures/supp/supp1/prior_%u.svg'%idx), transparent=True)
-    plt.savefig(os.path.join('/home/georgy/Documents/Dayan_lab/PhD/bandits/paper/figures/supp/supp1/prior_%u.png'%idx))
+    plt.savefig(os.path.join('/home/georgy/Documents/Dayan_lab/PhD/bandits/paper/figures/supp/supp1/prior_%u_%u.svg'%(p[0], p[1])), transparent=True)
+    plt.savefig(os.path.join('/home/georgy/Documents/Dayan_lab/PhD/bandits/paper/figures/supp/supp1/prior_%u_%u.png'%(p[0], p[1])))
     plt.close()

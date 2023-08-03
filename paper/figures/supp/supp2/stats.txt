@@ -1,0 +1,2 @@
+Proportion: t=27.24, p=8.68e-48
+Number:     t=7.67, p=7.58e-13

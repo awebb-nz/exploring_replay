@@ -1,2 +1,0 @@
-Proportion: t=11.40, p=1.01e-19
-Number:     t=2.05, p=4.20e-02

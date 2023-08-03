@@ -1,103 +1,51 @@
 import numpy as np
-import sys, os
-sys.path.append('/home/georgy/Documents/Dayan_lab/PhD/bandits/paper/code/bandit')
 import matplotlib.pyplot as plt
-from scipy.stats import ttest_ind, ttest_1samp
+import sys, os, pickle
+sys.path.append('/home/georgy/Documents/Dayan_lab/PhD/bandits/paper/code/maze')
+from utils import plot_maze
 
-# --- Specify parameters ---
+load_path = '/home/georgy/Documents/Dayan_lab/PhD/bandits/paper/figures/supp/supp3/data/'
+save_path = '/home/georgy/Documents/Dayan_lab/PhD/bandits/paper/figures/supp/supp4'
 
-# save path
-path = '/home/georgy/Documents/Dayan_lab/PhD/bandits/paper/figures/supp/supp4/'
-
-num_trees = 100
-seqs      = [True, False]
-
-# --- Main function for replay ---
 def main():
 
-    prop_matrix = np.zeros((num_trees, 2))
-    num_matrix  = np.zeros((num_trees, 2))
+    with open(os.path.join(load_path, '0', '0', 'ag.pkl'), 'rb') as f:
+        agent = pickle.load(f)
 
-    for tidx in range(num_trees):
-        
-        for sidx, seq in enumerate(seqs):
+    priors = [[2, 2], [6, 2], [10, 2], [14, 2], [18, 2], [22, 2]]
+    betas  = [1, 2, 4, 'greedy']
+    sas    = [[14, 0], [20, 0], [19, 3], [18, 3], [24, 0], [30, 0], [31, 2], [32, 2]]
+    probas = np.ones((len(priors), len(betas)))
 
-            data = np.load(os.path.join(path, 'data', str(tidx), str(seq), 'replay_data', 'replay_history.npy'), allow_pickle=True)
-                # proportion of single-step and sequence replays
+    for idxb, beta in enumerate(betas):
+        for idxp, prior in enumerate(priors):
 
-            num_fwd_prop = 0
-            num_rev_prop = 0
+            this_path = os.path.join(load_path, str(idxb), str(idxp))
 
-            num_evnts    = 0
+            Q = np.load(os.path.join(this_path, 'q_explore_replay.npy'))
 
-            num_replays = len(data) - 1
-            num_seqs    = 0
+            for sa in sas:
 
-            if seq == True:
-                for replay in data[1:]:
-                    if len(replay[0]) > 1:
-                        num_seqs += 1
-                        # forward or reverse
-                        if replay[0][0] > replay[0][1]:
-                            num_rev_prop += 1
-                        else:
-                            num_fwd_prop += 1
+                s, a = sa[0], sa[1]
 
-                    num_evnts += len(replay[0])
-            else:
-                num_evnts = num_replays
+                probas[idxp, idxb] *= agent._policy(Q[s, :], temp=beta)[a]
 
-            if num_replays > 0:
-                prop_matrix[tidx, sidx] = num_seqs/num_replays
-                if num_rev_prop == 0:
-                    prop_matrix[tidx, sidx] = 1
-                else:
-                    prop_matrix[tidx, sidx]  = num_fwd_prop/(num_rev_prop + num_fwd_prop)
+    fig = plt.figure(figsize=(4, 3), constrained_layout=True, dpi=100)
 
-                num_matrix[tidx, sidx] = num_evnts
-            else:
-                prop_matrix[tidx, sidx] = np.nan
+    colours = ['blue', 'orange', 'green', 'purple', 'red']
 
-    plt.figure(figsize=(8, 4), dpi=100, constrained_layout=True)
-    plt.subplot(121)
-    plt.bar([1], np.nanmean(prop_matrix[:, 0]), width=0.3, facecolor='k', alpha=0.6)
-    plt.scatter([1]*prop_matrix.shape[0], prop_matrix[:, 0], c='k')
-    plt.axhline(0, c='k')
-    plt.ylim(-0.05, 1.05)
-    plt.xlim(0.5, 1.5)
-    plt.xticks([])
-    plt.ylabel('Proportion of forward to reverse sequences', fontsize=12)
-    tp, pp = ttest_1samp(prop_matrix[:, 0], 0)
-    plt.title('t = %.2f, p=%.2e'%(tp, pp))
+    for idxb, beta in enumerate(betas):
+        plt.plot(range(len(priors)), probas[:, idxb], c=colours[idxb], label=r'$\beta=$%s'%beta)
 
-    plt.subplot(122)
-    plt.bar([1], np.nanmean(num_matrix[:, 0]), width=0.7, facecolor='purple', alpha=0.6)
-    plt.scatter([1]*num_trees, num_matrix[:, 0], c='purple')
-    plt.bar([2], np.nanmean(num_matrix[:, 1]), width=0.7, facecolor='green', alpha=0.6)
-    plt.scatter([2]*num_trees, num_matrix[:, 1], color='green')
-    for i in range(num_trees):
-        plt.plot([1, 2], [num_matrix[i, 0], num_matrix[i, 1]], c='k')
+    plt.legend(prop={'size':8})
+    plt.ylabel('Exploration probability', fontsize=14)
+    # plt.xticks(range(len(priors)), ['Beta(' + str(i).strip('[').strip(']') + ')' for i in priors], rotation=45)
+    plt.xticks(range(len(priors)), [np.round(i[0]/(i[0]+i[1]), 2) for i in priors], rotation=45)
+    plt.xlabel(r'$\mathbb{E}_b[p(open)]$', fontsize=14)
 
-    tn, pn = ttest_ind( num_matrix[:, 0], num_matrix[:, 1])
-    plt.title('t = %.2f, p=%.2e'%(tn, pn))
-
-    plt.xticks([1, 2], ['seqs', 'noseqs'], fontsize=12)
-    plt.xlim(0, 3)
-    plt.ylim(-1, np.max(num_matrix[:] + 8))
-    plt.axhline(0, c='k')
-    plt.ylabel('Number of replayed actions', fontsize=12)
-    # plt.savefig(os.path.join(path, 'supp4.png'))
-    # plt.savefig(os.path.join(path, 'supp4.svg'), transparent=True)
+    plt.savefig(os.path.join(save_path, 'supp6.png'))
+    plt.savefig(os.path.join(save_path, 'supp6.svg'), transparent=True)
     plt.close()
-
-    with open(os.path.join(path, 'stats.txt'), 'w') as f:
-        f.write('Proportion: t=%.2f, p=%.2e\n'%(tp, pp))
-        f.write('Number:     t=%.2f, p=%.2e\n'%(tn, pn))
-
-    # plt.bar([0.5], np.nanmean(big_matrix[:, 1]))
-    # plt.scatter([0.5]*big_matrix.shape[0], big_matrix[:, 1])
-
-    # plt.plot(big_matrix[:, 0], big_matrix[:, 1], c='k')
 
     return None
 
