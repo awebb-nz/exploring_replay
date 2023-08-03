@@ -1,0 +1,12 @@
+arms:  ['unknown', 'unknown']
+root_belief:  {0: array([13, 12]), 1: array([2, 2])}
+init_qvals:  0.6
+rand_init:  False
+gamma:  0.9
+xi:  0.0001
+beta:  2
+policy_type:  softmax
+sequences:  False
+max_seq_len:  None
+constrain_seqs:  True
+horizon:  3
