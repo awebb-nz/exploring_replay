@@ -1,6 +1,6 @@
 import numpy as np
 import os, shutil, pickle, sys
-sys.path.append('/home/georgy/Documents/Dayan_lab/PhD/bandits/paper/code/bandit')
+sys.path.append(os.path.abspath(os.path.join(sys.path[0], '../../code/bandit')))
 from belief_tree import Tree
 from tex_tree import generate_big_tex_tree
 
@@ -29,19 +29,19 @@ p = {
     'sequences':      False,
     'max_seq_len':    None,
     'constrain_seqs': True,
-    'horizon':        2
+    'horizon':        3
 }
 
 # save path
-save_folder = '/home/georgy/Documents/Dayan_lab/PhD/bandits/paper/figures/fig1_new/data/a'
+save_path = os.path.abspath(os.path.join(sys.path[0], '../../figures/fig2/data/a_c'))
 
 # --- Main function for replay ---
-def main(save_path , params, plot_tree=False):
+def main(save_folder , params, plot_tree=False):
     
-    if os.path.exists(save_path):
-        shutil.rmtree(save_path)
+    if os.path.exists(save_folder):
+        shutil.rmtree(save_folder)
     else: pass
-    os.makedirs(save_path)
+    os.makedirs(save_folder)
     
     tree   = Tree(**params)
     qval_history, need_history, gain_history, replay_history = tree.replay_updates()
@@ -49,24 +49,24 @@ def main(save_path , params, plot_tree=False):
     print('Number of replays: %u'%(len(replay_history)-1))
     print('Policy value: %.2f'%tree.evaluate_policy(tree.qval_tree))
 
-    os.mkdir(os.path.join(save_path, 'replay_data'))
-    np.save(os.path.join(save_path, 'replay_data', 'qval_history.npy'), qval_history)
-    np.save(os.path.join(save_path, 'replay_data', 'need_history.npy'), need_history)
-    np.save(os.path.join(save_path, 'replay_data', 'gain_history.npy'), gain_history)
-    np.save(os.path.join(save_path, 'replay_data', 'replay_history.npy'), replay_history)
+    os.mkdir(os.path.join(save_folder, 'replay_data'))
+    np.save(os.path.join(save_folder, 'replay_data', 'qval_history.npy'), qval_history)
+    np.save(os.path.join(save_folder, 'replay_data', 'need_history.npy'), need_history)
+    np.save(os.path.join(save_folder, 'replay_data', 'gain_history.npy'), gain_history)
+    np.save(os.path.join(save_folder, 'replay_data', 'replay_history.npy'), replay_history)
 
     if plot_tree:
-        os.mkdir(os.path.join(save_path, 'tree'))
+        os.mkdir(os.path.join(save_folder, 'tree'))
         for idx in range(len(replay_history)):
             these_replays  = replay_history[:idx+1]
-            this_save_path = os.path.join(save_path, 'tree', 'tex_tree_%u.tex'%idx)
+            this_save_path = os.path.join(save_folder, 'tree', 'tex_tree_%u.tex'%idx)
             generate_big_tex_tree(tree, these_replays, qval_history[idx], need_history[idx], this_save_path, tree_height=3)
 
-    with open(os.path.join(save_path, 'tree.pkl'), 'wb') as f:
+    with open(os.path.join(save_folder, 'tree.pkl'), 'wb') as f:
         pickle.dump(tree, f, pickle.HIGHEST_PROTOCOL)
     
     # save params
-    with open(os.path.join(save_path, 'params.txt'), 'w') as f:
+    with open(os.path.join(save_folder, 'params.txt'), 'w') as f:
         for k, v in p.items():
             f.write(k)
             f.write(':  ')
@@ -76,6 +76,4 @@ def main(save_path , params, plot_tree=False):
     return None
 
 if __name__ == '__main__':
-    main(save_folder, p, plot_tree=True)
-
-    # analyse(save_folder)
+    main(save_path, p, plot_tree=True)

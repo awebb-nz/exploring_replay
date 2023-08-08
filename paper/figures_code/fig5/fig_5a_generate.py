@@ -1,14 +1,14 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import sys, os, shutil
-sys.path.append('/home/georgy/Documents/Dayan_lab/PhD/bandits/paper/code/maze')
+sys.path.append(os.path.abspath(os.path.join(sys.path[0], '../../code/maze')))
 from agent_replay import AgentPOMDP
 from utils import load_env
 
 np.random.seed(2)
 
 env            = 'tolman123'
-env_file_path  = '/home/georgy/Documents/Dayan_lab/PhD/bandits/paper/code/mazes/' + env + '.txt'
+env_file_path  = os.path.abspath(os.path.join(sys.path[0], '../../code/mazes/' + env + '.txt'))
 env_config     = load_env(env_file_path)
 
 # --- Specify agent parameters ---
@@ -35,7 +35,7 @@ env_config['barriers'] = [1, 1, 0]
 
 agent = AgentPOMDP(*[pag_config, ag_config, env_config])
 
-save_path = '/home/georgy/Documents/Dayan_lab/PhD/bandits/paper/figures/fig4'
+save_path = '/home/georgy/Documents/Dayan_lab/PhD/bandits/paper/figures/fig5'
 
 def main():
 

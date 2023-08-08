@@ -1,10 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import sys, os, pickle, shutil
-sys.path.append('/home/georgy/Documents/Dayan_lab/PhD/bandits/paper/code/maze')
+sys.path.append(os.path.abspath(os.path.join(sys.path[0], '../../code/maze')))
 from utils import plot_maze, plot_need
 
-data_path   = '/home/georgy/Documents/Dayan_lab/PhD/bandits/paper/figures/fig3_new'
+data_path   = os.path.abspath(os.path.join(sys.path[0], '../../figures/fig3'))
 
 with open(os.path.join(data_path, 'data', 'no_forgetting', '0', 'ag.pkl'), "rb") as f:
     agent = pickle.load(f)

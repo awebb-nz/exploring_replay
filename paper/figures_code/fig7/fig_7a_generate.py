@@ -1,13 +1,13 @@
 import numpy as np
 import sys, os, pickle
-sys.path.append('/home/georgy/Documents/Dayan_lab/PhD/bandits/paper/code/maze')
+sys.path.append(os.path.abspath(os.path.join(sys.path[0], '../../code/maze')))
 from agent_replay import AgentPOMDP
 from utils import load_env
 
 np.random.seed(2)
 
 env            = 't'
-env_file_path  = '/home/georgy/Documents/Dayan_lab/PhD/bandits/paper/code/mazes/' + env + '.txt'
+env_file_path  = os.path.abspath(os.path.join(sys.path[0], '../../code/mazes/' + env + '.txt'))
 env_config     = load_env(env_file_path)
 
 # --- Specify agent parameters ---
@@ -30,9 +30,9 @@ ag_config = {
     'env_name'       : env,      # gridworld name
 }
 
-save_path = '/home/georgy/Documents/Dayan_lab/PhD/bandits/paper/figures/figure4/t_maze'
+save_path = os.path.abspath(os.path.join(sys.path[0], '../../figures/fig7/t_maze'))
 
-def main():
+def main(save_folder):
 
     env_config['barriers']  = [1]
     env_config['rew_value'] = [0, 0]
@@ -40,7 +40,7 @@ def main():
     agent = AgentPOMDP(*[pag_config, ag_config, env_config])
     Q_MB  = agent.Q.copy()
 
-    np.save(os.path.join(save_path, 'q_init.npy'), Q_MB)
+    np.save(os.path.join(save_folder, 'q_init.npy'), Q_MB)
 
     a, b        = 7, 2
     agent.state = 7 # start state
@@ -48,8 +48,8 @@ def main():
 
     Q_history, gain_history, need_history = agent._replay()
 
-    np.save(os.path.join(save_path, 'q_explore_replay_before.npy'), agent.Q)
-    np.save(os.path.join(save_path, 'q_explore_replay_diff_before.npy'), agent.Q-Q_MB)
+    np.save(os.path.join(save_folder, 'q_explore_replay_before.npy'), agent.Q)
+    np.save(os.path.join(save_folder, 'q_explore_replay_diff_before.npy'), agent.Q-Q_MB)
 
     agent.rew_value      = [0, 1]
     agent._init_reward()
@@ -66,13 +66,13 @@ def main():
                 Q_vals = val[1]
                 Q[state, :] = Q_vals[state, :]
 
-    np.save(os.path.join(save_path, 'q_explore_replay_after.npy'), Q)
-    np.save(os.path.join(save_path, 'q_explore_replay_diff_after.npy'), Q-Q_MB)
+    np.save(os.path.join(save_folder, 'q_explore_replay_after.npy'), Q)
+    np.save(os.path.join(save_folder, 'q_explore_replay_diff_after.npy'), Q-Q_MB)
 
-    with open(os.path.join(save_path, 'ag.pkl'), 'wb') as f:
+    with open(os.path.join(save_folder, 'ag.pkl'), 'wb') as f:
         pickle.dump(agent, f, pickle.HIGHEST_PROTOCOL)
 
     return None
 
 if __name__ == '__main__':
-    main()
+    main(save_path)

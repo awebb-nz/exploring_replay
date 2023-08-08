@@ -1,24 +1,24 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import sys, os, pickle
-sys.path.append('/home/georgy/Documents/Dayan_lab/PhD/bandits/paper/code/maze')
+sys.path.append(os.path.abspath(os.path.join(sys.path[0], '../../code/maze')))
 from utils import plot_maze
 
-load_path = '/home/georgy/Documents/Dayan_lab/PhD/bandits/paper/figures/fig4/t_maze'
+save_path = os.path.abspath(os.path.join(sys.path[0], '../../figures/fig7/t_maze'))
 
-def main():
+def main(save_folder):
 
-    with open(os.path.join(load_path, 'ag.pkl'), 'rb') as f:
+    with open(os.path.join(save_folder, 'ag.pkl'), 'rb') as f:
         agent = pickle.load(f)
 
     fig  = plt.figure(figsize=(10, 4), constrained_layout=True, dpi=100)
 
     ax1  = fig.add_axes([0.02, 0.55, 0.45, 0.35])
-    q_mb = np.load(os.path.join(load_path, 'q_mb.npy'))
+    q_mb = np.load(os.path.join(save_folder, 'q_mb.npy'))
     plot_maze(ax1, q_mb, agent, colorbar=True, colormap='Purples', move=[7])
     ax1.set_title(r'Initial behavioural policy', fontsize=16)
 
-    q_before = np.load(os.path.join(load_path, 'q_explore_replay_diff_before.npy'))
+    q_before = np.load(os.path.join(save_folder, 'q_explore_replay_diff_before.npy'))
 
     left  = [[1, 2], [2, 2]]
     right = [[2, 3], [3, 3]]
@@ -49,7 +49,7 @@ def main():
     ax3.set_ylabel('Proportion of preplays')
     ax3.set_title('Real data', fontsize=16)
 
-    q_before = np.load(os.path.join(load_path, 'q_explore_replay_diff_after.npy'))
+    q_before = np.load(os.path.join(save_folder, 'q_explore_replay_diff_after.npy'))
 
     left  = [[1, 2], [2, 2]]
     right = [[2, 3], [3, 3]]
@@ -82,11 +82,11 @@ def main():
     ax3.set_ylim(0, 0.15)
     ax3.set_ylabel('Proportion of preplays')
 
-    plt.savefig(os.path.join(load_path, 'fig4.png'))
-    plt.savefig(os.path.join(load_path, 'fig4.svg'), transparent=True)
+    plt.savefig(os.path.join(save_folder, 'fig7.png'))
+    plt.savefig(os.path.join(save_folder, 'fig7.svg'), transparent=True)
     plt.close()
 
     return None
 
 if __name__ == '__main__':
-    main()
+    main(save_path)

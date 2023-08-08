@@ -1,13 +1,13 @@
 import numpy as np
 import sys, os, pickle
-sys.path.append('/home/georgy/Documents/Dayan_lab/PhD/bandits/paper/code/maze')
+sys.path.append(os.path.abspath(os.path.join(sys.path[0], '../../code/maze')))
 from agent_replay import AgentPOMDP
 from utils import load_env
 
 np.random.seed(2)
 
 env            = 'tolman1234'
-env_file_path  = '/home/georgy/Documents/Dayan_lab/PhD/bandits/paper/code/mazes/' + env + '.txt'
+env_file_path  = os.path.abspath(os.path.join(sys.path[0], '../../code/mazes/' + env + '.txt'))
 env_config     = load_env(env_file_path)
 
 # --- Specify agent parameters ---
@@ -30,16 +30,16 @@ ag_config = {
     'env_name'       : env,      # gridworld name
 }
 
-save_path = '/home/georgy/Documents/Dayan_lab/PhD/bandits/paper/figures/fig4'
+save_path = os.path.abspath(os.path.join(sys.path[0], '../../figures/fig7'))
 
-def main():
+def main(save_folder):
 
     env_config['barriers'] = [1, 1, 1, 1]
 
     agent = AgentPOMDP(*[pag_config, ag_config, env_config])
     Q_MB  = agent._solve_mb(1e-5)
 
-    np.save(os.path.join(save_path, 'q_mb.npy'), Q_MB)
+    np.save(os.path.join(save_folder, 'q_mb.npy'), Q_MB)
 
     a1, b1      = 7, 2
     a2, b2      = 7, 2
@@ -68,14 +68,14 @@ def main():
                 q = v[1]
                 Q2[s, :] = q[s, :].copy()
 
-    np.save(os.path.join(save_path, 'q_explore_replay1.npy'), Q1)
-    np.save(os.path.join(save_path, 'q_explore_replay2.npy'), Q2)
-    np.save(os.path.join(save_path, 'q_explore_replay_diff.npy'), agent.Q-Q_MB)
+    np.save(os.path.join(save_folder, 'q_explore_replay1.npy'), Q1)
+    np.save(os.path.join(save_folder, 'q_explore_replay2.npy'), Q2)
+    np.save(os.path.join(save_folder, 'q_explore_replay_diff.npy'), agent.Q-Q_MB)
 
-    with open(os.path.join(save_path, 'ag.pkl'), 'wb') as f:
+    with open(os.path.join(save_folder, 'ag.pkl'), 'wb') as f:
         pickle.dump(agent, f, pickle.HIGHEST_PROTOCOL)
 
     return None
 
 if __name__ == '__main__':
-    main()
+    main(save_path)

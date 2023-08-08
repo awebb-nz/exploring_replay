@@ -1,7 +1,7 @@
 import numpy as np
-import sys, os, shutil, pickle
+import sys, os, shutil
 from copy import deepcopy
-sys.path.append('/home/georgy/Documents/Dayan_lab/PhD/bandits/paper/code/bandit')
+sys.path.append(os.path.abspath(os.path.join(sys.path[0], '../../code/bandit')))
 from belief_tree import Tree
 import matplotlib.pyplot as plt
 
@@ -36,7 +36,7 @@ betas     = [1, 2, 4, 'greedy']
 horizons  = [3, 4, 5]
 
 # save path
-save_path = '/home/georgy/Documents/Dayan_lab/PhD/bandits/paper/figures/fig2_new/data/d_f'
+save_path = os.path.abspath(os.path.join(sys.path[0], '../../figures/fig2/data/d_f'))
 
 def md_value():
 
@@ -61,12 +61,12 @@ def md_value():
     return out
 
 # --- Main function for replay ---
-def main(save_path):
+def main(save_folder):
     
-    if os.path.exists(save_path):
-        shutil.rmtree(save_path)
+    if os.path.exists(save_folder):
+        shutil.rmtree(save_folder)
     else: pass
-    os.makedirs(save_path)
+    os.makedirs(save_folder)
 
     md_values = md_value()
 
@@ -167,9 +167,9 @@ def main(save_path):
                 axp.set_xticks([])
                 
         file_name = 'arm1%u_alpha0%u_beta0%u_hor%u'%(M[1], alpha_0, beta_0, horizon)
-        np.save(os.path.join(save_path, file_name + '.npy'), R)
-        plt.savefig(os.path.join(save_path, file_name + '.svg'), transparent=True)
-        plt.savefig(os.path.join(save_path, file_name + '.png'))
+        np.save(os.path.join(save_folder, file_name + '.npy'), R)
+        plt.savefig(os.path.join(save_folder, file_name + '.svg'), transparent=True)
+        plt.savefig(os.path.join(save_folder, file_name + '.png'))
 
         plt.close()
 

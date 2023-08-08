@@ -1,20 +1,18 @@
 import numpy as np
-import matplotlib.pyplot as plt
 import sys, os, pickle
-sys.path.append('/home/georgy/Documents/Dayan_lab/PhD/bandits/paper/code/maze')
-from utils import plot_maze, plot_need
+sys.path.append(os.path.abspath(os.path.join(sys.path[0], '../../code/maze')))
 
-data_path   = '/home/georgy/Documents/Dayan_lab/PhD/bandits/paper/figures/fig3_new/data/'
-save_path   = '/home/georgy/Documents/Dayan_lab/PhD/bandits/paper/figures/fig3_new'
+data_path   = os.path.abspath(os.path.join(sys.path[0], '../../figures/fig3/data/'))
+save_path   = os.path.abspath(os.path.join(sys.path[0], '../../figures/fig3'))
 
 num_moves   = 2000
 
-def main():
+def main(data_folder, save_folder):
         
-    with open(os.path.join(data_path, 'yes_forgetting', '0', 'ag.pkl'), "rb") as f:
+    with open(os.path.join(data_folder, 'yes_forgetting', '0', 'ag.pkl'), "rb") as f:
         agent = pickle.load(f)
 
-    num_seeds = len([i for i in os.listdir(os.path.join(data_path, 'yes_forgetting')) if os.path.isdir(os.path.join(data_path, 'yes_forgetting', i))])
+    num_seeds = len([i for i in os.listdir(os.path.join(data_folder, 'yes_forgetting')) if os.path.isdir(os.path.join(data_folder, 'yes_forgetting', i))])
 
     S  = [np.zeros((num_seeds, agent.num_states)), np.zeros((num_seeds, agent.num_states))]
     G  = [np.full((num_seeds, num_moves, agent.num_states, agent.num_actions), np.nan), np.full((num_seeds, num_moves, agent.num_states, agent.num_actions), np.nan)]
@@ -25,7 +23,7 @@ def main():
         for seed in range(num_seeds):
             for file in range(bounds[0], bounds[1]):
                     
-                data         = np.load(os.path.join(data_path, 'yes_forgetting', str(seed), 'Q_%u.npz'%file), allow_pickle=True)
+                data         = np.load(os.path.join(data_folder, 'yes_forgetting', str(seed), 'Q_%u.npz'%file), allow_pickle=True)
                 move         = data['move']
                 s            = int(move[0])
                 S[idx][seed, s] += 1
@@ -33,7 +31,6 @@ def main():
                 if 'gain_history' in data.files:
                     gain_history = data['gain_history']
                     need_history = data['need_history']
-                    # tmp = {s:{a:[] for a in range(agent.num_actions)} for s in range(agent.num_states)}
                     for gidx in range(len(gain_history)):
                         for st in np.delete(range(agent.num_states), agent.nan_states):
                             need_value     = need_history[gidx][st]
@@ -41,23 +38,19 @@ def main():
                                 N[idx][seed, file%num_moves, st] = need_value
                             for at in range(agent.num_actions):
                                 gain_value = gain_history[gidx][st, at]
-                                # tmp[st][at] += [gain_value]
                                 if ~np.isnan(gain_value):
                                     if gain_value == np.nanmax([G[idx][seed, file%num_moves, st, at], gain_value]):
                                         G[idx][seed, file%num_moves, st, at] = gain_value
-                    # for st in np.delete(range(agent.num_states), agent.nan_states):
-                    #     for at in range(agent.num_actions):
-                    #         G[idx][seed, file%num_moves, st, at] = np.nanmean(tmp[st][at])
 
         G[idx]  = np.nanmean(G[idx], axis=(0, 1))
         N[idx]  = np.nanmean(N[idx], axis=(0, 1))
         S[idx]  = np.mean(S[idx],    axis=0)
 
-    np.save(os.path.join(save_path, 'gain.npy'), G)
-    np.save(os.path.join(save_path, 'need.npy'), N)
-    np.save(os.path.join(save_path, 'states.npy'), S)
+    np.save(os.path.join(save_folder, 'gain.npy'), G)
+    np.save(os.path.join(save_folder, 'need.npy'), N)
+    np.save(os.path.join(save_folder, 'states.npy'), S)
 
     return None
 
 if __name__ == '__main__':
-    main()
+    main(data_path, save_path)

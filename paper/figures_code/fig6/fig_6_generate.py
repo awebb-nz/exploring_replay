@@ -1,13 +1,13 @@
 import numpy as np
 import sys, os, pickle
-sys.path.append('/home/georgy/Documents/Dayan_lab/PhD/bandits/paper/code/maze')
+sys.path.append(os.path.abspath(os.path.join(sys.path[0], '../../code/maze')))
 from agent_replay import AgentPOMDP
 from utils import load_env
 
 np.random.seed(2)
 
 env            = 'tolman123'
-env_file_path  = '/home/georgy/Documents/Dayan_lab/PhD/bandits/paper/code/mazes/' + env + '.txt'
+env_file_path  = os.path.abspath(os.path.join(sys.path[0], '../../code/mazes/' + env + '.txt'))
 env_config     = load_env(env_file_path)
 
 # --- Specify agent parameters ---
@@ -30,16 +30,16 @@ ag_config = {
     'env_name'       : env,       # gridworld name
 }
 
-save_path = '/home/georgy/Documents/Dayan_lab/PhD/bandits/paper/figures/fig3'
+save_path = os.path.abspath(os.path.join(sys.path[0], '../../figures/fig6'))
 
-def main():
+def main(save_folder):
 
     env_config['barriers'] = [1, 1, 0]
 
     agent = AgentPOMDP(*[pag_config, ag_config, env_config])
     Q_MB  = agent._solve_mb(1e-5)
 
-    np.save(os.path.join(save_path, 'q_mb.npy'), Q_MB)
+    np.save(os.path.join(save_folder, 'q_mb.npy'), Q_MB)
 
     a, b        = 7, 2
     agent.state = 38          # start state
@@ -47,9 +47,9 @@ def main():
     agent.Q     = Q_MB.copy() # set MF Q values
     Q_history, gain_history, need_history = agent._replay()
 
-    np.save(os.path.join(save_path, 'q_explore_replay.npy'), agent.Q)
+    np.save(os.path.join(save_folder, 'q_explore_replay.npy'), agent.Q)
 
-    np.save(os.path.join(save_path, 'q_explore_replay_diff.npy'), agent.Q-Q_MB)
+    np.save(os.path.join(save_folder, 'q_explore_replay_diff.npy'), agent.Q-Q_MB)
 
     Q              = agent.Q.copy()
     Q_before       = Q.copy()
@@ -57,9 +57,9 @@ def main():
     Q_after[14, 0] = 0.0
     agent.Q        = Q_after.copy()
 
-    np.save(os.path.join(save_path, 'q_explore_online.npy'), agent.Q)
+    np.save(os.path.join(save_folder, 'q_explore_online.npy'), agent.Q)
 
-    np.save(os.path.join(save_path, 'q_explore_online_diff.npy'), agent.Q-Q_before)
+    np.save(os.path.join(save_folder, 'q_explore_online_diff.npy'), agent.Q-Q_before)
 
     Q_before    = agent.Q.copy()
 
@@ -67,17 +67,17 @@ def main():
     agent.M     = np.array([[0, 1], [0, 1], [1, 0]])
     Q_history, gain_history, need_history = agent._replay()
     
-    np.save(os.path.join(save_path, 'gain_history.npy'), gain_history)
-    np.save(os.path.join(save_path, 'need_history.npy'), need_history)
+    np.save(os.path.join(save_folder, 'gain_history.npy'), gain_history)
+    np.save(os.path.join(save_folder, 'need_history.npy'), need_history)
 
-    np.save(os.path.join(save_path, 'q_explore_online_replay.npy'), agent.Q)
+    np.save(os.path.join(save_folder, 'q_explore_online_replay.npy'), agent.Q)
 
-    np.save(os.path.join(save_path, 'q_explore_online_replay_diff.npy'), agent.Q-Q_before)
+    np.save(os.path.join(save_folder, 'q_explore_online_replay_diff.npy'), agent.Q-Q_before)
 
-    with open(os.path.join(save_path, 'ag.pkl'), 'wb') as f:
+    with open(os.path.join(save_folder, 'ag.pkl'), 'wb') as f:
         pickle.dump(agent, f, pickle.HIGHEST_PROTOCOL)
 
     return None
 
 if __name__ == '__main__':
-    main()
+    main(save_path)
