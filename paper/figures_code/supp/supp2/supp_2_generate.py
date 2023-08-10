@@ -1,6 +1,6 @@
 import numpy as np
 import sys, os, shutil, pickle
-sys.path.append('/home/georgy/Documents/Dayan_lab/PhD/bandits/paper/code/bandit')
+sys.path.append(os.path.abspath(os.path.join(sys.path[0], '../../code/bandit')))
 from belief_tree import Tree
 
 # --- Specify parameters ---
@@ -30,10 +30,10 @@ p = {
 }
 
 # save path
-path = '/home/georgy/Documents/Dayan_lab/PhD/bandits/paper/figures/supp/supp2/data'
+save_path = os.path.abspath(os.path.join(sys.path[0], '../../figures/supp/supp2/data'))
 
 # --- Main function for replay ---
-def main():
+def main(save_folder):
     
     num_trees = 200
 
@@ -45,11 +45,11 @@ def main():
 
         for tidx in range(num_trees):
 
-            save_path = os.path.join(path, str(tidx), str(seq), 'replay_data')
+            this_save_path = os.path.join(save_folder, str(tidx), str(seq), 'replay_data')
 
-            if os.path.isdir(save_path):
-                shutil.rmtree(save_path)
-            os.makedirs(save_path)
+            if os.path.isdir(this_save_path):
+                shutil.rmtree(this_save_path)
+            os.makedirs(this_save_path)
 
             p['sequences'] = seq
             # initialise the agent
@@ -58,13 +58,13 @@ def main():
             # do replay
             q_history, n_history, _, replays = tree.replay_updates()
 
-            np.save(os.path.join(save_path, 'need_history.npy'), n_history)
-            np.save(os.path.join(save_path, 'qval_history.npy'), q_history)
-            np.save(os.path.join(save_path, 'replay_history.npy'), replays)
+            np.save(os.path.join(this_save_path, 'need_history.npy'), n_history)
+            np.save(os.path.join(this_save_path, 'qval_history.npy'), q_history)
+            np.save(os.path.join(this_save_path, 'replay_history.npy'), replays)
 
             print('Done with tree %u/%u'%(tidx+1, num_trees))
 
     return None
 
 if __name__ == '__main__':
-    main()
+    main(save_path)

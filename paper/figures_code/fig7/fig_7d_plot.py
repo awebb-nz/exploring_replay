@@ -14,7 +14,7 @@ def main(save_folder):
     fig  = plt.figure(figsize=(10, 4), constrained_layout=True, dpi=100)
 
     ax1  = fig.add_axes([0.02, 0.55, 0.45, 0.35])
-    q_mb = np.load(os.path.join(save_folder, 'q_mb.npy'))
+    q_mb = np.load(os.path.join(save_folder, 'q_init.npy'))
     plot_maze(ax1, q_mb, agent, colorbar=True, colormap='Purples', move=[7])
     ax1.set_title(r'Initial behavioural policy', fontsize=16)
 
@@ -82,8 +82,8 @@ def main(save_folder):
     ax3.set_ylim(0, 0.15)
     ax3.set_ylabel('Proportion of preplays')
 
-    plt.savefig(os.path.join(save_folder, 'fig7.png'))
-    plt.savefig(os.path.join(save_folder, 'fig7.svg'), transparent=True)
+    plt.savefig(os.path.join(save_folder, 'fig_7_tmaze.png'))
+    plt.savefig(os.path.join(save_folder, 'fig_7_tmaze.svg'), transparent=True)
     plt.close()
 
     return None

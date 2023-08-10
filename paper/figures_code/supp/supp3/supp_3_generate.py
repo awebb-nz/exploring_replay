@@ -1,13 +1,13 @@
 import numpy as np
 import sys, os, pickle, shutil
-sys.path.append('/home/georgy/Documents/Dayan_lab/PhD/bandits/paper/code/maze')
+sys.path.append(os.path.abspath(os.path.join(sys.path[0], '../../code/maze')))
 from agent_replay import AgentPOMDP
 from utils import load_env
 
 np.random.seed(2)
 
-env            = 'tolman123'
-env_file_path  = '/home/georgy/Documents/Dayan_lab/PhD/bandits/paper/code/mazes/' + env + '.txt'
+env            = 'tolman123_nocheat'
+env_file_path  = os.path.abspath(os.path.join(sys.path[0], '../../code/mazes/' + env + '.txt'))
 env_config     = load_env(env_file_path)
 
 # --- Specify agent parameters ---
@@ -20,20 +20,19 @@ pag_config = {
 ag_config = {
     'alpha_r'        : 1,         # offline learning rate
     'horizon'        : 10,        # planning horizon (minus 1)
-    'xi'             : 0.0001,    # EVB replay threshold
+    'xi'             : 0.000001,    # EVB replay threshold
     'num_sims'       : 2000,      # number of MC simulations for need
     'sequences'      : False,
-    'max_seq_len'    : 8,
     'env_name'       : env,       # gridworld name
 }
 
-save_path = '/home/georgy/Documents/Dayan_lab/PhD/bandits/paper/figures/supp/supp3/data'
+save_path = os.path.abspath(os.path.join(sys.path[0], '../../figures/supp/supp3/data'))
 
-def main():
+def main(save_folder):
 
-    if os.path.isdir(save_path):
-        shutil.rmtree(save_path)
-    os.makedirs(save_path)
+    if os.path.isdir(save_folder):
+        shutil.rmtree(save_folder)
+    os.makedirs(save_folder)
 
     betas  = [1, 2, 4, 'greedy']
     priors = [[2, 2], [6, 2], [10, 2], [14, 2], [18, 2], [22, 2]]
@@ -45,13 +44,13 @@ def main():
 
         for pidx, prior in enumerate(priors):
 
-            this_save_path = os.path.join(save_path, str(bidx), str(pidx))
-            os.makedirs(this_save_path)
+            this_save_folder = os.path.join(save_folder, str(bidx), str(pidx))
+            os.makedirs(this_save_folder)
 
             agent = AgentPOMDP(*[pag_config, ag_config, env_config])
             Q_MB  = agent._solve_mb(1e-5)
 
-            np.save(os.path.join(this_save_path, 'q_mb.npy'), Q_MB)
+            np.save(os.path.join(this_save_folder, 'q_mb.npy'), Q_MB)
 
             a, b        = prior[0], prior[1]
             agent.state = 38          # start state
@@ -59,15 +58,15 @@ def main():
             agent.Q     = Q_MB.copy() # set MF Q values
             Q_history, gain_history, need_history = agent._replay()
 
-            np.save(os.path.join(this_save_path, 'q_explore_replay.npy'), agent.Q)
-            np.save(os.path.join(this_save_path, 'q_explore_replay_diff.npy'), agent.Q-Q_MB)
+            np.save(os.path.join(this_save_folder, 'q_explore_replay.npy'), agent.Q)
+            np.save(os.path.join(this_save_folder, 'q_explore_replay_diff.npy'), agent.Q-Q_MB)
 
             print('Done with prior %u'%pidx)
 
-            with open(os.path.join(this_save_path, 'ag.pkl'), 'wb') as f:
+            with open(os.path.join(this_save_folder, 'ag.pkl'), 'wb') as f:
                 pickle.dump(agent, f, pickle.HIGHEST_PROTOCOL)
 
     return None
 
 if __name__ == '__main__':
-    main()
+    main(save_path)

@@ -1,19 +1,19 @@
 import numpy as np
 import sys, os
-sys.path.append('/home/georgy/Documents/Dayan_lab/PhD/bandits/paper/code/bandit')
+sys.path.append(os.path.abspath(os.path.join(sys.path[0], '../../code/bandit')))
 import matplotlib.pyplot as plt
 from scipy.stats import ttest_ind, ttest_1samp
 
 # --- Specify parameters ---
 
 # save path
-path = '/home/georgy/Documents/Dayan_lab/PhD/bandits/paper/figures/supp/supp2/'
+save_path = os.path.abspath(os.path.join(sys.path[0], '../../figures/supp/supp2/'))
 
 num_trees = 100
 seqs      = [True, False]
 
 # --- Main function for replay ---
-def main():
+def main(save_folder):
 
     prop_matrix = np.zeros((num_trees, 2))
     num_matrix  = np.zeros((num_trees, 2))
@@ -22,7 +22,7 @@ def main():
         
         for sidx, seq in enumerate(seqs):
 
-            data = np.load(os.path.join(path, 'data', str(tidx), str(seq), 'replay_data', 'replay_history.npy'), allow_pickle=True)
+            data = np.load(os.path.join(save_folder, 'data', str(tidx), str(seq), 'replay_data', 'replay_history.npy'), allow_pickle=True)
                 # proportion of single-step and sequence replays
 
             num_fwd_prop = 0
@@ -86,11 +86,11 @@ def main():
     plt.ylim(0, np.max(num_matrix[:] + 8))
     plt.axhline(0, c='k')
     plt.ylabel('Number of replayed actions', fontsize=12)
-    plt.savefig(os.path.join(path, 'supp2.png'))
-    plt.savefig(os.path.join(path, 'supp2.svg'), transparent=True)
+    plt.savefig(os.path.join(save_folder, 'supp2.png'))
+    plt.savefig(os.path.join(save_folder, 'supp2.svg'), transparent=True)
     plt.close()
 
-    with open(os.path.join(path, 'stats.txt'), 'w') as f:
+    with open(os.path.join(save_folder, 'stats.txt'), 'w') as f:
         f.write('Proportion: t=%.2f, p=%.2e\n'%(tp, pp))
         f.write('Number:     t=%.2f, p=%.2e\n'%(tn, pn))
 
@@ -102,4 +102,4 @@ def main():
     return None
 
 if __name__ == '__main__':
-    main()
+    main(save_path)

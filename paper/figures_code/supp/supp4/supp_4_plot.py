@@ -1,11 +1,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import sys, os, pickle
-sys.path.append('/home/georgy/Documents/Dayan_lab/PhD/bandits/paper/code/maze')
+sys.path.append(os.path.abspath(os.path.join(sys.path[0], '../../code/maze')))
 from utils import plot_maze
 
-load_path = '/home/georgy/Documents/Dayan_lab/PhD/bandits/paper/figures/supp/supp3/data/'
-save_path = '/home/georgy/Documents/Dayan_lab/PhD/bandits/paper/figures/supp/supp4'
+load_path = os.path.abspath(os.path.join(sys.path[0], '../../figures/supp/supp3/data/'))
+save_path = os.path.abspath(os.path.join(sys.path[0], '../../figures/supp/supp4'))
 
 def main():
 
@@ -43,8 +43,8 @@ def main():
     plt.xticks(range(len(priors)), [np.round(i[0]/(i[0]+i[1]), 2) for i in priors], rotation=45)
     plt.xlabel(r'$\mathbb{E}_b[p(open)]$', fontsize=14)
 
-    plt.savefig(os.path.join(save_path, 'supp6.png'))
-    plt.savefig(os.path.join(save_path, 'supp6.svg'), transparent=True)
+    plt.savefig(os.path.join(save_path, 'supp_4.png'))
+    plt.savefig(os.path.join(save_path, 'supp_4.svg'), transparent=True)
     plt.close()
 
     return None

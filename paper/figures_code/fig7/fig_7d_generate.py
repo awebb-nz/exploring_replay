@@ -13,9 +13,7 @@ env_config     = load_env(env_file_path)
 # --- Specify agent parameters ---
 pag_config = {
     'alpha'          : 1,
-    'beta'           : 2, 
-    'need_beta'      : 2,
-    'gain_beta'      : 60,          
+    'beta'           : 2,          
     'gamma'          : 0.9,
     'policy_type'    : 'softmax'
 }
@@ -25,8 +23,8 @@ ag_config = {
     'horizon'        : 4,        # planning horizon (minus 1)
     'xi'             : 0.2,      # EVB replay threshold
     'num_sims'       : 2000,     # number of MC simulations for need
-    'sequences'      : False,
-    'max_seq_len'    : 8,
+    'sequences'      : True,
+    'max_seq_len'    : 2,
     'env_name'       : env,      # gridworld name
 }
 

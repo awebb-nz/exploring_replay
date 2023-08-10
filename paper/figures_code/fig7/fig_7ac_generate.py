@@ -13,17 +13,14 @@ env_config     = load_env(env_file_path)
 # --- Specify agent parameters ---
 pag_config = {
     'alpha'          : 1,
-    'beta'           : 2, 
-    'need_beta'      : 2,
-    'gain_beta'      : 60,          
+    'beta'           : 2,      
     'gamma'          : 0.9,
-    'policy_type'    : 'softmax'
 }
 
 ag_config = {
     'alpha_r'        : 1,        # offline learning rate
     'horizon'        : 6,       # planning horizon (minus 1)
-    'xi'             : 0.001,    # EVB replay threshold
+    'xi'             : 0.000001,    # EVB replay threshold
     'num_sims'       : 2000,     # number of MC simulations for need
     'sequences'      : True,
     'max_seq_len'    : 4,
@@ -44,7 +41,7 @@ def main(save_folder):
     a1, b1      = 7, 2
     a2, b2      = 7, 2
     agent.state = 38          # start state
-    agent.M     = np.array([[0, 1], [a1, b1], [0, 1], [a2, b2]])
+    agent.M     = np.array([[a1, b1], [a2, b2]])
     agent.Q     = Q_MB.copy() # set MF Q values
     Q_history, gain_history, need_history = agent._replay()
 
@@ -59,7 +56,7 @@ def main(save_folder):
                 Q1[s, :] = q[s, :].copy()
 
     new_M = agent.M.copy()
-    new_M[3, :] = [1, 0]
+    new_M[1, :] = [1, 0]
     Q2 = Q_MB.copy()
     for hi in range(agent.horizon):
         for k, v in belief_tree[hi].items():

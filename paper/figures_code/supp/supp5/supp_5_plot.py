@@ -1,11 +1,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import sys, os, pickle
-sys.path.append('/home/georgy/Documents/Dayan_lab/PhD/bandits/paper/code/maze')
+sys.path.append(os.path.abspath(os.path.join(sys.path[0], '../../code/maze')))
 from utils import plot_maze, plot_need
 import matplotlib.pyplot as plt
 
-load_path = '/home/georgy/Documents/Dayan_lab/PhD/bandits/paper/figures/supp/supp5'
+load_path = os.path.abspath(os.path.join(sys.path[0], '../../figures/supp/supp5'))
 
 def main():
 
@@ -45,8 +45,8 @@ def main():
         ax   = plt.subplot(3, 3, (plt_idx*3)+3)
         plot_maze(ax, Gain, agent)
 
-    plt.savefig(os.path.join(load_path, 'supp5.png'))
-    plt.savefig(os.path.join(load_path, 'supp5.svg'), transparent=True)
+    plt.savefig(os.path.join(load_path, 'supp_5.png'))
+    plt.savefig(os.path.join(load_path, 'supp_5.svg'), transparent=True)
 
 
     return None
