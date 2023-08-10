@@ -7,7 +7,7 @@ a, b = 2, 2
 rv   = beta(a, b)
 x    = np.linspace(0, 1, 100)
 
-save_path = os.path.abspath(os.path.join(sys.path[0], '../../figures/supp/supp3/'))
+save_path = os.path.abspath(os.path.join(sys.path[0], '../../../figures/supp/supp3/'))
 
 def main(save_folder):
 
