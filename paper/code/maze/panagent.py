@@ -1,27 +1,27 @@
 import numpy as np
 
+
 class PanAgent():
 
     def __init__(self, **p):
 
         self.__dict__.update(**p)
-
         return None
 
     def _qval_update(self, s, a, r, s1):
-
         '''
         ----
         MF Q values update
 
-        s           -- previous state 
+        s           -- previous state
         a           -- chosen action
         r           -- received reward
         s1          -- resulting new state
         ----
-        ''' 
+        '''
 
-        self.Q[s, a] += self.alpha*(r + self.gamma*np.nanmax(self.Q[s1, :]) - self.Q[s, a])
+        self.Q[s, a] += \
+            self.alpha*(r + self.gamma*np.nanmax(self.Q[s1, :]) - self.Q[s, a])
 
         return None
 
@@ -32,7 +32,6 @@ class PanAgent():
         return None
 
     def _policy(self, q_vals):
-
         '''
         ----
         Agent's policy
@@ -57,19 +56,20 @@ class PanAgent():
             return probs
 
         if self.beta != 'greedy':
-            probs = np.exp(q_vals_allowed*self.beta)/np.sum(np.exp(q_vals_allowed*self.beta))
+            probs = np.exp(q_vals_allowed*self.beta) \
+                / np.sum(np.exp(q_vals_allowed*self.beta))
             if len(nan_idcs) > 0:
                 for nan_idx in nan_idcs:
                     probs = np.insert(probs, nan_idx, 0)
             return probs
         elif self.beta == 'greedy':
             if np.all(q_vals_allowed == q_vals_allowed.max()):
-                ps           = np.ones(self.num_actions)
+                ps = np.ones(self.num_actions)
                 ps[nan_idcs] = 0
-                ps          /= ps.sum()
-                a            = np.random.choice(range(self.num_actions), p=ps)
-                probs        = np.zeros(self.num_actions)
-                probs[a]     = 1
+                ps /= ps.sum()
+                a = np.random.choice(range(self.num_actions), p=ps)
+                probs = np.zeros(self.num_actions)
+                probs[a] = 1
                 return probs
             else:
                 probs = np.zeros(self.num_actions)
@@ -79,20 +79,18 @@ class PanAgent():
             raise KeyError('Unknown policy type')
 
     def _compute_gain(self, q_before, q_after):
-
         '''
         ---
         Compute gain associated with each replay update
         ---
         '''
-        
+
         probs_before = self._policy(q_before)
-        probs_after  = self._policy(q_after)
+        probs_after = self._policy(q_after)
 
         return np.nansum((probs_after-probs_before)*q_after)
 
     def _compute_need(self, T, Q):
-        
         '''
         ---
         Compute need associated with each state
@@ -104,5 +102,6 @@ class PanAgent():
             probs = self._policy(Q[s, :])
             for a in range(self.num_actions):
                 Ts[s, :] += probs[a]*T[s, a, :]
-        
+
         return np.linalg.inv(np.eye(self.num_states) - self.gamma*Ts)
+
